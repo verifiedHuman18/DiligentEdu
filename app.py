@@ -10,18 +10,20 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from openai import AsyncOpenAI
 import streamlit as st
 from pinecone import Pinecone
-from quiz_generator import generate_quiz, get_available_chapters, create_student_quiz
-from adaptive_engine import get_next_quiz_config
-from quiz_storage import (
-    record_quiz_attempt,
-    get_student_history,
-    get_student_chapter_summary,
-    get_student_swat_metrics,
-    clear_student_history,
-    submit_and_grade_quiz,
+from backend import (
+    get_student_swat,
+    get_available_chapters,
+    generate_student_quiz,
+    submit_quiz,
+    get_student_quiz_history,
+    get_student_overview,
+    get_student_chapter_stats,
+    get_student_status,
+    get_teacher_student_profile,
+    clear_student_data,
+    format_swat_report,
 )
-from swat_analyzer import calculate_student_swat, format_swat_report
-from teacher_engine import get_teacher_student_profile, get_student_status
+from adaptive_engine import get_next_quiz_config
 
 # Configure logging
 def setup_logging():
@@ -660,7 +662,7 @@ async def main():
                 else:
                     with st.spinner(f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} from NCERT in 1 request..."):
                         try:
-                            generated = create_student_quiz(
+                            generated = generate_student_quiz(
                                 student_id=student_id,
                                 class_level=quiz_cls_int,
                                 chapter=selected_ch_title,
@@ -727,10 +729,11 @@ async def main():
                 if not is_submitted:
                     if st.button("📊 Submit Quiz", type="primary", use_container_width=True):
                         try:
-                            sub_result = submit_and_grade_quiz(
+                            sub_result = submit_quiz(
                                 student_id=student_id,
+                                quiz_id=curr_quiz.get("quiz_id"),
+                                answers=user_answers,
                                 quiz_data=curr_quiz,
-                                user_answers=user_answers,
                             )
                             st.session_state.last_submission_result = sub_result
                         except Exception as e:
@@ -776,34 +779,31 @@ async def main():
             st.markdown(f"### 📊 Student SWAT Analysis (`{student_id}`)")
             st.caption("Descriptive chapter-wise performance analysis. Identifies your strengths, average areas, and weaknesses so you can decide your own study focus.")
 
-            swat = calculate_student_swat(student_id)
-            history = get_student_history(student_id, include_questions=True)
+            swat = get_student_swat(student_id)
+            history = get_student_quiz_history(student_id, include_questions=True)
 
             if not swat.get("has_data"):
                 st.info("ℹ️ No quiz attempts recorded yet for this student ID. Complete a quiz in the **📝 Practice Quiz** tab to view your performance data.")
             else:
                 # Top metrics
                 m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-                m_col1.metric("Overall Average", f"{swat['overall_average']:.1f}%")
-                m_col2.metric("Questions Attempted", swat["questions_attempted"])
-                m_col3.metric("Questions Correct", swat["questions_correct"])
-                m_col4.metric("Quizzes Completed", swat["total_quizzes"])
+                m_col1.metric("Overall Average", f"{swat['overall']['average']}%")
+                m_col2.metric("Questions Attempted", swat["overall"]["total_questions"])
+                m_col3.metric("Questions Correct", swat["overall"]["total_correct"])
+                m_col4.metric("Quizzes Completed", swat["overall"]["quizzes_attempted"])
 
                 st.divider()
 
-                # Key Highlights: Highest, Lowest, Trend
-                h_col1, h_col2, h_col3 = st.columns(3)
+                # Key Highlights: Trend
+                h_col1, h_col2 = st.columns([1.5, 2])
                 with h_col1:
-                    high = swat.get("highest_performing_chapter")
-                    if high:
-                        st.success(f"🏆 **Top Chapter:** {high['chapter']} (**{high['accuracy']:.0f}%**)")
+                    if swat["strengths"]:
+                        st.success(f"🏆 **Top Strength:** {swat['strengths'][0]['chapter']} (**{swat['strengths'][0]['score']}%**)")
+                    elif swat["weak_topics"]:
+                        st.warning(f"🔍 **Needs Focus:** {swat['weak_topics'][0]['chapter']} (**{swat['weak_topics'][0]['score']}%**)")
                 with h_col2:
-                    low = swat.get("lowest_performing_chapter")
-                    if low:
-                        st.warning(f"🔍 **Needs Focus:** {low['chapter']} (**{low['accuracy']:.0f}%**)")
-                with h_col3:
-                    trend = swat.get("recent_trend", {})
-                    st.info(f"📈 **Recent Trend ({trend.get('direction', '—')}):** {trend.get('summary', 'Steady')}")
+                    trend = swat.get("trend", {})
+                    st.info(f"📈 **Recent Trend ({trend.get('direction', '—').upper()}):** {trend.get('summary', 'Steady')}")
 
                 st.divider()
 
@@ -815,45 +815,30 @@ async def main():
 
                 with c_col1:
                     st.markdown("##### 🟢 STRONG")
-                    strong_items = swat["categories"]["strong"]
+                    strong_items = swat["strengths"]
                     if strong_items:
                         for item in strong_items:
-                            st.success(f"**{item['chapter']}**  \nAccuracy: **{item['accuracy']:.0f}%** ({item['questions_correct']}/{item['questions_attempted']} Qs in {item['quizzes_taken']} quiz{'zes' if item['quizzes_taken'] > 1 else ''})")
+                            st.success(f"**{item['chapter']}**  \nScore: **{item['score']}%** ({item.get('correct', 0)}/{item.get('questions', 0)} Qs in {item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})")
                     else:
                         st.caption("No chapters currently in Strong.")
 
                 with c_col2:
                     st.markdown("##### 🟡 AVERAGE")
-                    avg_items = swat["categories"]["average"]
+                    avg_items = swat["average_topics"]
                     if avg_items:
                         for item in avg_items:
-                            st.info(f"**{item['chapter']}**  \nAccuracy: **{item['accuracy']:.0f}%** ({item['questions_correct']}/{item['questions_attempted']} Qs in {item['quizzes_taken']} quiz{'zes' if item['quizzes_taken'] > 1 else ''})")
+                            st.info(f"**{item['chapter']}**  \nScore: **{item['score']}%** ({item.get('correct', 0)}/{item.get('questions', 0)} Qs in {item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})")
                     else:
                         st.caption("No chapters currently in Average.")
 
                 with c_col3:
                     st.markdown("##### 🔴 WEAK")
-                    weak_items = swat["categories"]["weak"]
+                    weak_items = swat["weak_topics"]
                     if weak_items:
                         for item in weak_items:
-                            st.warning(f"**{item['chapter']}**  \nAccuracy: **{item['accuracy']:.0f}%** ({item['questions_correct']}/{item['questions_attempted']} Qs in {item['quizzes_taken']} quiz{'zes' if item['quizzes_taken'] > 1 else ''})")
+                            st.warning(f"**{item['chapter']}**  \nScore: **{item['score']}%** ({item.get('correct', 0)}/{item.get('questions', 0)} Qs in {item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})")
                     else:
                         st.caption("No weak chapters identified!")
-
-                st.divider()
-
-                # Chapter Progression Summary
-                st.markdown("#### 📈 Chapter Progression Summary")
-                ch_summary = get_student_chapter_summary(student_id)
-                for ch_name, attempts in ch_summary.items():
-                    with st.expander(f"📚 {ch_name} ({len(attempts)} attempt{'s' if len(attempts) > 1 else ''})", expanded=False):
-                        for a in attempts:
-                            pct_color = "🟢" if a["percentage"] >= 70 else ("🟡" if a["percentage"] >= 50 else "🔴")
-                            st.markdown(
-                                f"{pct_color} **Quiz {a['quiz_num']}** ({a['difficulty'].capitalize()}) — "
-                                f"**{a['percentage']:.0f}%** ({a['score']}/{a['total_questions']})  \n"
-                                f"🕒 *{a['timestamp'][:19].replace('T', ' ')} UTC*"
-                            )
 
                 st.divider()
 
@@ -869,7 +854,7 @@ async def main():
                                 st.caption(f"Your answer: `{q_rec['user_answer']}` | Correct: `{q_rec['correct_answer']}`")
 
                 if st.button("🗑️ Clear My Quiz History", type="secondary"):
-                    clear_student_history(student_id)
+                    clear_student_data(student_id)
                     st.rerun()
 
         with tab_teacher:
