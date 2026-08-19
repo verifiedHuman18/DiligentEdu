@@ -29,7 +29,7 @@ def setup_logging():
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     if not os.path.exists("logs"):
-        os.makedirs("logs")
+        os.makedirs("logs", exist_ok=True)
 
     logging.basicConfig(
         level=logging.INFO,
