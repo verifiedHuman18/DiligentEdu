@@ -1,7 +1,11 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "academic-rag-assistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "NCERT Academic Science RAG Assistant & Intelligent Tutor"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -17,3 +21,6 @@ dependencies = [
     "sentence-transformers>=5.1.0",
     "streamlit>=1.49.1",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]

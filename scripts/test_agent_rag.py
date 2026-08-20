@@ -1,31 +1,32 @@
 #!/usr/bin/env python3
 """
-Integration test for NCERT Science Agent & Citations
-Tests the end-to-end flow: Question -> Agent -> Tool -> Pinecone -> Gemini -> Answer + Citation
+Integration test for NCERT Science RAG & Citations
+Tests the end-to-end flow: Question -> Direct RAG -> Pinecone -> Gemini -> Answer + Citation
 """
 
 import os
 import sys
 import asyncio
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
-from agents import Agent, OpenAIChatCompletionsModel, Runner, SQLiteSession
+
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from app import create_function_tools, agent_initialization
+from src.academic_rag.rag.engine import stream_ncert_rag_response
+from src.academic_rag.config import config
 
 # Reconfigure stdout for UTF-8
-sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 load_dotenv()
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = config.get_google_api_key()
 
 
 async def run_test():
     print("=" * 70)
-    print("Testing End-to-End Agent RAG with NCERT Citations")
+    print("Testing End-to-End Direct RAG with NCERT Citations")
     print("=" * 70)
 
     if not GOOGLE_API_KEY:
@@ -35,24 +36,29 @@ async def run_test():
     test_queries = [
         {
             "query": "What is Ohm's law and what is the formula?",
-            "class_focus": "Class 10",
+            "class_filter": 10,
         },
         {
             "query": "What is the cell membrane and how does it function?",
-            "class_focus": "Class 9",
+            "class_filter": 9,
         },
     ]
 
     for tc in test_queries:
-        print(f"\n💬 Query: \"{tc['query']}\" (Focus: {tc['class_focus']})")
+        print(f"\n💬 Query: \"{tc['query']}\" (Class Filter: {tc['class_filter']})")
         print("-" * 50)
-        
-        agent = agent_initialization("gemini-2.5-flash", GOOGLE_API_KEY, tc["class_focus"])
-        session = SQLiteSession("test_session")
 
-        result = await Runner.run(agent, tc["query"], session=session)
+        full_resp = ""
+        async for chunk in stream_ncert_rag_response(
+            query=tc["query"],
+            class_filter=tc["class_filter"],
+            api_key=GOOGLE_API_KEY,
+            model_name=config.default_llm_model,
+        ):
+            full_resp += chunk
+
         print("🤖 Response:")
-        print(result.final_output)
+        print(full_resp)
         print("=" * 70)
 
 
