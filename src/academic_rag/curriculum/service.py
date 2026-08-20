@@ -12,6 +12,40 @@ from src.academic_rag.models.curriculum import ChapterInfo, ChapterSummaryStatus
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_CURRICULUM_MAPPING = {
+    "class9": {
+        "iesc101.pdf": {"chapter_number": 1, "chapter": "Exploration: Entering the World of Secondary Science"},
+        "iesc102.pdf": {"chapter_number": 2, "chapter": "Cell: The Building Block of Life"},
+        "iesc103.pdf": {"chapter_number": 3, "chapter": "Tissues in Action"},
+        "iesc104.pdf": {"chapter_number": 4, "chapter": "Describing Motion Around Us"},
+        "iesc105.pdf": {"chapter_number": 5, "chapter": "Exploring Mixtures and their Separation"},
+        "iesc106.pdf": {"chapter_number": 6, "chapter": "How Forces Affect Motion"},
+        "iesc107.pdf": {"chapter_number": 7, "chapter": "Work, Energy, and Simple Machines"},
+        "iesc108.pdf": {"chapter_number": 8, "chapter": "Journey Inside the Atom"},
+        "iesc109.pdf": {"chapter_number": 9, "chapter": "Atomic Foundations of Matter"},
+        "iesc110.pdf": {"chapter_number": 10, "chapter": "Sound Waves: Characteristics and Applications"},
+        "iesc111.pdf": {"chapter_number": 11, "chapter": "Reproduction: How Life Continues"},
+        "iesc112.pdf": {"chapter_number": 12, "chapter": "Patterns in Life: Diversity and Classification"},
+        "iesc113.pdf": {"chapter_number": 13, "chapter": "Earth as a System: Energy, Matter, and Life"},
+    },
+    "class10": {
+        "jesc101.pdf": {"chapter_number": 1, "chapter": "Chemical Reactions and Equations"},
+        "jesc102.pdf": {"chapter_number": 2, "chapter": "Acids, Bases and Salts"},
+        "jesc103.pdf": {"chapter_number": 3, "chapter": "Metals and Non-metals"},
+        "jesc104.pdf": {"chapter_number": 4, "chapter": "Carbon and its Compounds"},
+        "jesc105.pdf": {"chapter_number": 5, "chapter": "Life Processes"},
+        "jesc106.pdf": {"chapter_number": 6, "chapter": "Control and Coordination"},
+        "jesc107.pdf": {"chapter_number": 7, "chapter": "How do Organisms Reproduce?"},
+        "jesc108.pdf": {"chapter_number": 8, "chapter": "Heredity"},
+        "jesc109.pdf": {"chapter_number": 9, "chapter": "Light – Reflection and Refraction"},
+        "jesc110.pdf": {"chapter_number": 10, "chapter": "The Human Eye and the Colourful World"},
+        "jesc111.pdf": {"chapter_number": 11, "chapter": "Electricity"},
+        "jesc112.pdf": {"chapter_number": 12, "chapter": "Magnetic Effects of Electric Current"},
+        "jesc113.pdf": {"chapter_number": 13, "chapter": "Our Environment"},
+    },
+}
+
+
 class CurriculumService:
     """Provides access to NCERT textbook syllabus, chapters, and resolver utilities."""
 
@@ -31,10 +65,10 @@ class CurriculumService:
                     return self._cached_mapping
             except Exception as e:
                 logger.error(f"Error loading {self.mapping_path}: {e}")
-                raise CurriculumError(f"Failed to load curriculum mapping from {self.mapping_path}: {e}")
 
-        logger.warning(f"Curriculum mapping file not found at {self.mapping_path}")
-        return {}
+        # Fallback to built-in curriculum mapping
+        self._cached_mapping = DEFAULT_CURRICULUM_MAPPING
+        return self._cached_mapping
 
     def get_chapters_for_grade(self, class_level: int) -> List[ChapterInfo]:
         """Returns sorted list of all chapters in a grade (Class 9 or 10)."""
