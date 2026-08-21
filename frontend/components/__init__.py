@@ -1,5 +1,6 @@
 """Components package exports."""
 
+from frontend.components.navbar import render_navbar
 from frontend.components.header import render_header
 from frontend.components.sidebar import render_sidebar
 from frontend.components.theme_switcher import render_theme_switcher
@@ -10,6 +11,7 @@ from frontend.components.cards import (
 )
 
 __all__ = [
+    "render_navbar",
     "render_header",
     "render_sidebar",
     "render_theme_switcher",

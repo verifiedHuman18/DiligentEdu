@@ -14,11 +14,13 @@ logger = logging.getLogger(__name__)
 
 async def stream_ncert_rag_response(
     query: str,
-    class_filter: Optional[int],
+    class_filter: Optional[int] = None,
+    grade: Optional[int] = None,
     api_key: Optional[str] = None,
     model_name: Optional[str] = None,
     chat_history: Optional[List[Dict[str, str]]] = None,
     top_k: int = 5,
+    **kwargs,
 ) -> AsyncGenerator[str, None]:
     """
     Direct NCERT RAG streaming engine.
@@ -26,6 +28,7 @@ async def stream_ncert_rag_response(
     2. Directly invokes Gemini via OpenAI-compatible endpoint.
     3. Streams response token-by-token with grounded textbook explanations & exact page citations.
     """
+    effective_class_filter = grade if grade is not None else class_filter
     active_key = config.get_google_api_key(override=api_key)
     if not active_key:
         raise AuthenticationError("Google Gemini API key is required.")
@@ -33,7 +36,7 @@ async def stream_ncert_rag_response(
     active_model = model_name or config.default_llm_model
 
     # 1. Retrieve NCERT Context
-    context = retrieve_ncert_context(query, class_filter=class_filter, top_k=top_k)
+    context = retrieve_ncert_context(query, class_filter=effective_class_filter, top_k=top_k)
 
     # 2. Build Messages
     messages = [{"role": "system", "content": NCERT_TUTOR_SYSTEM_PROMPT}]

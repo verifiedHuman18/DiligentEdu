@@ -1,12 +1,18 @@
-"""Teacher Diagnostics and Master Analytics Screen (No Emojis)."""
+"""Teacher Diagnostics and Master Analytics Screen with Material Icons (No Emojis)."""
 
 import streamlit as st
 from src.academic_rag.analytics.teacher import get_teacher_student_profile
 from frontend.components.cards import render_metric_card
+from frontend.state import navigate_to
 
 
 def render_teacher_screen(student_id: str) -> None:
     """Renders the Teacher Master Analytics and Early-Warning Diagnostic Dashboard."""
+    if st.button("Back to Home", icon=":material/arrow_back:", type="secondary", key="teacher_top_back_btn"):
+        navigate_to("home")
+        st.rerun()
+
+    st.write("")
     st.markdown("### Teacher Analytics and Diagnostics")
     st.caption(f"Pedagogical insights and early-warning mastery indicators for student **`{student_id}`**.")
 
@@ -41,86 +47,62 @@ def render_teacher_screen(student_id: str) -> None:
     # Alerts & Positive Notes
     if st_status.get("alerts"):
         for alert in st_status["alerts"]:
-            st.warning(alert["message"])
-
+            st.warning(f"Notice: {alert}")
     if st_status.get("positive_notes"):
         for note in st_status["positive_notes"]:
-            st.success(note)
+            st.success(f"Commendation: {note}")
 
     st.write("")
 
-    # 2. Lifetime Metrics Grid
+    # 2. Master Metrics Grid
     m1, m2, m3, m4, m5 = st.columns(5)
     with m1:
-        render_metric_card("Class Level", f"Class {st_overview['class']}")
-    with m2:
         render_metric_card("Overall Average", f"{st_overview['overall_average']}%")
-    with m3:
+    with m2:
         render_metric_card("Quizzes Taken", st_overview["total_quizzes"])
+    with m3:
+        render_metric_card("Questions Answered", st_overview["total_questions"])
     with m4:
-        render_metric_card("Questions Attempted", f"{st_overview['questions_attempted']}")
+        render_metric_card("Accuracy", f"{st_overview['overall_accuracy_rate']}%")
     with m5:
-        render_metric_card("Accuracy", f"{st_overview['accuracy']}%")
+        render_metric_card("Chapters Covered", f"{len(st_chapters)}/26")
 
-    st.divider()
+    st.write("")
 
-    # 3. Chapter Performance Table
+    # 3. Chapter-Wise Performance Breakdown
     st.markdown("#### Chapter-Wise Performance")
     if st_chapters:
-        ch_table_rows = []
-        for c in st_chapters:
-            ch_table_rows.append({
-                "Chapter": c["chapter"],
-                "Average Score": f"{c['average']}%",
-                "Accuracy": f"{c['accuracy']}%",
-                "Attempts": c["attempts"],
-                "Questions (Corr/Att)": f"{c['questions_correct']}/{c['questions_attempted']}",
-                "SWAT Status": c["status"].upper(),
-            })
-        st.dataframe(ch_table_rows, use_container_width=True)
+        for ch in st_chapters:
+            sc = ch["average_score"]
+            attempts = ch["attempts"]
+            tot_q = ch["total_questions"]
+            tot_c = ch["total_correct"]
+            st_text = ch["status_text"].upper()
 
-    st.divider()
+            with st.expander(f"Ch {ch['chapter_number']} — {ch['chapter']} | Average: {sc}% [{st_text}] | Attempts: {attempts}"):
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    st.metric("Chapter Average", f"{sc}%")
+                with c2:
+                    st.metric("Total Questions", f"{tot_c}/{tot_q}")
+                with c3:
+                    st.metric("Quizzes Attempted", attempts)
+                if ch.get("last_attempt"):
+                    st.caption(f"Last Attempt: {ch['last_attempt'][:16]}")
+    else:
+        st.caption("No chapter records available.")
 
-    # 4. Strength / Weakness Diagnostic
-    st.markdown("#### Teacher Diagnostic Matrix")
-    ts1, ts2, ts3 = st.columns(3)
-    with ts1:
-        st.markdown("##### STRONG (>= 70%)")
-        if st_swat.get("strengths"):
-            for s in st_swat["strengths"]:
-                st.success(f"**{s['chapter']}** ({s['score']}%)")
-        else:
-            st.caption("None yet.")
+    st.write("")
 
-    with ts2:
-        st.markdown("##### AVERAGE (50%–69%)")
-        if st_swat.get("average_topics"):
-            for a in st_swat["average_topics"]:
-                st.info(f"**{a['chapter']}** ({a['score']}%)")
-        else:
-            st.caption("None.")
-
-    with ts3:
-        st.markdown("##### WEAK (< 50%)")
-        if st_swat.get("weak_topics"):
-            for w in st_swat["weak_topics"]:
-                st.error(f"**{w['chapter']}** ({w['score']}%)")
-        else:
-            st.caption("None.")
-
-    st.divider()
-
-    # 5. Chronological Quiz Log
-    st.markdown("#### Chronological Quiz History Log")
+    # 4. Recent Student Activity Log
+    st.markdown("#### Recent Activity Log")
     if st_history:
-        hist_display = []
-        for row in reversed(st_history):
-            hist_display.append({
-                "Date": row["date"],
-                "Chapter": row["chapter"],
-                "Difficulty": row["difficulty"],
-                "Score": row["score_display"],
-                "Questions": f"{row['score']}/{row['total_questions']}",
-                "Timestamp": row["timestamp"][:19].replace("T", " "),
-            })
-        st.dataframe(hist_display, use_container_width=True)
+        for q in reversed(st_history[-5:]):
+            st.markdown(
+                f"- **{q['timestamp'][:16]}** | Ch: **{q['chapter']}** | "
+                f"Score: **{q['score']}/{q['total_questions']}** "
+                f"({round((q['score']/q['total_questions'])*100, 1) if q['total_questions'] else 0}%) | "
+                f"Difficulty: `{q.get('difficulty', 'medium')}`"
+            )
+    else:
+        st.caption("No recent activity.")

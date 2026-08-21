@@ -22,12 +22,13 @@ if hasattr(sys.stdout, "reconfigure"):
 from frontend import (
     inject_custom_css,
     init_session_state,
-    render_header,
-    render_sidebar,
+    render_navbar,
+    render_home_screen,
     render_tutor_screen,
     render_quiz_screen,
     render_swat_screen,
     render_teacher_screen,
+    render_settings_screen,
 )
 
 
@@ -59,43 +60,42 @@ except RuntimeError:
     asyncio.set_event_loop(loop)
 
 
-# Streamlit Page Configuration
+# Streamlit Page Configuration (Sidebar collapsed by default)
 st.set_page_config(
     page_title="NCERT Science Academic Assistant",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 
 async def main():
-    """Main application orchestrator."""
+    """Main application orchestrator with screen-based routing and no sidebar."""
     init_session_state()
     inject_custom_css()
 
-    selected_model, user_api_key, selected_class, student_id = render_sidebar()
+    selected_class = st.session_state.get("selected_class", "All Classes")
+    student_id = st.session_state.get("student_id", "student_001")
+    selected_model = st.session_state.get("model", "gemini-3.5-flash-lite")
+    user_api_key = st.session_state.get("api_key", "")
 
-    # Top Header with Status Badges
-    render_header(selected_class=selected_class, student_id=student_id)
+    # Top Navbar & Screen Selector
+    active_screen = render_navbar(selected_class=selected_class, student_id=student_id)
 
-    # Navigation Tabs
-    tab_chat, tab_quiz, tab_swat, tab_teacher = st.tabs([
-        "NCERT Q&A Tutor",
-        "Practice Quiz",
-        "Student SWAT",
-        "Teacher Dashboard",
-    ])
-
-    with tab_chat:
+    # Route to dedicated screen
+    if active_screen == "home":
+        render_home_screen(selected_class=selected_class, student_id=student_id)
+    elif active_screen == "tutor":
         await render_tutor_screen(selected_model, user_api_key, selected_class)
-
-    with tab_quiz:
+    elif active_screen == "quiz":
         render_quiz_screen(student_id, user_api_key, selected_model)
-
-    with tab_swat:
+    elif active_screen == "swat":
         render_swat_screen(student_id)
-
-    with tab_teacher:
+    elif active_screen == "teacher":
         render_teacher_screen(student_id)
+    elif active_screen == "settings":
+        render_settings_screen()
+    else:
+        render_home_screen(selected_class=selected_class, student_id=student_id)
 
 
 if __name__ == "__main__":

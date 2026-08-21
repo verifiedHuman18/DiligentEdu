@@ -1,21 +1,27 @@
-"""Student SWAT Dashboard Screen (No Emojis)."""
+"""Student Analytics Dashboard Screen with Material Icons (No Emojis, No SWAT Acronym)."""
 
 import streamlit as st
 from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.storage.repository import quiz_repository
 from frontend.components.cards import render_metric_card
+from frontend.state import navigate_to
 
 
 def render_swat_screen(student_id: str) -> None:
-    """Renders the Student SWAT Analysis dashboard."""
-    st.markdown(f"### Student SWAT Analysis ({student_id})")
-    st.caption("Descriptive chapter-wise mastery analysis to help you target your study focus.")
+    """Renders the Student Analytics dashboard."""
+    if st.button("Back to Home", icon=":material/arrow_back:", type="secondary", key="swat_top_back_btn"):
+        navigate_to("home")
+        st.rerun()
+
+    st.write("")
+    st.markdown(f"### Student Analytics ({student_id})")
+    st.caption("Chapter-wise mastery analysis to help you target your study focus.")
 
     swat = get_student_swat(student_id)
     history = quiz_repository.get_student_history(student_id, include_questions=True)
 
     if not swat.get("has_data"):
-        st.info("No quiz attempts recorded yet. Take a quiz in the Practice Quiz tab to view your mastery data.")
+        st.info("No quiz attempts recorded yet. Take a quiz in the Practice Quiz module to view your mastery data.")
         return
 
     # Top Metrics Grid
@@ -40,72 +46,56 @@ def render_swat_screen(student_id: str) -> None:
             st.warning(f"Needs Focus: {swat['weak_topics'][0]['chapter']} ({swat['weak_topics'][0]['score']}%)")
     with h2:
         trend = swat.get("trend", {})
-        st.info(f"Recent Trend ({trend.get('direction', '—').upper()}): {trend.get('summary', 'Steady')}")
+        if trend.get("has_trend"):
+            dir_str = "Improving" if trend["direction"] == "improving" else ("Declining" if trend["direction"] == "declining" else "Stable")
+            st.info(f"Performance Trend: {dir_str} (Last 5: {trend['recent_average']}%)")
 
-    st.divider()
+    st.write("")
 
-    # SWAT 3-Column Breakdown
-    st.markdown("#### Chapter-Wise Mastery Breakdown")
-    st.caption("STRONG (>= 70%) | AVERAGE (50%–69%) | WEAK (< 50%)")
+    # 3-Column Mastery Breakdown
+    st.markdown("#### Mastery by Chapter")
+    col_str, col_avg, col_weak = st.columns(3)
 
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        st.markdown("##### STRONG")
-        strong_items = swat.get("strengths", [])
-        if strong_items:
-            for item in strong_items:
-                st.success(
-                    f"**{item['chapter']}**  \nScore: {item['score']}% "
-                    f"({item.get('correct', 0)}/{item.get('questions', 0)} Qs across "
-                    f"{item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})"
-                )
+    with col_str:
+        st.markdown("**Mastered Topics (>= 75%)**")
+        if swat["strengths"]:
+            for item in swat["strengths"]:
+                st.success(f"Ch {item.get('chapter_number', '')} {item['chapter']} — {item['score']}%")
         else:
-            st.caption("No chapters currently in Strong.")
+            st.caption("No mastered chapters yet.")
 
-    with c2:
-        st.markdown("##### AVERAGE")
-        avg_items = swat.get("average_topics", [])
-        if avg_items:
-            for item in avg_items:
-                st.info(
-                    f"**{item['chapter']}**  \nScore: {item['score']}% "
-                    f"({item.get('correct', 0)}/{item.get('questions', 0)} Qs across "
-                    f"{item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})"
-                )
+    with col_avg:
+        st.markdown("**In Progress (50% - 74%)**")
+        if swat["average_topics"]:
+            for item in swat["average_topics"]:
+                st.info(f"Ch {item.get('chapter_number', '')} {item['chapter']} — {item['score']}%")
         else:
-            st.caption("No chapters currently in Average.")
+            st.caption("No topics currently in progress.")
 
-    with c3:
-        st.markdown("##### WEAK")
-        weak_items = swat.get("weak_topics", [])
-        if weak_items:
-            for item in weak_items:
-                st.error(
-                    f"**{item['chapter']}**  \nScore: {item['score']}% "
-                    f"({item.get('correct', 0)}/{item.get('questions', 0)} Qs across "
-                    f"{item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})"
-                )
+    with col_weak:
+        st.markdown("**Needs Review (< 50%)**")
+        if swat["weak_topics"]:
+            for item in swat["weak_topics"]:
+                st.error(f"Ch {item.get('chapter_number', '')} {item['chapter']} — {item['score']}%")
         else:
-            st.caption("No weak chapters identified.")
+            st.caption("No weak topics identified.")
 
-    st.divider()
+    st.write("")
 
-    # Timeline History
-    st.markdown("#### Detailed Quiz History")
-    for att in reversed(history):
-        with st.expander(
-            f"{att['timestamp'][:19].replace('T', ' ')} | Class {att['class_level']} — {att['chapter']} | "
-            f"{att['percentage']:.0f}% ({att['score']}/{att['total_questions']})",
-            expanded=False,
-        ):
-            st.markdown(f"Quiz ID: `{att['quiz_id']}` | Difficulty: `{att['difficulty'].upper()}`")
-            if "questions" in att and att["questions"]:
-                for q_idx, q_rec in enumerate(att["questions"], 1):
-                    q_status = "[Correct]" if q_rec["is_correct"] else "[Incorrect]"
-                    st.markdown(f"{q_status} **Q{q_idx}:** {q_rec['question_text']}")
-                    st.caption(f"Your answer: {q_rec['user_answer']} | Correct: {q_rec['correct_answer']}")
-
-    if st.button("Clear Quiz History", type="secondary"):
-        quiz_repository.clear_student_data(student_id)
-        st.rerun()
+    # Quiz History
+    st.markdown("#### Quiz History")
+    if history:
+        for q in reversed(history[-5:]):
+            score_pct = round((q["score"] / q["total_questions"]) * 100, 1) if q["total_questions"] else 0
+            with st.expander(f"Ch {q['chapter']} | Score: {q['score']}/{q['total_questions']} ({score_pct}%) | {q['timestamp'][:16]}"):
+                for idx, item in enumerate(q.get("questions_data", []), 1):
+                    user_ans = item.get("user_answer", "None")
+                    correct_ans = item.get("correct_answer", "")
+                    status = "Correct" if item.get("is_correct") else "Incorrect"
+                    st.markdown(f"**Q{idx}: {item.get('question', '')}**")
+                    st.markdown(f"Your answer: `{user_ans}` | Correct: `{correct_ans}` — *{status}*")
+                    if item.get("explanation"):
+                        st.caption(f"Explanation: {item['explanation']}")
+                    st.write("")
+    else:
+        st.caption("No quiz history available.")

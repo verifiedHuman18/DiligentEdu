@@ -1,4 +1,4 @@
-"""Practice Quiz Screen with instant grading and SWAT integration (No Emojis)."""
+"""Practice Quiz Screen with instant grading, Material icons, and SWAT integration."""
 
 import logging
 import streamlit as st
@@ -7,12 +7,18 @@ from src.academic_rag.analytics.swat import get_available_chapters
 from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
 from src.academic_rag.quiz.generator import create_student_quiz
 from frontend.components.cards import render_citation_box
+from frontend.state import navigate_to
 
 logger = logging.getLogger(__name__)
 
 
 def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) -> None:
     """Renders the Practice Quiz screen."""
+    if st.button("Back to Home", icon=":material/arrow_back:", type="secondary", key="quiz_top_back_btn"):
+        navigate_to("home")
+        st.rerun()
+
+    st.write("")
     st.markdown("### NCERT Practice Quiz")
     st.caption("Generate grounded multiple-choice quizzes with instant grading, textbook explanations, and exact page citations.")
 
@@ -43,20 +49,19 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
     with c4:
         quiz_count = st.selectbox("Questions", [5, 3, 7, 10], index=0, key="screen_quiz_count")
 
-    if st.button("Generate NCERT Quiz", type="primary", use_container_width=True):
+    if st.button("Generate NCERT Quiz", icon=":material/auto_awesome:", type="primary", use_container_width=True):
         if not user_api_key:
-            st.warning("Please enter your Google Gemini API key in the sidebar.")
+            st.warning("Please enter your Google Gemini API key in Settings (gear icon in the top right).")
         else:
             with st.spinner(f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title}..."):
                 try:
                     generated = create_student_quiz(
                         student_id=student_id,
-                        class_level=quiz_cls_int,
                         chapter=selected_ch_title,
-                        difficulty=quiz_diff,
+                        class_level=quiz_cls_int,
                         num_questions=quiz_count,
-                        api_key=user_api_key,
-                        model=selected_model,
+                        difficulty=quiz_diff,
+                        model_name=selected_model,
                     )
                     st.session_state.current_quiz = generated
                     st.session_state.quiz_submitted = False
@@ -64,51 +69,54 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                     st.session_state.last_submission_result = None
                     st.rerun()
                 except Exception as e:
-                    logger.error(f"Quiz generation error: {e}")
-                    st.error(f"Quiz generation error: {e}")
+                    logger.error(f"Quiz generation failed: {e}")
+                    st.error(f"Quiz generation failed: {e}")
 
     # Active Quiz Display
     curr_quiz = st.session_state.get("current_quiz")
-    if curr_quiz and "questions" in curr_quiz:
-        st.divider()
-        st.markdown(f"#### Quiz: Class {curr_quiz.get('class_level')} Science — {curr_quiz.get('chapter')}")
-        st.caption(
-            f"Difficulty: {curr_quiz.get('difficulty', '').upper()} | "
-            f"Total Questions: {curr_quiz.get('total_questions', len(curr_quiz['questions']))} | "
-            f"Student: {student_id}"
-        )
+    if curr_quiz and curr_quiz.get("questions"):
+        st.write("")
+        st.markdown(f"#### {curr_quiz.get('chapter', 'Chapter')} Quiz — Class {curr_quiz.get('class_level', 10)}")
+        st.caption(f"Difficulty: {curr_quiz.get('difficulty', 'medium').capitalize()} | Questions: {len(curr_quiz['questions'])}")
 
-        user_answers = st.session_state.get("quiz_user_answers", {})
         is_submitted = st.session_state.get("quiz_submitted", False)
+        user_answers = {}
 
-        for idx, q_data in enumerate(curr_quiz["questions"], 1):
-            st.markdown(f"**Q{idx}. {q_data['question']}**")
-            options = q_data.get("options", [])
-            choice_key = f"q_choice_{idx}"
-            current_val = user_answers.get(choice_key, None)
+        for idx, q_data in enumerate(curr_quiz["questions"], start=1):
+            st.markdown(f"**Question {idx}:** {q_data['question']}")
 
-            if not is_submitted:
-                selected_opt = st.radio(
-                    f"Options for Q{idx}:",
-                    options,
-                    key=choice_key,
-                    index=options.index(current_val) if current_val in options else None,
-                    label_visibility="collapsed",
-                )
-                user_answers[choice_key] = selected_opt
-            else:
-                user_ans_text = user_answers.get(choice_key)
-                correct_key = q_data.get("correct_answer", "A").upper()
-                correct_opt_text = next(
-                    (o for o in options if o.startswith(f"{correct_key})") or o.startswith(f"{correct_key}.")),
-                    options[0] if options else "",
-                )
+            options = q_data.get("options", {})
+            opt_labels = [f"{k}. {v}" for k, v in options.items()]
 
-                is_correct = user_ans_text and user_ans_text.startswith(f"{correct_key}")
-                if is_correct:
-                    st.success(f"Correct. Your Answer: {user_ans_text}")
+            saved_ans = st.session_state.get("quiz_user_answers", {}).get(str(idx))
+            saved_idx = None
+            if saved_ans:
+                for o_i, opt_k in enumerate(options.keys()):
+                    if opt_k == saved_ans:
+                        saved_idx = o_i
+                        break
+
+            chosen = st.radio(
+                f"Select answer for Q{idx}",
+                opt_labels,
+                index=saved_idx,
+                key=f"q_radio_{idx}",
+                disabled=is_submitted,
+                label_visibility="collapsed",
+            )
+
+            if chosen:
+                chosen_letter = chosen.split(".")[0].strip()
+                user_answers[str(idx)] = chosen_letter
+
+            if is_submitted:
+                correct_letter = q_data.get("correct_answer", "").strip().upper()
+                student_choice = user_answers.get(str(idx), "")
+
+                if student_choice == correct_letter:
+                    st.success(f"Correct! Option {correct_letter}")
                 else:
-                    st.error(f"Incorrect. Your Answer: {user_ans_text or 'No answer selected'}  \nCorrect Answer: {correct_opt_text}")
+                    st.error(f"Incorrect. Your answer: {student_choice or 'None'} | Correct answer: {correct_letter}")
 
                 with st.expander(f"Explanation and NCERT Citations (Q{idx})", expanded=True):
                     st.markdown(f"**Explanation:** {q_data.get('explanation', 'Refer to NCERT textbook.')}")
@@ -124,7 +132,7 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
         st.session_state.quiz_user_answers = user_answers
 
         if not is_submitted:
-            if st.button("Submit Quiz", type="primary", use_container_width=True):
+            if st.button("Submit Quiz", icon=":material/check_circle:", type="primary", use_container_width=True):
                 try:
                     sub_result = submit_and_grade_quiz(
                         student_id=student_id,
@@ -145,7 +153,7 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
             total_q = sub_res.get("total", len(curr_quiz["questions"]))
             pct = sub_res.get("percentage", 0)
 
-            st.divider()
+            st.write("")
             res_col1, res_col2 = st.columns([2.5, 1])
             with res_col1:
                 if pct >= 70:
@@ -166,7 +174,7 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                         )
 
             with res_col2:
-                if st.button("Take Another Quiz", type="primary", use_container_width=True):
+                if st.button("Take Another Quiz", icon=":material/replay:", type="primary", use_container_width=True):
                     st.session_state.current_quiz = None
                     st.session_state.quiz_submitted = False
                     st.session_state.quiz_user_answers = {}

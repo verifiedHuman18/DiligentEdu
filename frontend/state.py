@@ -9,6 +9,7 @@ def init_session_state() -> None:
     """Initializes default keys in Streamlit session state."""
     defaults = {
         "theme": "Dark",
+        "current_screen": "home",
         "messages": [],
         "selected_class": "All Classes",
         "selected_chapter": "All Chapters",
@@ -35,3 +36,8 @@ def get_state(key: str, default: Any = None) -> Any:
 def set_state(key: str, value: Any) -> None:
     """Safely sets a value in session state."""
     st.session_state[key] = value
+
+
+def navigate_to(screen_name: str) -> None:
+    """Navigates to a specific screen."""
+    st.session_state.current_screen = screen_name
