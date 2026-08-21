@@ -98,6 +98,8 @@ def generate_student_quiz(
     num_questions: int = 5,
     api_key: Optional[str] = None,
     model: Optional[str] = None,
+    model_name: Optional[str] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """
     Generates a structured, curriculum-grounded MCQ practice quiz in ONE single Gemini API request.
@@ -110,6 +112,7 @@ def generate_student_quiz(
         num_questions: Number of questions to generate (default: 5)
         api_key: Optional Gemini API key
         model: Model identifier (default: "gemini-3.5-flash-lite")
+        model_name: Alternative model identifier keyword
 
     Returns:
         Structured Quiz dictionary with questions, 4 options, correct answer key, and NCERT page citations.
@@ -121,7 +124,8 @@ def generate_student_quiz(
         difficulty=difficulty,
         num_questions=num_questions,
         api_key=api_key,
-        model=model,
+        model=model or model_name,
+        **kwargs,
     )
 
 

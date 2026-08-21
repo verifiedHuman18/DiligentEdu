@@ -77,7 +77,8 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                         class_level=quiz_cls_int,
                         num_questions=quiz_count,
                         difficulty=quiz_diff,
-                        model_name=selected_model,
+                        api_key=user_api_key,
+                        model=selected_model,
                     )
                     st.session_state.current_quiz = generated
                     st.session_state.quiz_submitted = False
@@ -105,14 +106,40 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
         for idx, q_data in enumerate(curr_quiz["questions"], start=1):
             st.markdown(f"**Question {idx}:** {q_data['question']}")
 
-            options = q_data.get("options", {})
-            opt_labels = [f"{k}. {v}" for k, v in options.items()]
+            raw_options = q_data.get("options", [])
+            opt_labels = []
+            opt_map = {}
+            letters = ["A", "B", "C", "D"]
+
+            if isinstance(raw_options, dict):
+                for k, v in raw_options.items():
+                    k_clean = str(k).strip().upper()
+                    label = f"{k_clean}) {v}" if not str(v).startswith(f"{k_clean}") else str(v)
+                    opt_labels.append(label)
+                    opt_map[label] = k_clean
+            elif isinstance(raw_options, list):
+                for i, opt in enumerate(raw_options):
+                    def_letter = letters[i] if i < len(letters) else str(i + 1)
+                    opt_str = str(opt).strip()
+                    if (
+                        len(opt_str) >= 2
+                        and opt_str[0].upper() in letters
+                        and opt_str[1] in [")", ".", ":", " "]
+                    ):
+                        detected_letter = opt_str[0].upper()
+                        label = opt_str
+                        opt_labels.append(label)
+                        opt_map[label] = detected_letter
+                    else:
+                        label = f"{def_letter}) {opt_str}"
+                        opt_labels.append(label)
+                        opt_map[label] = def_letter
 
             saved_ans = st.session_state.get("quiz_user_answers", {}).get(str(idx))
             saved_idx = None
             if saved_ans:
-                for o_i, opt_k in enumerate(options.keys()):
-                    if opt_k == saved_ans:
+                for o_i, lbl in enumerate(opt_labels):
+                    if opt_map.get(lbl) == saved_ans or lbl == saved_ans:
                         saved_idx = o_i
                         break
 
@@ -126,25 +153,44 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
             )
 
             if chosen:
-                chosen_letter = chosen.split(".")[0].strip()
+                chosen_letter = opt_map.get(
+                    chosen, chosen.split(")")[0].split(".")[0].strip().upper()
+                )
                 user_answers[str(idx)] = chosen_letter
 
             if is_submitted:
-                correct_letter = q_data.get("correct_answer", "").strip().upper()
+                correct_letter = str(q_data.get("correct_answer", "")).strip().upper()
+                if len(correct_letter) > 1 and correct_letter.startswith(("A", "B", "C", "D")):
+                    correct_letter = correct_letter[0]
                 student_choice = user_answers.get(str(idx), "")
 
                 if student_choice == correct_letter:
                     st.success(f"Correct! Option {correct_letter}")
                 else:
                     st.error(
-                        f"Incorrect. Your answer: {student_choice or 'None'} | Correct answer: {correct_letter}"
+                        f"Incorrect. Your answer: Option {student_choice or 'None'} | Correct answer: Option {correct_letter}"
                     )
 
-                with st.expander(f"Explanation and NCERT Citations (Q{idx})", expanded=True):
-                    st.markdown(
-                        f"**Explanation:** {q_data.get('explanation', 'Refer to NCERT textbook.')}"
+                with st.expander(f"💡 Explanation & NCERT Citations (Q{idx})", expanded=True):
+                    exp_text = q_data.get("explanation", "Refer to NCERT textbook.")
+                    st.markdown(f"**Explanation:** {exp_text}")
+
+                    sp = (
+                        q_data.get("source_pages")
+                        or q_data.get("source_page")
+                        or q_data.get("pages")
                     )
-                    sp = q_data.get("source_pages", [])
+                    if not sp:
+                        import re
+
+                        exp_pages = re.findall(
+                            r"(?:\[PAGE:\s*|page\s+|pages\s+|p\.\s*)(\d+)",
+                            str(exp_text),
+                            re.IGNORECASE,
+                        )
+                        if exp_pages:
+                            sp = [int(p) for p in exp_pages]
+
                     render_citation_box(
                         chapter=curr_quiz.get("chapter", ""),
                         class_level=curr_quiz.get("class_level", 10),

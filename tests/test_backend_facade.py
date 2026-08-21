@@ -73,6 +73,48 @@ class TestBackendFacade(unittest.TestCase):
         swat_after = backend.get_student_swat(self.student_id, db_path=self.db_path)
         self.assertFalse(swat_after["has_data"])
 
+    def test_quiz_generator_signature_compatibility(self):
+        from unittest.mock import patch
+
+        from src.academic_rag.quiz.generator import create_student_quiz
+
+        mock_return = {"quiz_id": "test_123", "questions": []}
+        with patch(
+            "src.academic_rag.quiz.generator.generate_quiz", return_value=mock_return
+        ) as mock_gen:
+            # Test create_student_quiz with model_name
+            res1 = create_student_quiz(
+                student_id="test_student",
+                class_level=10,
+                chapter="Electricity",
+                difficulty="medium",
+                num_questions=5,
+                api_key="test_key",
+                model_name="gemini-2.5-flash",
+            )
+            self.assertEqual(res1["student_id"], "test_student")
+            mock_gen.assert_called_with(
+                class_level=10,
+                chapter="Electricity",
+                difficulty="medium",
+                num_questions=5,
+                api_key="test_key",
+                model="gemini-2.5-flash",
+                pinecone_api_key=None,
+            )
+
+            # Test backend.generate_student_quiz with model_name
+            res2 = backend.generate_student_quiz(
+                student_id="test_student",
+                class_level=10,
+                chapter="Electricity",
+                difficulty="medium",
+                num_questions=5,
+                api_key="test_key",
+                model_name="gemini-3.5-flash-lite",
+            )
+            self.assertEqual(res2["student_id"], "test_student")
+
 
 if __name__ == "__main__":
     unittest.main()

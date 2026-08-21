@@ -27,8 +27,18 @@ def get_embeddings() -> HuggingFaceEmbeddings:
 def get_pinecone_index(api_key: Optional[str] = None):
     """Returns cached or newly initialized Pinecone Index connection."""
     global _cached_pinecone_index
+    # Guard against mistakenly passing a Google API key to Pinecone
+    clean_override = api_key if (api_key and not str(api_key).startswith("AIza")) else None
+    if clean_override is not None:
+        active_key = config.get_pinecone_api_key(override=clean_override)
+        if not active_key:
+            raise AuthenticationError("PINECONE_API_KEY is not set.")
+        logger.info(f"Connecting to Pinecone index: {config.pinecone_index_name}")
+        pc = Pinecone(api_key=active_key)
+        return pc.Index(config.pinecone_index_name)
+
     if _cached_pinecone_index is None:
-        active_key = config.get_pinecone_api_key(override=api_key)
+        active_key = config.get_pinecone_api_key()
         if not active_key:
             raise AuthenticationError("PINECONE_API_KEY is not set.")
         logger.info(f"Connecting to Pinecone index: {config.pinecone_index_name}")

@@ -20,11 +20,15 @@ def retrieve_chapter_context_for_quiz(
     chapter_number: int,
     chapter_title: str,
     top_k: int = 8,
+    pinecone_api_key: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> str:
     """Retrieves representative NCERT textbook chunks across the chapter."""
     embeddings = get_embeddings()
-    index = get_pinecone_index(api_key=api_key)
+    effective_pinecone_key = pinecone_api_key or (
+        api_key if api_key and not api_key.startswith("AIza") else None
+    )
+    index = get_pinecone_index(api_key=effective_pinecone_key)
 
     query_text = (
         f"NCERT Class {class_level} Science Chapter {chapter_number} {chapter_title} "
@@ -76,13 +80,16 @@ def generate_quiz(
     num_questions: int = 5,
     api_key: Optional[str] = None,
     model: Optional[str] = None,
+    model_name: Optional[str] = None,
+    pinecone_api_key: Optional[str] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """Generates structured MCQ practice quiz in 1 single Gemini API request."""
     active_key = config.get_google_api_key(override=api_key)
     if not active_key:
         raise AuthenticationError("Google Gemini API key is required.")
 
-    active_model = model or config.default_llm_model
+    active_model = model or model_name or config.default_llm_model
 
     # 1. Resolve chapter
     ch_number, ch_title = curriculum_service.resolve_chapter(class_level, chapter)
@@ -97,7 +104,7 @@ def generate_quiz(
         chapter_number=ch_number,
         chapter_title=ch_title,
         top_k=8,
-        api_key=api_key,
+        pinecone_api_key=pinecone_api_key,
     )
 
     if not context or "No matching" in context:
@@ -171,6 +178,12 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
     if not isinstance(raw_questions, list) or len(raw_questions) == 0:
         raise QuizGenerationError("Generated quiz has no valid questions list.")
 
+    # Extract any available page numbers from retrieved chapter context as fallback
+    import re
+
+    context_pages = [int(n) for n in re.findall(r"PAGE:\s*(\d+)", context)]
+    default_pages = sorted(list(set(context_pages))) if context_pages else []
+
     validated_questions: List[Dict[str, Any]] = []
     for idx, q in enumerate(raw_questions, 1):
         q_text = str(q.get("question") or f"Question {idx}").strip()
@@ -189,12 +202,47 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
             or f"Refer to NCERT Class {class_level} Science Chapter '{ch_title}'."
         ).strip()
 
-        sp = q.get("source_pages", [])
-        if isinstance(sp, int):
-            sp = [sp]
-        elif not isinstance(sp, list):
-            sp = []
-        source_pages = [int(p) for p in sp if str(p).isdigit()]
+        # Robust source page parsing across int, list, string, and explanation mentions
+        raw_sp = None
+        for k in ["source_pages", "source_page", "pages", "page", "citation_pages", "page_numbers"]:
+            if k in q and q[k] is not None and q[k] != "":
+                raw_sp = q[k]
+                break
+
+        found_pages: List[int] = []
+        if isinstance(raw_sp, (int, float)):
+            found_pages.append(int(raw_sp))
+        elif isinstance(raw_sp, str):
+            nums = [int(n) for n in re.findall(r"\b\d+\b", raw_sp)]
+            found_pages.extend(nums)
+        elif isinstance(raw_sp, list):
+            for item in raw_sp:
+                if isinstance(item, (int, float)):
+                    found_pages.append(int(item))
+                elif isinstance(item, str):
+                    nums = [int(n) for n in re.findall(r"\b\d+\b", item)]
+                    found_pages.extend(nums)
+                elif isinstance(item, dict):
+                    p_val = item.get("page") or item.get("number")
+                    if p_val and str(p_val).isdigit():
+                        found_pages.append(int(p_val))
+
+        if not found_pages:
+            exp_nums = [
+                int(n)
+                for n in re.findall(
+                    r"(?:\[PAGE:\s*|page\s+|pages\s+|p\.\s*)(\d+)", explanation, re.IGNORECASE
+                )
+            ]
+            if exp_nums:
+                found_pages.extend(exp_nums)
+
+        valid_pages = [p for p in found_pages if 1 <= p <= 600]
+        if valid_pages:
+            seen_p = set()
+            source_pages = [p for p in valid_pages if not (p in seen_p or seen_p.add(p))]
+        else:
+            source_pages = default_pages[:2] if default_pages else []
 
         validated_questions.append(
             {
@@ -221,6 +269,9 @@ def create_student_quiz(
     num_questions: int = 5,
     api_key: Optional[str] = None,
     model: Optional[str] = None,
+    model_name: Optional[str] = None,
+    pinecone_api_key: Optional[str] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """Validates student inputs, allows free choice, and generates quiz."""
     if not student_id or not str(student_id).strip():
@@ -251,13 +302,16 @@ def create_student_quiz(
 
     ch_num, ch_title = curriculum_service.resolve_chapter(class_level_int, chapter)
 
+    chosen_model = model or model_name
     quiz_data = generate_quiz(
         class_level=class_level_int,
         chapter=ch_title,
         difficulty=clean_diff,
         num_questions=num_q_int,
         api_key=api_key,
-        model=model,
+        model=chosen_model,
+        pinecone_api_key=pinecone_api_key,
+        **kwargs,
     )
     quiz_data["student_id"] = clean_student_id
     return quiz_data

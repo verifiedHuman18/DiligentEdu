@@ -1,6 +1,7 @@
 """Reusable Minimalist Cards and Badges UI Components (Flat, No Heavy Boxes)."""
 
-from typing import Any, List, Optional
+import textwrap
+from typing import Any, Optional
 
 import streamlit as st
 
@@ -12,36 +13,79 @@ def render_metric_card(label: str, value: Any, delta: Optional[str] = None) -> N
         if delta
         else ""
     )
-    html = f"""
-    <div class="metric-flat">
-        <div class="metric-label">{label}</div>
-        <div class="metric-value">{value}</div>
-        {delta_html}
-    </div>
-    """
+    html = textwrap.dedent(f"""\
+<div class="metric-flat">
+<div class="metric-label">{label}</div>
+<div class="metric-value">{value}</div>
+{delta_html}
+</div>\
+""")
     st.markdown(html, unsafe_allow_html=True)
+
+
+def format_source_pages(pages: Optional[Any]) -> str:
+    """Formats source page references into human-friendly strings (e.g., 'Page 12' or 'Pages 12, 13')."""
+    import re
+
+    if not pages:
+        return "Referenced in Chapter"
+    if isinstance(pages, (int, float)):
+        return f"Page {int(pages)}"
+    if isinstance(pages, str):
+        pages_clean = pages.strip()
+        if not pages_clean or pages_clean.lower() in ["none", "[]", "null"]:
+            return "Referenced in Chapter"
+        if pages_clean.lower().startswith("page"):
+            return pages_clean
+        nums = re.findall(r"\b\d+\b", pages_clean)
+        if len(nums) == 1:
+            return f"Page {nums[0]}"
+        elif len(nums) > 1:
+            return f"Pages {', '.join(nums)}"
+        return pages_clean
+    if isinstance(pages, list):
+        flattened = []
+        for p in pages:
+            if isinstance(p, (int, float)):
+                flattened.append(str(int(p)))
+            elif isinstance(p, str):
+                nums = re.findall(r"\b\d+\b", p)
+                if nums:
+                    flattened.extend(nums)
+                elif p.strip():
+                    flattened.append(p.strip())
+        if not flattened:
+            return "Referenced in Chapter"
+        seen = set()
+        unique = [x for x in flattened if not (x in seen or seen.add(x))]
+        if len(unique) == 1 and unique[0].isdigit():
+            return f"Page {unique[0]}"
+        elif all(x.isdigit() for x in unique):
+            return f"Pages {', '.join(unique)}"
+        return ", ".join(unique)
+    return str(pages)
 
 
 def render_citation_box(
     chapter: str,
     class_level: int,
-    pages: Optional[List[Any]] = None,
+    pages: Optional[Any] = None,
     explanation: Optional[str] = None,
 ) -> None:
     """Renders a clean citation line with textbook references (no chunky box)."""
-    pages_str = ", ".join(str(p) for p in pages) if pages else "Referenced in Chapter"
-    exp_html = f"<div style='margin-bottom: 0.25rem;'>{explanation}</div>" if explanation else ""
-    html = f"""
-    <div class="citation-clean">
-        <div class="citation-title">
-            NCERT Class {class_level} Science — {chapter}
-        </div>
-        {exp_html}
-        <div style="font-size: 0.8rem; color: var(--text-muted);">
-            Source Pages: <b>{pages_str}</b>
-        </div>
-    </div>
-    """
+    pages_str = format_source_pages(pages)
+    exp_html = (
+        f"<div style='margin-bottom: 0.35rem; line-height: 1.5;'>{explanation}</div>"
+        if explanation
+        else ""
+    )
+    html = textwrap.dedent(f"""\
+<div class="citation-clean">
+<div class="citation-title">📚 NCERT Class {class_level} Science — {chapter}</div>
+{exp_html}
+<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">📄 <b>Source:</b> {pages_str}</div>
+</div>\
+""")
     st.markdown(html, unsafe_allow_html=True)
 
 
