@@ -6,16 +6,16 @@ Delegates directly to src.academic_rag.storage, src.academic_rag.quiz, and src.a
 
 import os
 import sys
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from src.academic_rag.config import DEFAULT_DB_PATH, STORAGE_DIR
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import quiz_repository, QuizRepository
 from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
+from src.academic_rag.storage.database import init_database
+from src.academic_rag.storage.repository import QuizRepository, quiz_repository
 
 
 def init_db(db_path: str = DEFAULT_DB_PATH) -> None:
@@ -64,15 +64,17 @@ def get_student_chapter_summary(
             summary[ch] = []
 
         quiz_idx = len(summary[ch]) + 1
-        summary[ch].append({
-            "quiz_num": quiz_idx,
-            "quiz_id": attempt["quiz_id"],
-            "difficulty": attempt["difficulty"],
-            "score": attempt["score"],
-            "total_questions": attempt["total_questions"],
-            "percentage": attempt["percentage"],
-            "timestamp": attempt["timestamp"],
-        })
+        summary[ch].append(
+            {
+                "quiz_num": quiz_idx,
+                "quiz_id": attempt["quiz_id"],
+                "difficulty": attempt["difficulty"],
+                "score": attempt["score"],
+                "total_questions": attempt["total_questions"],
+                "percentage": attempt["percentage"],
+                "timestamp": attempt["timestamp"],
+            }
+        )
 
     return summary
 
@@ -123,9 +125,7 @@ def get_student_swat_metrics(
         stat["difficulties_tested"] = sorted(list(stat["difficulties_tested"]))
 
     overall_acc = (
-        round((total_q_correct / total_q_answered * 100.0), 1)
-        if total_q_answered > 0
-        else 0.0
+        round((total_q_correct / total_q_answered * 100.0), 1) if total_q_answered > 0 else 0.0
     )
 
     strengths = [ch for ch, st in chapter_stats.items() if st["accuracy"] >= 75.0]

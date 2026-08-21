@@ -12,9 +12,9 @@ Verifies:
 4. Comprehensive return payload with question-level feedback and textbook page citations.
 """
 
+import json
 import os
 import sys
-import json
 import time
 
 # Reconfigure stdout for UTF-8
@@ -24,7 +24,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from quiz_storage import record_quiz_attempt, clear_student_history, submit_and_grade_quiz
+from quiz_storage import clear_student_history, record_quiz_attempt, submit_and_grade_quiz
 from swat_analyzer import get_student_swat
 
 
@@ -38,13 +38,19 @@ def run_tests():
 
     # 1. Setup Initial State: Electricity = 42% (Weak 🔴)
     # 2 quizzes with total 12/28 questions correct or 42%
-    record_quiz_attempt(student_id, {
-        "class_level": 10,
-        "chapter": "Electricity",
-        "chapter_number": 11,
-        "difficulty": "medium",
-        "questions": [{"question_id": f"init_e_{i}", "correct_answer": "A"} for i in range(1, 13)]
-    }, {f"q_choice_{i}": "A" if i <= 5 else "B" for i in range(1, 13)})  # 5/12 = 41.7% ~ 42%
+    record_quiz_attempt(
+        student_id,
+        {
+            "class_level": 10,
+            "chapter": "Electricity",
+            "chapter_number": 11,
+            "difficulty": "medium",
+            "questions": [
+                {"question_id": f"init_e_{i}", "correct_answer": "A"} for i in range(1, 13)
+            ],
+        },
+        {f"q_choice_{i}": "A" if i <= 5 else "B" for i in range(1, 13)},
+    )  # 5/12 = 41.7% ~ 42%
 
     init_swat = get_student_swat(student_id)
     init_elec_score = init_swat["chapter_breakdown"]["Electricity"]["score"]
@@ -88,7 +94,12 @@ def run_tests():
             {
                 "question_id": "p12_q4",
                 "question": "How are voltmeters connected in an electric circuit?",
-                "options": ["A) In series", "B) In parallel", "C) In both series and parallel", "D) Across ground only"],
+                "options": [
+                    "A) In series",
+                    "B) In parallel",
+                    "C) In both series and parallel",
+                    "D) Across ground only",
+                ],
                 "correct_answer": "B",
                 "explanation": "Voltmeters are always connected in parallel across the points to measure potential difference.",
                 "source_pages": [201],
@@ -101,7 +112,7 @@ def run_tests():
                 "explanation": "1/R_eq = 1/6 + 1/6 = 2/6 -> R_eq = 3 ohms.",
                 "source_pages": [212],
             },
-        ]
+        ],
     }
 
     # Student answers 4 correct (Q1: A, Q2: A, Q3: B, Q4: B, Q5: A -> Q5 is wrong)
@@ -126,18 +137,23 @@ def run_tests():
 
     print(f"⏱️ Evaluated & Persisted in {elapsed*1000:.2f}ms (Zero LLM calls)")
     print("\n--- Pipeline Result ---")
-    print(json.dumps({
-        "score": result["score"],
-        "total": result["total"],
-        "percentage": result["percentage"],
-        "chapter": result["chapter"],
-        "previous_chapter_score": result["previous_chapter_score"],
-        "previous_status": result["previous_status"],
-        "new_chapter_score": result["new_chapter_score"],
-        "new_status": result["new_status"],
-        "status_changed": result["status_changed"],
-        "status_change_summary": result["status_change_summary"],
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "score": result["score"],
+                "total": result["total"],
+                "percentage": result["percentage"],
+                "chapter": result["chapter"],
+                "previous_chapter_score": result["previous_chapter_score"],
+                "previous_status": result["previous_status"],
+                "new_chapter_score": result["new_chapter_score"],
+                "new_status": result["new_status"],
+                "status_changed": result["status_changed"],
+                "status_change_summary": result["status_change_summary"],
+            },
+            indent=2,
+        )
+    )
 
     # 4. Verify Assertions
     print("\n--- Running Verification Assertions ---")
@@ -161,7 +177,9 @@ def run_tests():
     assert q5_feedback["is_correct"] is False
     assert q5_feedback["correct_answer"] == "C"
     assert q5_feedback["source_pages"] == [212]
-    print(f"✓ Question Feedback verified: Q5 correctly graded as False with explanation '{q5_feedback['explanation']}'")
+    print(
+        f"✓ Question Feedback verified: Q5 correctly graded as False with explanation '{q5_feedback['explanation']}'"
+    )
 
     print("\n" + "=" * 70)
     print("🎉 ALL PHASE 12 QUIZ SUBMISSION PIPELINE TESTS PASSED!")

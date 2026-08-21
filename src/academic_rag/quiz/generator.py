@@ -2,13 +2,13 @@
 
 import json
 import logging
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
+
 from openai import OpenAI
 
 from src.academic_rag.config import config
 from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.exceptions import QuizGenerationError, AuthenticationError
-from src.academic_rag.models.quiz import QuizQuestion, QuizData
+from src.academic_rag.exceptions import AuthenticationError, QuizGenerationError
 from src.academic_rag.rag.prompts import QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE
 from src.academic_rag.rag.retriever import get_embeddings, get_pinecone_index
 
@@ -184,7 +184,10 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
         if ans not in ["A", "B", "C", "D"]:
             ans = "A"
 
-        explanation = str(q.get("explanation") or f"Refer to NCERT Class {class_level} Science Chapter '{ch_title}'.").strip()
+        explanation = str(
+            q.get("explanation")
+            or f"Refer to NCERT Class {class_level} Science Chapter '{ch_title}'."
+        ).strip()
 
         sp = q.get("source_pages", [])
         if isinstance(sp, int):
@@ -193,15 +196,17 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
             sp = []
         source_pages = [int(p) for p in sp if str(p).isdigit()]
 
-        validated_questions.append({
-            "question": q_text,
-            "options": options,
-            "correct_answer": ans,
-            "explanation": explanation,
-            "difficulty": difficulty,
-            "chapter": ch_title,
-            "source_pages": source_pages,
-        })
+        validated_questions.append(
+            {
+                "question": q_text,
+                "options": options,
+                "correct_answer": ans,
+                "explanation": explanation,
+                "difficulty": difficulty,
+                "chapter": ch_title,
+                "source_pages": source_pages,
+            }
+        )
 
     quiz_dict["questions"] = validated_questions
     quiz_dict["total_questions"] = len(validated_questions)
@@ -227,11 +232,15 @@ def create_student_quiz(
     except (ValueError, TypeError):
         raise ValueError(f"Invalid class level: {class_level}. Must be 9 or 10.")
     if class_level_int not in [9, 10]:
-        raise ValueError(f"Invalid class level: {class_level_int}. Supported class levels are 9 and 10.")
+        raise ValueError(
+            f"Invalid class level: {class_level_int}. Supported class levels are 9 and 10."
+        )
 
     clean_diff = str(difficulty).strip().lower()
     if clean_diff not in ["easy", "medium", "hard"]:
-        raise ValueError(f"Invalid difficulty: '{difficulty}'. Supported difficulties are 'easy', 'medium', or 'hard'.")
+        raise ValueError(
+            f"Invalid difficulty: '{difficulty}'. Supported difficulties are 'easy', 'medium', or 'hard'."
+        )
 
     try:
         num_q_int = int(num_questions)

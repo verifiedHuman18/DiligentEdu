@@ -1,6 +1,7 @@
 """Unit tests for CurriculumService."""
 
 import unittest
+
 from src.academic_rag.curriculum.service import curriculum_service
 from src.academic_rag.exceptions import ChapterNotFoundError, CurriculumError
 

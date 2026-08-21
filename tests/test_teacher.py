@@ -5,10 +5,10 @@ import tempfile
 import unittest
 
 from src.academic_rag.analytics.teacher import (
-    get_teacher_student_overview,
+    get_student_status,
     get_teacher_chapter_statistics,
     get_teacher_quiz_history,
-    get_student_status,
+    get_teacher_student_overview,
     get_teacher_student_profile,
 )
 from src.academic_rag.storage.repository import QuizRepository
@@ -31,20 +31,32 @@ class TestTeacherEngine(unittest.TestCase):
 
     def test_teacher_overview_and_early_warning(self):
         # 1. First quiz: 80% on Electricity
-        self.repo.record_attempt(self.student_id, {
-            "class_level": 10,
-            "chapter": "Electricity",
-            "difficulty": "medium",
-            "questions": [{"question_id": f"e1_{i}", "correct_answer": "A"} for i in range(1, 6)],
-        }, {f"q_choice_{i}": "A" if i <= 4 else "B" for i in range(1, 6)})
+        self.repo.record_attempt(
+            self.student_id,
+            {
+                "class_level": 10,
+                "chapter": "Electricity",
+                "difficulty": "medium",
+                "questions": [
+                    {"question_id": f"e1_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
+            },
+            {f"q_choice_{i}": "A" if i <= 4 else "B" for i in range(1, 6)},
+        )
 
         # 2. Second quiz: 40% on Electricity (Declining)
-        self.repo.record_attempt(self.student_id, {
-            "class_level": 10,
-            "chapter": "Electricity",
-            "difficulty": "hard",
-            "questions": [{"question_id": f"e2_{i}", "correct_answer": "A"} for i in range(1, 6)],
-        }, {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)})
+        self.repo.record_attempt(
+            self.student_id,
+            {
+                "class_level": 10,
+                "chapter": "Electricity",
+                "difficulty": "hard",
+                "questions": [
+                    {"question_id": f"e2_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
+            },
+            {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)},
+        )
 
         overview = get_teacher_student_overview(self.student_id, db_path=self.db_path)
         self.assertTrue(overview["has_data"])

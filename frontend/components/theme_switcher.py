@@ -1,16 +1,17 @@
 """Theme Switcher Component (Dark / Light)."""
 
 import streamlit as st
-from frontend.styles import THEMES, inject_custom_css
+
+from frontend.styles import inject_custom_css
 
 
 def render_theme_switcher(location: str = "sidebar") -> str:
     """
     Renders a theme selector widget for Dark / Light mode.
-    
+
     Args:
         location: 'sidebar' or 'inline'
-        
+
     Returns:
         The selected theme name ('Dark' or 'Light').
     """

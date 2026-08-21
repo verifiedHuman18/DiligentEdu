@@ -6,7 +6,6 @@ Verifies that generate_quiz(...) generates a complete 5-question structured MCQ 
 
 import os
 import sys
-import json
 import time
 
 # Reconfigure stdout for UTF-8
@@ -55,9 +54,16 @@ def run_quiz_test():
         # Validate required fields
         assert "question" in q and q["question"], f"Q{i} missing question"
         assert len(q["options"]) == 4, f"Q{i} does not have 4 options"
-        assert q["correct_answer"] in ["A", "B", "C", "D"], f"Q{i} invalid correct_answer: {q['correct_answer']}"
+        assert q["correct_answer"] in [
+            "A",
+            "B",
+            "C",
+            "D",
+        ], f"Q{i} invalid correct_answer: {q['correct_answer']}"
         assert "explanation" in q and q["explanation"], f"Q{i} missing explanation"
-        assert "source_pages" in q and isinstance(q["source_pages"], list), f"Q{i} missing source_pages"
+        assert "source_pages" in q and isinstance(
+            q["source_pages"], list
+        ), f"Q{i} missing source_pages"
 
     print("\n✅ Test 1 Passed Successfully!")
 
@@ -93,7 +99,12 @@ def run_quiz_test():
         print(f"   📄 Source Pages: {q['source_pages']}")
 
         assert len(q["options"]) == 4, f"Q{i} does not have 4 options"
-        assert q["correct_answer"] in ["A", "B", "C", "D"], f"Q{i} invalid correct_answer: {q['correct_answer']}"
+        assert q["correct_answer"] in [
+            "A",
+            "B",
+            "C",
+            "D",
+        ], f"Q{i} invalid correct_answer: {q['correct_answer']}"
 
     print("\n✅ Test 2 Passed Successfully!")
 

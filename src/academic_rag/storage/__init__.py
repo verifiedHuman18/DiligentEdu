@@ -1,8 +1,8 @@
 """Storage package."""
 
 from src.academic_rag.storage.database import (
-    init_database,
     get_db_connection,
+    init_database,
 )
 from src.academic_rag.storage.repository import (
     QuizRepository,

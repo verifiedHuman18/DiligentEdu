@@ -37,12 +37,18 @@ def render_swat_tab(student_id: str):
     h_col1, h_col2 = st.columns([1.5, 2])
     with h_col1:
         if swat["strengths"]:
-            st.success(f"🏆 **Top Strength:** {swat['strengths'][0]['chapter']} (**{swat['strengths'][0]['score']}%**)")
+            st.success(
+                f"🏆 **Top Strength:** {swat['strengths'][0]['chapter']} (**{swat['strengths'][0]['score']}%**)"
+            )
         elif swat["weak_topics"]:
-            st.warning(f"🔍 **Needs Focus:** {swat['weak_topics'][0]['chapter']} (**{swat['weak_topics'][0]['score']}%**)")
+            st.warning(
+                f"🔍 **Needs Focus:** {swat['weak_topics'][0]['chapter']} (**{swat['weak_topics'][0]['score']}%**)"
+            )
     with h_col2:
         trend = swat.get("trend", {})
-        st.info(f"📈 **Recent Trend ({trend.get('direction', '—').upper()}):** {trend.get('summary', 'Steady')}")
+        st.info(
+            f"📈 **Recent Trend ({trend.get('direction', '—').upper()}):** {trend.get('summary', 'Steady')}"
+        )
 
     st.divider()
 
@@ -101,12 +107,16 @@ def render_swat_tab(student_id: str):
             f"{att['percentage']:.0f}% ({att['score']}/{att['total_questions']})",
             expanded=False,
         ):
-            st.markdown(f"**Quiz ID:** `{att['quiz_id']}` | **Difficulty:** `{att['difficulty'].upper()}`")
+            st.markdown(
+                f"**Quiz ID:** `{att['quiz_id']}` | **Difficulty:** `{att['difficulty'].upper()}`"
+            )
             if "questions" in att and att["questions"]:
                 for q_idx, q_rec in enumerate(att["questions"], 1):
                     q_icon = "✅" if q_rec["is_correct"] else "❌"
                     st.markdown(f"{q_icon} **Q{q_idx}:** {q_rec['question_text']}")
-                    st.caption(f"Your answer: `{q_rec['user_answer']}` | Correct: `{q_rec['correct_answer']}`")
+                    st.caption(
+                        f"Your answer: `{q_rec['user_answer']}` | Correct: `{q_rec['correct_answer']}`"
+                    )
 
     if st.button("🗑️ Clear My Quiz History", type="secondary"):
         quiz_repository.clear_student_data(student_id)

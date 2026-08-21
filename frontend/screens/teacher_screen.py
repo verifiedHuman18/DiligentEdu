@@ -1,20 +1,25 @@
 """Teacher Diagnostics and Master Analytics Screen with Material Icons (No Emojis)."""
 
 import streamlit as st
-from src.academic_rag.analytics.teacher import get_teacher_student_profile
+
 from frontend.components.cards import render_metric_card
 from frontend.state import navigate_to
+from src.academic_rag.analytics.teacher import get_teacher_student_profile
 
 
 def render_teacher_screen(student_id: str) -> None:
     """Renders the Teacher Master Analytics and Early-Warning Diagnostic Dashboard."""
-    if st.button("Back to Home", icon=":material/arrow_back:", type="secondary", key="teacher_top_back_btn"):
+    if st.button(
+        "Back to Home", icon=":material/arrow_back:", type="secondary", key="teacher_top_back_btn"
+    ):
         navigate_to("home")
         st.rerun()
 
     st.write("")
     st.markdown("### Teacher Analytics and Diagnostics")
-    st.caption(f"Pedagogical insights and early-warning mastery indicators for student **`{student_id}`**.")
+    st.caption(
+        f"Pedagogical insights and early-warning mastery indicators for student **`{student_id}`**."
+    )
 
     prof = get_teacher_student_profile(student_id)
 
@@ -26,21 +31,24 @@ def render_teacher_screen(student_id: str) -> None:
     st_status = prof["status"]
     st_chapters = prof["chapter_statistics"]
     st_history = prof["quiz_history"]
-    st_swat = prof["swat_summary"]
 
     # 1. Early-Warning Status Alert Banner
     status_title = st_status["overall_status"]
     status_code = st_status["status_code"]
 
     if status_code == "performing_well":
-        st.success(f"Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
+        st.success(
+            f"Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
+        )
     elif status_code in ["improving", "improving_low_base"]:
         st.info(
             f"Status: **{status_title}** "
             f"(Upward Trajectory: {st_status['trend']['earlier_average']}% -> {st_status['trend']['recent_average']}%)"
         )
     elif status_code == "monitor":
-        st.warning(f"Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
+        st.warning(
+            f"Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
+        )
     else:
         st.error(f"Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
 
@@ -79,7 +87,9 @@ def render_teacher_screen(student_id: str) -> None:
             tot_c = ch["total_correct"]
             st_text = ch["status_text"].upper()
 
-            with st.expander(f"Ch {ch['chapter_number']} — {ch['chapter']} | Average: {sc}% [{st_text}] | Attempts: {attempts}"):
+            with st.expander(
+                f"Ch {ch['chapter_number']} — {ch['chapter']} | Average: {sc}% [{st_text}] | Attempts: {attempts}"
+            ):
                 c1, c2, c3 = st.columns(3)
                 with c1:
                     st.metric("Chapter Average", f"{sc}%")

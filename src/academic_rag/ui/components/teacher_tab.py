@@ -7,7 +7,7 @@ from src.academic_rag.analytics.teacher import get_teacher_student_profile
 
 def render_teacher_tab(student_id: str):
     """Renders Teacher Master Analytics and Early-Warning Diagnostics Dashboard."""
-    st.markdown(f"### 👨‍🏫 Teacher Analytics & Early-Warning Dashboard")
+    st.markdown("### 👨‍🏫 Teacher Analytics & Early-Warning Dashboard")
     st.caption(
         f"Detailed pedagogical analysis and transparent early-warning diagnostic indicators for **`{student_id}`**."
     )
@@ -32,16 +32,22 @@ def render_teacher_tab(student_id: str):
     status_code = st_status["status_code"]
 
     if status_code == "performing_well":
-        st.success(f"### {status_icon} Overall Standing: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
+        st.success(
+            f"### {status_icon} Overall Standing: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
+        )
     elif status_code in ["improving", "improving_low_base"]:
         st.info(
             f"### {status_icon} Overall Standing: **{status_title}** "
             f"(Upward Trajectory: {st_status['trend']['earlier_average']}% ➔ {st_status['trend']['recent_average']}%)"
         )
     elif status_code == "monitor":
-        st.warning(f"### {status_icon} Overall Standing: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
+        st.warning(
+            f"### {status_icon} Overall Standing: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
+        )
     else:
-        st.error(f"### {status_icon} Overall Standing: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
+        st.error(
+            f"### {status_icon} Overall Standing: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
+        )
 
     # Display Active Alerts / Positive Notes
     if st_status.get("alerts"):
@@ -60,7 +66,10 @@ def render_teacher_tab(student_id: str):
     t_m1.metric("Class Level", f"Class {st_overview['class']}")
     t_m2.metric("Overall Average", f"{st_overview['overall_average']}%")
     t_m3.metric("Quizzes Completed", st_overview["total_quizzes"])
-    t_m4.metric("Questions Attempted", f"{st_overview['questions_attempted']} (✓ {st_overview['questions_correct']})")
+    t_m4.metric(
+        "Questions Attempted",
+        f"{st_overview['questions_attempted']} (✓ {st_overview['questions_correct']})",
+    )
     t_m5.metric("Accuracy", f"{st_overview['accuracy']}%")
 
     st.divider()
@@ -71,14 +80,16 @@ def render_teacher_tab(student_id: str):
         ch_table_rows = []
         for c in st_chapters:
             icon = "🟢" if c["status"] == "strong" else ("🟡" if c["status"] == "average" else "🔴")
-            ch_table_rows.append({
-                "Chapter": f"{icon} {c['chapter']}",
-                "Average Score": f"{c['average']}%",
-                "Accuracy": f"{c['accuracy']}%",
-                "Attempts": c["attempts"],
-                "Questions (Corr/Att)": f"{c['questions_correct']}/{c['questions_attempted']}",
-                "SWAT Category": c["status"].upper(),
-            })
+            ch_table_rows.append(
+                {
+                    "Chapter": f"{icon} {c['chapter']}",
+                    "Average Score": f"{c['average']}%",
+                    "Accuracy": f"{c['accuracy']}%",
+                    "Attempts": c["attempts"],
+                    "Questions (Corr/Att)": f"{c['questions_correct']}/{c['questions_attempted']}",
+                    "SWAT Category": c["status"].upper(),
+                }
+            )
         st.table(ch_table_rows)
 
     st.divider()
@@ -117,12 +128,14 @@ def render_teacher_tab(student_id: str):
     if st_history:
         hist_display = []
         for row in reversed(st_history):
-            hist_display.append({
-                "Date": row["date"],
-                "Chapter": row["chapter"],
-                "Difficulty": row["difficulty"],
-                "Score": row["score_display"],
-                "Questions": f"{row['score']}/{row['total_questions']}",
-                "Timestamp (UTC)": row["timestamp"][:19].replace("T", " "),
-            })
+            hist_display.append(
+                {
+                    "Date": row["date"],
+                    "Chapter": row["chapter"],
+                    "Difficulty": row["difficulty"],
+                    "Score": row["score_display"],
+                    "Questions": f"{row['score']}/{row['total_questions']}",
+                    "Timestamp (UTC)": row["timestamp"][:19].replace("T", " "),
+                }
+            )
         st.dataframe(hist_display, use_container_width=True)

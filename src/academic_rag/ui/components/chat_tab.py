@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+
 import streamlit as st
 
 from src.academic_rag.rag.engine import stream_ncert_rag_response
@@ -25,10 +26,22 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
     st.markdown("##### 💡 Suggested Questions to Explore:")
     prompt_cols = st.columns(4)
     quick_prompts = [
-        ("⚡ What is Ohm's Law and resistance?", "What is Ohm's law and how is resistance calculated?"),
-        ("🧬 Cell Organelles & Plasma Membrane", "What are the main cell organelles and function of the plasma membrane in Class 9 Science?"),
-        ("🧪 Carbon Covalent Bonding", "Why does carbon form covalent bonds and what is catenation?"),
-        ("🌈 Why is the sky blue?", "Why does the sky appear blue and what causes atmospheric refraction?"),
+        (
+            "⚡ What is Ohm's Law and resistance?",
+            "What is Ohm's law and how is resistance calculated?",
+        ),
+        (
+            "🧬 Cell Organelles & Plasma Membrane",
+            "What are the main cell organelles and function of the plasma membrane in Class 9 Science?",
+        ),
+        (
+            "🧪 Carbon Covalent Bonding",
+            "Why does carbon form covalent bonds and what is catenation?",
+        ),
+        (
+            "🌈 Why is the sky blue?",
+            "Why does the sky appear blue and what causes atmospheric refraction?",
+        ),
     ]
 
     for i, (label, p_text) in enumerate(quick_prompts):
@@ -41,7 +54,9 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
             st.markdown(message["content"])
 
     if not user_api_key:
-        st.warning("👈 Please enter your Google Gemini API key in the sidebar to start asking questions.")
+        st.warning(
+            "👈 Please enter your Google Gemini API key in the sidebar to start asking questions."
+        )
         return
 
     # User input
@@ -61,7 +76,11 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
                     message_placeholder = st.empty()
                     full_response = ""
 
-                    cls_filter = 9 if selected_class == "Class 9" else (10 if selected_class == "Class 10" else None)
+                    cls_filter = (
+                        9
+                        if selected_class == "Class 9"
+                        else (10 if selected_class == "Class 10" else None)
+                    )
 
                     try:
                         async for delta in stream_ncert_rag_response(
@@ -84,7 +103,9 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
 
                     except Exception as e:
                         logger.error(f"Error processing response: {e}")
-                        full_response = f"I encountered an error retrieving or generating the answer: {e}"
+                        full_response = (
+                            f"I encountered an error retrieving or generating the answer: {e}"
+                        )
                         message_placeholder.error(full_response)
 
                 st.session_state.messages.append({"role": "assistant", "content": full_response})

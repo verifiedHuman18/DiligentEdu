@@ -4,9 +4,10 @@ NCERT Corpus Verification Script (Phase 2.1)
 Verifies integrity, text extractability, completeness, and mapping for Class 9 & Class 10 NCERT Science PDFs.
 """
 
+import json
 import os
 import sys
-import json
+
 import pymupdf
 
 # Set UTF-8 encoding for standard output
@@ -49,10 +50,7 @@ def verify_corpus():
         found_chapters = set()
 
         # Sort by chapter number
-        sorted_files = sorted(
-            class_map.items(),
-            key=lambda item: item[1].get("chapter_number", 0)
-        )
+        sorted_files = sorted(class_map.items(), key=lambda item: item[1].get("chapter_number", 0))
 
         for filename, info in sorted_files:
             ch_num = info.get("chapter_number")
@@ -61,7 +59,9 @@ def verify_corpus():
 
             # Check prefix consistency
             if not filename.startswith(expected_prefix):
-                print(f"  ❌ File naming inconsistency: {filename} does not start with expected prefix '{expected_prefix}'")
+                print(
+                    f"  ❌ File naming inconsistency: {filename} does not start with expected prefix '{expected_prefix}'"
+                )
                 errors_found += 1
 
             # Check file existence
@@ -86,11 +86,15 @@ def verify_corpus():
                     total_chars += len(page_text.strip())
 
                 if total_chars < 500:
-                    print(f"  ⚠️ Warning: Low extractable text in {filename} ({total_chars} characters)")
-                
+                    print(
+                        f"  ⚠️ Warning: Low extractable text in {filename} ({total_chars} characters)"
+                    )
+
                 found_chapters.add(ch_num)
                 total_chapters_verified += 1
-                print(f"  ✓ Chapter {ch_num:2d}: {ch_title} ({filename} - {num_pages} pages, {total_chars:,} chars)")
+                print(
+                    f"  ✓ Chapter {ch_num:2d}: {ch_title} ({filename} - {num_pages} pages, {total_chars:,} chars)"
+                )
 
             except Exception as e:
                 print(f"  ❌ Error opening {filename}: {e}")
@@ -104,8 +108,10 @@ def verify_corpus():
 
     print("\n" + "=" * 60)
     if errors_found == 0:
-        print(f"✅ Corpus verification successful! All {total_chapters_verified} chapters verified and readable.")
-        print(f"Mapping file: data/metadata/ncert_mapping.json")
+        print(
+            f"✅ Corpus verification successful! All {total_chapters_verified} chapters verified and readable."
+        )
+        print("Mapping file: data/metadata/ncert_mapping.json")
         print("=" * 60)
         return True
     else:
@@ -117,5 +123,3 @@ def verify_corpus():
 if __name__ == "__main__":
     success = verify_corpus()
     sys.exit(0 if success else 1)
-
-

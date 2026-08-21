@@ -1,9 +1,9 @@
 """Student SWAT (Strengths, Weaknesses, Accuracy, Topics) Analysis Engine (Zero LLM calls)."""
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from src.academic_rag.config import config, STRONG_THRESHOLD, AVERAGE_THRESHOLD
+from src.academic_rag.config import AVERAGE_THRESHOLD, STRONG_THRESHOLD
 from src.academic_rag.curriculum.service import curriculum_service
 from src.academic_rag.storage.repository import quiz_repository
 
@@ -119,7 +119,11 @@ def get_student_swat(
 
     total_quizzes = len(history)
     overall_avg = int(round(sum(quiz_percentages) / total_quizzes)) if total_quizzes > 0 else 0
-    overall_acc = int(round(float(total_correct) / float(total_questions) * 100.0)) if total_questions > 0 else 0
+    overall_acc = (
+        int(round(float(total_correct) / float(total_questions) * 100.0))
+        if total_questions > 0
+        else 0
+    )
 
     if total_quizzes == 1:
         direction = "stable"
@@ -183,7 +187,9 @@ def get_available_chapters(
         raise ValueError(f"Invalid class level: {class_level}. Must be 9 or 10.")
 
     if class_level_int not in [9, 10]:
-        raise ValueError(f"Invalid class level: {class_level_int}. Supported class levels are 9 and 10.")
+        raise ValueError(
+            f"Invalid class level: {class_level_int}. Supported class levels are 9 and 10."
+        )
 
     chapters = curriculum_service.get_chapters_for_grade(class_level_int)
     if not chapters:
@@ -210,14 +216,16 @@ def get_available_chapters(
             score = None
             attempts = 0
 
-        available.append({
-            "chapter_number": ch.chapter_number,
-            "chapter": ch.chapter_title,
-            "status": status,
-            "score": score,
-            "attempts": attempts,
-            "filename": ch.filename,
-        })
+        available.append(
+            {
+                "chapter_number": ch.chapter_number,
+                "chapter": ch.chapter_title,
+                "status": status,
+                "score": score,
+                "attempts": attempts,
+                "filename": ch.filename,
+            }
+        )
 
     available.sort(key=lambda x: x["chapter_number"])
     return available
@@ -257,15 +265,17 @@ def format_swat_report(swat: Dict[str, Any]) -> str:
         else:
             lines.append("  (None)")
 
-        lines.extend([
-            "\n" + "─" * 50,
-            f"Overall Average:            {swat['overall']['average']}%",
-            f"Overall Accuracy:           {swat['overall']['accuracy']}%",
-            f"Quizzes Attempted:          {swat['overall']['quizzes_attempted']}",
-            f"Total Questions:            {swat['overall']['total_questions']} (Correct: {swat['overall']['total_correct']})",
-            f"Performance Trend:          {swat['trend']['direction'].upper()} (Earlier: {swat['trend']['earlier_average']}%, Recent: {swat['trend']['recent_average']}%)",
-            "=" * 50,
-        ])
+        lines.extend(
+            [
+                "\n" + "─" * 50,
+                f"Overall Average:            {swat['overall']['average']}%",
+                f"Overall Accuracy:           {swat['overall']['accuracy']}%",
+                f"Quizzes Attempted:          {swat['overall']['quizzes_attempted']}",
+                f"Total Questions:            {swat['overall']['total_questions']} (Correct: {swat['overall']['total_correct']})",
+                f"Performance Trend:          {swat['trend']['direction'].upper()} (Earlier: {swat['trend']['earlier_average']}%, Recent: {swat['trend']['recent_average']}%)",
+                "=" * 50,
+            ]
+        )
         return "\n".join(lines)
 
     return format_swat_report(get_student_swat(swat["student_id"]))
@@ -289,7 +299,12 @@ def calculate_student_swat(
             "overall_average": 0.0,
             "highest_performing_chapter": None,
             "lowest_performing_chapter": None,
-            "recent_trend": {"status": "no_data", "direction": "—", "recent_scores": [], "summary": "No data"},
+            "recent_trend": {
+                "status": "no_data",
+                "direction": "—",
+                "recent_scores": [],
+                "summary": "No data",
+            },
             "categories": {"strong": [], "average": [], "weak": []},
             "chapter_wise_accuracy": {},
             "chapters": {},
@@ -298,8 +313,16 @@ def calculate_student_swat(
     all_chapters = swat["strengths"] + swat["average_topics"] + swat["weak_topics"]
     sorted_all = sorted(all_chapters, key=lambda x: x["score"], reverse=True)
 
-    highest_ch = {"chapter": sorted_all[0]["chapter"], "accuracy": sorted_all[0]["score"]} if sorted_all else None
-    lowest_ch = {"chapter": sorted_all[-1]["chapter"], "accuracy": sorted_all[-1]["score"]} if sorted_all else None
+    highest_ch = (
+        {"chapter": sorted_all[0]["chapter"], "accuracy": sorted_all[0]["score"]}
+        if sorted_all
+        else None
+    )
+    lowest_ch = (
+        {"chapter": sorted_all[-1]["chapter"], "accuracy": sorted_all[-1]["score"]}
+        if sorted_all
+        else None
+    )
 
     return {
         "student_id": student_id,
@@ -312,13 +335,42 @@ def calculate_student_swat(
         "lowest_performing_chapter": lowest_ch,
         "recent_trend": {
             "status": swat["trend"]["direction"],
-            "direction": "↑" if swat["trend"]["direction"] == "improving" else ("↓" if swat["trend"]["direction"] == "declining" else "→"),
+            "direction": "↑"
+            if swat["trend"]["direction"] == "improving"
+            else ("↓" if swat["trend"]["direction"] == "declining" else "→"),
             "summary": swat["trend"]["summary"],
         },
         "categories": {
-            "strong": [{"chapter": s["chapter"], "accuracy": float(s["score"]), "questions_attempted": s["questions"], "questions_correct": s["correct"], "quizzes_taken": s["attempts"]} for s in swat["strengths"]],
-            "average": [{"chapter": s["chapter"], "accuracy": float(s["score"]), "questions_attempted": s["questions"], "questions_correct": s["correct"], "quizzes_taken": s["attempts"]} for s in swat["average_topics"]],
-            "weak": [{"chapter": s["chapter"], "accuracy": float(s["score"]), "questions_attempted": s["questions"], "questions_correct": s["correct"], "quizzes_taken": s["attempts"]} for s in swat["weak_topics"]],
+            "strong": [
+                {
+                    "chapter": s["chapter"],
+                    "accuracy": float(s["score"]),
+                    "questions_attempted": s["questions"],
+                    "questions_correct": s["correct"],
+                    "quizzes_taken": s["attempts"],
+                }
+                for s in swat["strengths"]
+            ],
+            "average": [
+                {
+                    "chapter": s["chapter"],
+                    "accuracy": float(s["score"]),
+                    "questions_attempted": s["questions"],
+                    "questions_correct": s["correct"],
+                    "quizzes_taken": s["attempts"],
+                }
+                for s in swat["average_topics"]
+            ],
+            "weak": [
+                {
+                    "chapter": s["chapter"],
+                    "accuracy": float(s["score"]),
+                    "questions_attempted": s["questions"],
+                    "questions_correct": s["correct"],
+                    "quizzes_taken": s["attempts"],
+                }
+                for s in swat["weak_topics"]
+            ],
         },
         "chapter_wise_accuracy": {c["chapter"]: float(c["score"]) for c in all_chapters},
         "chapters": swat["chapter_breakdown"],

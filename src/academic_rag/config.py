@@ -1,10 +1,10 @@
 """Configuration module for Academic RAG Assistant."""
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
-import os
-import sys
 from typing import Optional
+
 from dotenv import load_dotenv
 
 # Ensure environment variables are loaded
@@ -58,6 +58,7 @@ class AppConfig:
             return str(override).strip()
         try:
             import streamlit as st
+
             if "api_key" in st.session_state and st.session_state.api_key:
                 return str(st.session_state.api_key).strip()
             if hasattr(st, "secrets") and "GOOGLE_API_KEY" in st.secrets:
@@ -71,6 +72,7 @@ class AppConfig:
             return str(override).strip()
         try:
             import streamlit as st
+
             if hasattr(st, "secrets") and "PINECONE_API_KEY" in st.secrets:
                 return str(st.secrets["PINECONE_API_KEY"]).strip()
         except Exception:

@@ -9,19 +9,19 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from frontend import (
-    inject_custom_css,
     init_session_state,
+    inject_custom_css,
     navigate_to,
-    render_navbar,
     render_header,
-    render_sidebar,
     render_home_screen,
-    render_tutor_screen,
+    render_navbar,
     render_quiz_screen,
+    render_settings_screen,
+    render_sidebar,
     render_swat_screen,
     render_teacher_screen,
-    render_settings_screen,
     render_theme_switcher,
+    render_tutor_screen,
 )
 
 # Aliases for backwards compatibility

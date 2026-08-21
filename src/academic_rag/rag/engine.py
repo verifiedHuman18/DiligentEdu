@@ -1,7 +1,8 @@
 """Direct NCERT RAG Streaming Engine (Zero tool-calling overhead / 1 single request)."""
 
 import logging
-from typing import Optional, List, Dict, AsyncGenerator
+from typing import AsyncGenerator, Dict, List, Optional
+
 from openai import AsyncOpenAI
 
 from src.academic_rag.config import config

@@ -6,26 +6,26 @@ Delegates directly to src.academic_rag.quiz and src.academic_rag.curriculum.
 
 import os
 import sys
-from typing import Dict, Any, List, Optional, Union, Tuple
+from typing import Any, Dict, Tuple, Union
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from src.academic_rag.analytics.swat import get_available_chapters
 from src.academic_rag.config import (
-    MAPPING_FILE,
-    INDEX_NAME,
-    EMBEDDING_MODEL_NAME,
     DEFAULT_MODEL,
+    EMBEDDING_MODEL_NAME,
+    INDEX_NAME,
+    MAPPING_FILE,
 )
 from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.rag.retriever import get_embeddings, get_pinecone_index
 from src.academic_rag.quiz.generator import (
-    generate_quiz,
     create_student_quiz,
+    generate_quiz,
     retrieve_chapter_context_for_quiz,
 )
-from src.academic_rag.analytics.swat import get_available_chapters
+from src.academic_rag.rag.retriever import get_embeddings, get_pinecone_index
 
 
 def load_ncert_mapping() -> Dict[str, Any]:
@@ -58,4 +58,6 @@ if __name__ == "__main__":
     chapters = get_available_chapters(class_level=10, student_id="student_001")
     print(f"Available Class 10 chapters ({len(chapters)}):")
     for ch in chapters[:4]:
-        print(f"  Ch {ch['chapter_number']}: {ch['chapter']} -> Status: {ch['status']} (Score: {ch['score']})")
+        print(
+            f"  Ch {ch['chapter_number']}: {ch['chapter']} -> Status: {ch['status']} (Score: {ch['score']})"
+        )

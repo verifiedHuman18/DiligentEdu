@@ -3,17 +3,18 @@
 import os
 from datetime import datetime
 from typing import Tuple
+
 import streamlit as st
 
+from frontend.components.theme_switcher import render_theme_switcher
 from src.academic_rag.config import config
 from src.academic_rag.curriculum.service import curriculum_service
-from frontend.components.theme_switcher import render_theme_switcher
 
 
 def render_sidebar() -> Tuple[str, str, str, str]:
     """
     Renders the minimalist application sidebar.
-    
+
     Returns:
         Tuple of (selected_model, api_key, selected_class, student_id)
     """
@@ -106,12 +107,16 @@ def render_sidebar() -> Tuple[str, str, str, str]:
         with tab_syllabus:
             st.markdown("#### NCERT Science Chapters")
 
-            with st.expander("Class 9 Science (13 Chapters)", expanded=(selected_class == "Class 9")):
+            with st.expander(
+                "Class 9 Science (13 Chapters)", expanded=(selected_class == "Class 9")
+            ):
                 cls9_chs = curriculum_service.get_chapters_for_grade(9)
                 for ch in cls9_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
 
-            with st.expander("Class 10 Science (13 Chapters)", expanded=(selected_class == "Class 10")):
+            with st.expander(
+                "Class 10 Science (13 Chapters)", expanded=(selected_class == "Class 10")
+            ):
                 cls10_chs = curriculum_service.get_chapters_for_grade(10)
                 for ch in cls10_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
@@ -121,9 +126,11 @@ def render_sidebar() -> Tuple[str, str, str, str]:
             st.markdown("#### Session Overview")
             msg_count = len(st.session_state.get("messages", []))
             questions_asked = msg_count // 2 if msg_count > 0 else 0
-            
+
             st.metric("Questions Asked", questions_asked)
-            st.info(f"**Active Model:** {selected_model}\n\n**Vector Index:** Pinecone ({config.pinecone_index_name})")
+            st.info(
+                f"**Active Model:** {selected_model}\n\n**Vector Index:** Pinecone ({config.pinecone_index_name})"
+            )
 
             if msg_count > 0:
                 st.divider()

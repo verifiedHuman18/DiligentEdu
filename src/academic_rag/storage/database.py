@@ -1,8 +1,8 @@
 """SQLite Database initialization and connection management."""
 
+import logging
 import os
 import sqlite3
-import logging
 from contextlib import contextmanager
 from typing import Generator
 
@@ -55,10 +55,18 @@ def init_database(db_path: str = None) -> None:
         """)
 
         # Indexes for performance
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_student ON quiz_attempts(student_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_attempts_chapter ON quiz_attempts(student_id, chapter)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_responses_quiz ON question_responses(quiz_id)")
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_responses_chapter ON question_responses(chapter)")
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attempts_student ON quiz_attempts(student_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attempts_chapter ON quiz_attempts(student_id, chapter)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_responses_quiz ON question_responses(quiz_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_responses_chapter ON question_responses(chapter)"
+        )
 
         conn.commit()
     except Exception as e:

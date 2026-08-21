@@ -4,10 +4,10 @@ NCERT Science Adaptive Quiz Engine (Backward Compatibility Module).
 Delegates directly to src.academic_rag.quiz.adaptive and src.academic_rag.curriculum.
 """
 
+import json
 import os
 import sys
-import json
-from typing import Dict, Any, List, Optional, Union, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:

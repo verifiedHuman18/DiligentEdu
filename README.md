@@ -60,14 +60,34 @@ cd academic-rag-assistant
 ### 2. Install Dependencies
 
 ```bash
-# Using pip
-pip install -r requirements.txt
-
 # Using uv (recommended)
-uv sync
+uv sync --group dev
+
+# Or using pip
+pip install -r requirements.txt
 ```
 
-### 3. Set Up Environment
+### 3. Set Up Pre-Commit Git Hooks (For Collaborators)
+
+To enable automatic linting and formatting on every `git commit`:
+
+```bash
+# Quick 1-step setup
+bash scripts/setup_hooks.sh
+
+# Or manually using pre-commit
+uv run pre-commit install
+```
+
+To run linter checks manually at any time:
+
+```bash
+uv run pre-commit run --all-files
+# or directly with ruff
+uv run ruff check .
+```
+
+### 4. Set Up Environment
 
 ```bash
 # Create .env file
@@ -75,13 +95,13 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### 4. Run the Application
+### 5. Run the Application
 
 ```bash
 streamlit run app.py
 ```
 
-### 5. Access the App
+### 6. Access the App
 
 Open your browser and navigate to `http://localhost:8501`
 

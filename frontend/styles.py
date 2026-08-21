@@ -1,6 +1,7 @@
 """Material Design 3 (M3) Design System with Translucent Background Vector Art & Cream/Brown Palettes."""
 
-from typing import Dict, Any
+from typing import Dict
+
 import streamlit as st
 
 THEMES: Dict[str, Dict[str, str]] = {

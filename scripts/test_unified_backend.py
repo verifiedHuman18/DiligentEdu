@@ -18,8 +18,6 @@ Verifies:
 
 import os
 import sys
-import json
-import time
 
 # Reconfigure stdout for UTF-8
 sys.stdout.reconfigure(encoding="utf-8")
@@ -46,7 +44,9 @@ def run_tests():
     chs = backend.get_available_chapters(class_level=10, student_id=student_id)
     assert len(chs) == 13, f"Expected 13 chapters, got {len(chs)}"
     print(f"✓ Retrieved {len(chs)} NCERT Class 10 chapters.")
-    print(f"  First: Ch {chs[0]['chapter_number']} - {chs[0]['chapter']} (Status: {chs[0]['status']})")
+    print(
+        f"  First: Ch {chs[0]['chapter_number']} - {chs[0]['chapter']} (Status: {chs[0]['status']})"
+    )
 
     # -------------------------------------------------------------
     # 2. Student Side: Mock Quiz & Submit Quiz
@@ -58,14 +58,45 @@ def run_tests():
         "chapter_number": 11,
         "difficulty": "medium",
         "questions": [
-            {"question_id": "q1", "question": "What is V = IR?", "correct_answer": "B", "source_pages": [200]},
-            {"question_id": "q2", "question": "What is Joule heating?", "correct_answer": "C", "source_pages": [206]},
-            {"question_id": "q3", "question": "Unit of Resistance?", "correct_answer": "A", "source_pages": [201]},
-            {"question_id": "q4", "question": "What is electric power?", "correct_answer": "D", "source_pages": [215]},
-            {"question_id": "q5", "question": "What is resistivity unit?", "correct_answer": "B", "source_pages": [203]},
-        ]
+            {
+                "question_id": "q1",
+                "question": "What is V = IR?",
+                "correct_answer": "B",
+                "source_pages": [200],
+            },
+            {
+                "question_id": "q2",
+                "question": "What is Joule heating?",
+                "correct_answer": "C",
+                "source_pages": [206],
+            },
+            {
+                "question_id": "q3",
+                "question": "Unit of Resistance?",
+                "correct_answer": "A",
+                "source_pages": [201],
+            },
+            {
+                "question_id": "q4",
+                "question": "What is electric power?",
+                "correct_answer": "D",
+                "source_pages": [215],
+            },
+            {
+                "question_id": "q5",
+                "question": "What is resistivity unit?",
+                "correct_answer": "B",
+                "source_pages": [203],
+            },
+        ],
     }
-    user_answers = {"q_choice_1": "B", "q_choice_2": "C", "q_choice_3": "A", "q_choice_4": "D", "q_choice_5": "A"}  # 4/5 = 80%
+    user_answers = {
+        "q_choice_1": "B",
+        "q_choice_2": "C",
+        "q_choice_3": "A",
+        "q_choice_4": "D",
+        "q_choice_5": "A",
+    }  # 4/5 = 80%
 
     sub_res = backend.submit_quiz(
         student_id=student_id,
@@ -73,7 +104,9 @@ def run_tests():
         answers=user_answers,
         quiz_data=mock_quiz,
     )
-    print(f"✓ submit_quiz Result: Score={sub_res['score']}/{sub_res['total']} ({sub_res['percentage']}%)")
+    print(
+        f"✓ submit_quiz Result: Score={sub_res['score']}/{sub_res['total']} ({sub_res['percentage']}%)"
+    )
     print(f"  New Chapter Score: {sub_res['new_chapter_score']}% ({sub_res['new_status'].upper()})")
     assert sub_res["score"] == 4
     assert sub_res["percentage"] == 80
@@ -86,17 +119,48 @@ def run_tests():
         "chapter_number": 9,
         "difficulty": "medium",
         "questions": [
-            {"question_id": "l1", "question": "Light Q1", "correct_answer": "A", "source_pages": [160]},
-            {"question_id": "l2", "question": "Light Q2", "correct_answer": "A", "source_pages": [162]},
-            {"question_id": "l3", "question": "Light Q3", "correct_answer": "A", "source_pages": [164]},
-            {"question_id": "l4", "question": "Light Q4", "correct_answer": "A", "source_pages": [166]},
-            {"question_id": "l5", "question": "Light Q5", "correct_answer": "A", "source_pages": [168]},
-        ]
+            {
+                "question_id": "l1",
+                "question": "Light Q1",
+                "correct_answer": "A",
+                "source_pages": [160],
+            },
+            {
+                "question_id": "l2",
+                "question": "Light Q2",
+                "correct_answer": "A",
+                "source_pages": [162],
+            },
+            {
+                "question_id": "l3",
+                "question": "Light Q3",
+                "correct_answer": "A",
+                "source_pages": [164],
+            },
+            {
+                "question_id": "l4",
+                "question": "Light Q4",
+                "correct_answer": "A",
+                "source_pages": [166],
+            },
+            {
+                "question_id": "l5",
+                "question": "Light Q5",
+                "correct_answer": "A",
+                "source_pages": [168],
+            },
+        ],
     }
     backend.submit_quiz(
         student_id=student_id,
         quiz_id="p15_quiz_002",
-        answers={"q_choice_1": "A", "q_choice_2": "A", "q_choice_3": "A", "q_choice_4": "B", "q_choice_5": "B"}, # 3/5 = 60%
+        answers={
+            "q_choice_1": "A",
+            "q_choice_2": "A",
+            "q_choice_3": "A",
+            "q_choice_4": "B",
+            "q_choice_5": "B",
+        },  # 3/5 = 60%
         quiz_data=mock_quiz_light,
     )
 
@@ -108,7 +172,9 @@ def run_tests():
     assert swat["overall"]["quizzes_attempted"] == 2
     assert swat["overall"]["total_questions"] == 10
     assert swat["overall"]["total_correct"] == 7  # 4 + 3
-    print(f"✓ get_student_swat: Overall Average={swat['overall']['average']}%, Accuracy={swat['overall']['accuracy']}%")
+    print(
+        f"✓ get_student_swat: Overall Average={swat['overall']['average']}%, Accuracy={swat['overall']['accuracy']}%"
+    )
     print(f"  Strengths: {[s['chapter'] for s in swat['strengths']]}")
     print(f"  Average Topics: {[a['chapter'] for a in swat['average_topics']]}")
 
@@ -136,12 +202,14 @@ def run_tests():
 
     status = backend.get_student_status(student_id)
     assert status["has_data"] is True
-    print(f"✓ get_student_status: Overall Standing={status['overall_status']} ({status['status_icon']})")
+    print(
+        f"✓ get_student_status: Overall Standing={status['overall_status']} ({status['status_icon']})"
+    )
     print(f"  Trend Direction: {status['trend']['direction']}")
 
     master_prof = backend.get_teacher_student_profile(student_id)
     assert master_prof["has_data"] is True
-    print(f"✓ get_teacher_student_profile: Master profile loaded.")
+    print("✓ get_teacher_student_profile: Master profile loaded.")
 
     print("\n" + "=" * 70)
     print("🎉 ALL PHASE 15 UNIFIED BACKEND API TESTS PASSED!")

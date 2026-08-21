@@ -7,8 +7,7 @@ Measures Top-1, Top-3, Top-5 accuracy and Mean Reciprocal Rank (MRR).
 
 import os
 import sys
-import json
-from typing import List, Dict, Any
+
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
@@ -132,7 +131,6 @@ EVAL_DATASET = [
         "expected_chapter_num": 1,
         "expected_chapter": "Exploration: Entering the World of Secondary Science",
     },
-
     # --- Class 10 Questions ---
     {
         "question": "What is a combination reaction and displacement reaction with chemical equations?",
@@ -312,7 +310,7 @@ def run_benchmark():
             ret_ch = meta.get("chapter", "Unknown")
             ret_page = int(meta.get("page", 0))
 
-            is_match = (ret_cls == exp_cls and ret_ch_num == exp_ch_num)
+            is_match = ret_cls == exp_cls and ret_ch_num == exp_ch_num
             match_marker = "🎯 [HIT]" if is_match else ""
 
             if is_match and found_rank is None:

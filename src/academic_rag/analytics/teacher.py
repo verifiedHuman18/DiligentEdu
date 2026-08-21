@@ -2,10 +2,9 @@
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.academic_rag.analytics.swat import get_student_swat
-from src.academic_rag.config import config
 from src.academic_rag.storage.repository import quiz_repository
 
 logger = logging.getLogger(__name__)
@@ -45,8 +44,16 @@ def get_teacher_student_overview(
     total_questions = sum(att["total_questions"] for att in history)
     total_correct = sum(att["score"] for att in history)
 
-    overall_avg = int(round(sum(att["percentage"] for att in history) / total_quizzes)) if total_quizzes > 0 else 0
-    accuracy = int(round((float(total_correct) / float(total_questions)) * 100.0)) if total_questions > 0 else 0
+    overall_avg = (
+        int(round(sum(att["percentage"] for att in history) / total_quizzes))
+        if total_quizzes > 0
+        else 0
+    )
+    accuracy = (
+        int(round((float(total_correct) / float(total_questions)) * 100.0))
+        if total_questions > 0
+        else 0
+    )
 
     return {
         "student_id": student_id,
@@ -73,15 +80,17 @@ def get_teacher_chapter_statistics(
     chapter_stats = []
 
     for ch_name, data in breakdown.items():
-        chapter_stats.append({
-            "chapter": ch_name,
-            "average": data["score"],
-            "attempts": data["attempts"],
-            "questions_attempted": data["questions"],
-            "questions_correct": data["correct"],
-            "accuracy": int(round(data["accuracy"])),
-            "status": data["category"],
-        })
+        chapter_stats.append(
+            {
+                "chapter": ch_name,
+                "average": data["score"],
+                "attempts": data["attempts"],
+                "questions_attempted": data["questions"],
+                "questions_correct": data["correct"],
+                "accuracy": int(round(data["accuracy"])),
+                "status": data["category"],
+            }
+        )
 
     chapter_stats.sort(key=lambda x: x["average"], reverse=True)
     return chapter_stats
@@ -99,18 +108,20 @@ def get_teacher_quiz_history(
 
     formatted = []
     for att in history:
-        formatted.append({
-            "quiz_id": att["quiz_id"],
-            "date": _format_date(att["timestamp"]),
-            "timestamp": att["timestamp"],
-            "class_level": att["class_level"],
-            "chapter": att["chapter"],
-            "difficulty": att["difficulty"].capitalize(),
-            "score": att["score"],
-            "total_questions": att["total_questions"],
-            "percentage": int(round(att["percentage"])),
-            "score_display": f"{int(round(att['percentage']))}%",
-        })
+        formatted.append(
+            {
+                "quiz_id": att["quiz_id"],
+                "date": _format_date(att["timestamp"]),
+                "timestamp": att["timestamp"],
+                "class_level": att["class_level"],
+                "chapter": att["chapter"],
+                "difficulty": att["difficulty"].capitalize(),
+                "score": att["score"],
+                "total_questions": att["total_questions"],
+                "percentage": int(round(att["percentage"])),
+                "score_display": f"{int(round(att['percentage']))}%",
+            }
+        )
 
     return formatted
 
@@ -220,18 +231,22 @@ def get_student_status(
         ch_name = wt["chapter"]
         ch_score = wt["score"]
         weak_topic_names.append(ch_name)
-        alerts.append({
-            "type": "weak_topic",
-            "chapter": ch_name,
-            "score": ch_score,
-            "message": f"⚠ Weak performance in {ch_name} ({ch_score}%)",
-        })
+        alerts.append(
+            {
+                "type": "weak_topic",
+                "chapter": ch_name,
+                "score": ch_score,
+                "message": f"⚠ Weak performance in {ch_name} ({ch_score}%)",
+            }
+        )
 
     if trend_alert:
-        alerts.append({
-            "type": "declining_trend",
-            "message": f"⚠ {trend_reason}",
-        })
+        alerts.append(
+            {
+                "type": "declining_trend",
+                "message": f"⚠ {trend_reason}",
+            }
+        )
 
     positive_notes = []
     if trend_direction == "improving":

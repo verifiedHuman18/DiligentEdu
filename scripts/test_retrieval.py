@@ -6,6 +6,7 @@ Tests similarity search and metadata filtering against the Pinecone `ncert-scien
 
 import os
 import sys
+
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
@@ -77,7 +78,9 @@ def test_retrieval():
             meta = match.get("metadata", {})
             text_preview = meta.get("text", "")[:150].replace("\n", " ")
             print(f"   Match {idx} [Score: {score:.4f}]:")
-            print(f"     Class: {meta.get('class')} | Ch {meta.get('chapter_number')}: {meta.get('chapter')} | Page {meta.get('page')}")
+            print(
+                f"     Class: {meta.get('class')} | Ch {meta.get('chapter_number')}: {meta.get('chapter')} | Page {meta.get('page')}"
+            )
             print(f"     Snippet: {text_preview}...")
 
     print("\n" + "=" * 60)

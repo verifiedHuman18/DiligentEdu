@@ -6,15 +6,16 @@ Pipeline:
 PDF -> PyMuPDF Text Extraction -> RecursiveCharacterTextSplitter -> Metadata Enrichment -> Sentence Transformers -> Pinecone Index
 """
 
+import argparse
+import json
 import os
 import sys
-import json
-import argparse
-from typing import List, Dict, Any
-from dotenv import load_dotenv
+from typing import Any, Dict, List
+
 import pymupdf
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pinecone import Pinecone, ServerlessSpec
 
 # Reconfigure stdout for UTF-8
@@ -77,11 +78,13 @@ def extract_and_chunk_pdf(
                 "text": clean_chunk,
             }
 
-            chunks.append({
-                "id": chunk_id,
-                "text": clean_chunk,
-                "metadata": metadata,
-            })
+            chunks.append(
+                {
+                    "id": chunk_id,
+                    "text": clean_chunk,
+                    "metadata": metadata,
+                }
+            )
 
     return chunks
 
@@ -106,7 +109,7 @@ def process_corpus(
         target_classes = [f"class{class_filter}"]
 
     print(f"📖 Chunking configuration: size={chunk_size}, overlap={chunk_overlap}")
-    print(f"📂 Processing corpus...")
+    print("📂 Processing corpus...")
 
     for class_key in target_classes:
         class_num = 9 if class_key == "class9" else 10
@@ -150,7 +153,9 @@ def setup_pinecone_index(pc: Pinecone, index_name: str, dimension: int = 384) ->
     """Ensure Pinecone index exists with appropriate specs and return index instance."""
     existing_indexes = [idx.name for idx in pc.list_indexes()]
     if index_name not in existing_indexes:
-        print(f"🔨 Creating Pinecone index '{index_name}' (dimension={dimension}, metric=cosine)...")
+        print(
+            f"🔨 Creating Pinecone index '{index_name}' (dimension={dimension}, metric=cosine)..."
+        )
         pc.create_index(
             name=index_name,
             dimension=dimension,
@@ -184,23 +189,27 @@ def embed_and_upsert(
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
 
     total_chunks = len(chunks)
-    print(f"\n🚀 Upserting {total_chunks} chunks to Pinecone index '{index_name}' (Batch size: {batch_size})...")
+    print(
+        f"\n🚀 Upserting {total_chunks} chunks to Pinecone index '{index_name}' (Batch size: {batch_size})..."
+    )
 
     for i in range(0, total_chunks, batch_size):
         batch = chunks[i : i + batch_size]
         texts_to_embed = [item["text"] for item in batch]
-        
+
         # Generate embeddings
         vectors_embedded = embeddings.embed_documents(texts_to_embed)
 
         # Prepare vector objects for upsert
         pinecone_vectors = []
         for item, vector in zip(batch, vectors_embedded):
-            pinecone_vectors.append({
-                "id": item["id"],
-                "values": vector,
-                "metadata": item["metadata"],
-            })
+            pinecone_vectors.append(
+                {
+                    "id": item["id"],
+                    "values": vector,
+                    "metadata": item["metadata"],
+                }
+            )
 
         # Upsert batch
         kwargs = {"vectors": pinecone_vectors}
@@ -218,13 +227,32 @@ def embed_and_upsert(
 def main():
     parser = argparse.ArgumentParser(description="NCERT Science Ingestion & Indexing Pipeline")
     parser.add_argument("--chunk-size", type=int, default=800, help="Chunk character length")
-    parser.add_argument("--chunk-overlap", type=int, default=100, help="Chunk overlap character length")
+    parser.add_argument(
+        "--chunk-overlap", type=int, default=100, help="Chunk overlap character length"
+    )
     parser.add_argument("--batch-size", type=int, default=100, help="Pinecone batch upsert size")
     parser.add_argument("--index-name", type=str, default=DEFAULT_INDEX, help="Pinecone index name")
-    parser.add_argument("--namespace", type=str, default="", help="Optional Pinecone namespace (default: default namespace)")
-    parser.add_argument("--class-filter", type=int, choices=[9, 10], default=None, help="Filter to specific class (9 or 10)")
-    parser.add_argument("--chapter-filter", type=int, default=None, help="Filter to specific chapter number")
-    parser.add_argument("--dry-run", action="store_true", help="Extract and chunk without embedding or upserting to Pinecone")
+    parser.add_argument(
+        "--namespace",
+        type=str,
+        default="",
+        help="Optional Pinecone namespace (default: default namespace)",
+    )
+    parser.add_argument(
+        "--class-filter",
+        type=int,
+        choices=[9, 10],
+        default=None,
+        help="Filter to specific class (9 or 10)",
+    )
+    parser.add_argument(
+        "--chapter-filter", type=int, default=None, help="Filter to specific chapter number"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Extract and chunk without embedding or upserting to Pinecone",
+    )
 
     args = parser.parse_args()
 

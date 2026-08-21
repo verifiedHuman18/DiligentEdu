@@ -2,6 +2,7 @@
 
 import os
 from datetime import datetime
+
 import streamlit as st
 
 from src.academic_rag.config import config
@@ -88,12 +89,16 @@ def render_sidebar():
         with tab2:
             st.markdown("#### 📖 NCERT Science Curriculum")
 
-            with st.expander("📘 Class 9 Science (13 Chapters)", expanded=(selected_class == "Class 9")):
+            with st.expander(
+                "📘 Class 9 Science (13 Chapters)", expanded=(selected_class == "Class 9")
+            ):
                 cls9_chs = curriculum_service.get_chapters_for_grade(9)
                 for ch in cls9_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
 
-            with st.expander("📗 Class 10 Science (13 Chapters)", expanded=(selected_class == "Class 10")):
+            with st.expander(
+                "📗 Class 10 Science (13 Chapters)", expanded=(selected_class == "Class 10")
+            ):
                 cls10_chs = curriculum_service.get_chapters_for_grade(10)
                 for ch in cls10_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
@@ -103,7 +108,9 @@ def render_sidebar():
             msg_count = len(st.session_state.messages)
             st.metric("Questions Asked", msg_count // 2 if msg_count > 0 else 0)
             st.info(f"**Active Model:**\n{selected_model}")
-            st.info(f"**Vector Store:**\nPinecone (`{config.pinecone_index_name}`)\n`sentence-transformers` 384-dim")
+            st.info(
+                f"**Vector Store:**\nPinecone (`{config.pinecone_index_name}`)\n`sentence-transformers` 384-dim"
+            )
 
             if msg_count > 0:
                 st.divider()
@@ -124,4 +131,9 @@ def render_sidebar():
                 st.session_state.messages = []
                 st.rerun()
 
-    return selected_model, st.session_state.get("api_key"), selected_class, st.session_state.get("student_id", "student_001")
+    return (
+        selected_model,
+        st.session_state.get("api_key"),
+        selected_class,
+        st.session_state.get("student_id", "student_001"),
+    )

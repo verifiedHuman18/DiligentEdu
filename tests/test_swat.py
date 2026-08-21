@@ -4,7 +4,11 @@ import os
 import tempfile
 import unittest
 
-from src.academic_rag.analytics.swat import get_student_swat, format_swat_report, get_available_chapters
+from src.academic_rag.analytics.swat import (
+    format_swat_report,
+    get_available_chapters,
+    get_student_swat,
+)
 from src.academic_rag.storage.repository import QuizRepository
 
 
@@ -31,28 +35,46 @@ class TestStudentSWAT(unittest.TestCase):
 
     def test_swat_categorization_and_trend(self):
         # 1. Chemical Reactions: 100% -> Strong
-        self.repo.record_attempt(self.student_id, {
-            "class_level": 10,
-            "chapter": "Chemical Reactions and Equations",
-            "difficulty": "medium",
-            "questions": [{"question_id": f"c_{i}", "correct_answer": "A"} for i in range(1, 6)],
-        }, {f"q_choice_{i}": "A" for i in range(1, 6)})
+        self.repo.record_attempt(
+            self.student_id,
+            {
+                "class_level": 10,
+                "chapter": "Chemical Reactions and Equations",
+                "difficulty": "medium",
+                "questions": [
+                    {"question_id": f"c_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
+            },
+            {f"q_choice_{i}": "A" for i in range(1, 6)},
+        )
 
         # 2. Electricity: 60% -> Average
-        self.repo.record_attempt(self.student_id, {
-            "class_level": 10,
-            "chapter": "Electricity",
-            "difficulty": "medium",
-            "questions": [{"question_id": f"e_{i}", "correct_answer": "A"} for i in range(1, 6)],
-        }, {f"q_choice_{i}": "A" if i <= 3 else "B" for i in range(1, 6)})
+        self.repo.record_attempt(
+            self.student_id,
+            {
+                "class_level": 10,
+                "chapter": "Electricity",
+                "difficulty": "medium",
+                "questions": [
+                    {"question_id": f"e_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
+            },
+            {f"q_choice_{i}": "A" if i <= 3 else "B" for i in range(1, 6)},
+        )
 
         # 3. Magnetic Effects: 40% -> Weak
-        self.repo.record_attempt(self.student_id, {
-            "class_level": 10,
-            "chapter": "Magnetic Effects of Electric Current",
-            "difficulty": "hard",
-            "questions": [{"question_id": f"m_{i}", "correct_answer": "A"} for i in range(1, 6)],
-        }, {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)})
+        self.repo.record_attempt(
+            self.student_id,
+            {
+                "class_level": 10,
+                "chapter": "Magnetic Effects of Electric Current",
+                "difficulty": "hard",
+                "questions": [
+                    {"question_id": f"m_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
+            },
+            {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)},
+        )
 
         swat = get_student_swat(self.student_id, db_path=self.db_path)
         self.assertTrue(swat["has_data"])

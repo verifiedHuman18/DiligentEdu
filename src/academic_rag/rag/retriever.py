@@ -1,12 +1,13 @@
 """Vector Store Retriever for NCERT Science textbook content in Pinecone."""
 
 import logging
-from typing import Optional, Dict, Any, List
-from pinecone import Pinecone
+from typing import Any, Dict, Optional
+
 from langchain_huggingface import HuggingFaceEmbeddings
+from pinecone import Pinecone
 
 from src.academic_rag.config import config
-from src.academic_rag.exceptions import RetrievalError, AuthenticationError
+from src.academic_rag.exceptions import AuthenticationError, RetrievalError
 
 logger = logging.getLogger(__name__)
 

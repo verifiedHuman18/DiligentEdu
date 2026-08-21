@@ -6,7 +6,7 @@ import streamlit as st
 def render_header(selected_class: str = "All Classes", student_id: str = "student_001") -> None:
     """Renders the clean, modern top header with student details."""
     class_label = selected_class if selected_class != "All Classes" else "Class 9 & 10"
-    
+
     html = f"""
     <div class="hero-header-container">
         <div class="hero-title">NCERT Academic Science Assistant</div>

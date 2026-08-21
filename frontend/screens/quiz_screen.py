@@ -1,26 +1,31 @@
 """Practice Quiz Screen with instant grading, Material icons, and SWAT integration."""
 
 import logging
+
 import streamlit as st
 
+from frontend.components.cards import render_citation_box
+from frontend.state import navigate_to
 from src.academic_rag.analytics.swat import get_available_chapters
 from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
 from src.academic_rag.quiz.generator import create_student_quiz
-from frontend.components.cards import render_citation_box
-from frontend.state import navigate_to
 
 logger = logging.getLogger(__name__)
 
 
 def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) -> None:
     """Renders the Practice Quiz screen."""
-    if st.button("Back to Home", icon=":material/arrow_back:", type="secondary", key="quiz_top_back_btn"):
+    if st.button(
+        "Back to Home", icon=":material/arrow_back:", type="secondary", key="quiz_top_back_btn"
+    ):
         navigate_to("home")
         st.rerun()
 
     st.write("")
     st.markdown("### NCERT Practice Quiz")
-    st.caption("Generate grounded multiple-choice quizzes with instant grading, textbook explanations, and exact page citations.")
+    st.caption(
+        "Generate grounded multiple-choice quizzes with instant grading, textbook explanations, and exact page citations."
+    )
 
     # Controls Grid
     c1, c2, c3, c4 = st.columns([1.2, 2.4, 1.1, 1.1])
@@ -41,7 +46,9 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
             ch_labels.append(label)
 
         selected_ch_label = st.selectbox("Chapter", ch_labels, key="screen_quiz_ch")
-        selected_ch_title = ch_display_map.get(selected_ch_label, available_chs[0]["chapter"] if available_chs else "Electricity")
+        selected_ch_title = ch_display_map.get(
+            selected_ch_label, available_chs[0]["chapter"] if available_chs else "Electricity"
+        )
 
     with c3:
         quiz_diff = st.selectbox("Difficulty", ["medium", "easy", "hard"], key="screen_quiz_diff")
@@ -49,11 +56,20 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
     with c4:
         quiz_count = st.selectbox("Questions", [5, 3, 7, 10], index=0, key="screen_quiz_count")
 
-    if st.button("Generate NCERT Quiz", icon=":material/auto_awesome:", type="primary", use_container_width=True):
+    if st.button(
+        "Generate NCERT Quiz",
+        icon=":material/auto_awesome:",
+        type="primary",
+        use_container_width=True,
+    ):
         if not user_api_key:
-            st.warning("Please enter your Google Gemini API key in Settings (gear icon in the top right).")
+            st.warning(
+                "Please enter your Google Gemini API key in Settings (gear icon in the top right)."
+            )
         else:
-            with st.spinner(f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title}..."):
+            with st.spinner(
+                f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title}..."
+            ):
                 try:
                     generated = create_student_quiz(
                         student_id=student_id,
@@ -76,8 +92,12 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
     curr_quiz = st.session_state.get("current_quiz")
     if curr_quiz and curr_quiz.get("questions"):
         st.write("")
-        st.markdown(f"#### {curr_quiz.get('chapter', 'Chapter')} Quiz — Class {curr_quiz.get('class_level', 10)}")
-        st.caption(f"Difficulty: {curr_quiz.get('difficulty', 'medium').capitalize()} | Questions: {len(curr_quiz['questions'])}")
+        st.markdown(
+            f"#### {curr_quiz.get('chapter', 'Chapter')} Quiz — Class {curr_quiz.get('class_level', 10)}"
+        )
+        st.caption(
+            f"Difficulty: {curr_quiz.get('difficulty', 'medium').capitalize()} | Questions: {len(curr_quiz['questions'])}"
+        )
 
         is_submitted = st.session_state.get("quiz_submitted", False)
         user_answers = {}
@@ -116,14 +136,18 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                 if student_choice == correct_letter:
                     st.success(f"Correct! Option {correct_letter}")
                 else:
-                    st.error(f"Incorrect. Your answer: {student_choice or 'None'} | Correct answer: {correct_letter}")
+                    st.error(
+                        f"Incorrect. Your answer: {student_choice or 'None'} | Correct answer: {correct_letter}"
+                    )
 
                 with st.expander(f"Explanation and NCERT Citations (Q{idx})", expanded=True):
-                    st.markdown(f"**Explanation:** {q_data.get('explanation', 'Refer to NCERT textbook.')}")
+                    st.markdown(
+                        f"**Explanation:** {q_data.get('explanation', 'Refer to NCERT textbook.')}"
+                    )
                     sp = q_data.get("source_pages", [])
                     render_citation_box(
-                        chapter=curr_quiz.get('chapter', ''),
-                        class_level=curr_quiz.get('class_level', 10),
+                        chapter=curr_quiz.get("chapter", ""),
+                        class_level=curr_quiz.get("class_level", 10),
                         pages=sp,
                     )
 
@@ -132,7 +156,12 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
         st.session_state.quiz_user_answers = user_answers
 
         if not is_submitted:
-            if st.button("Submit Quiz", icon=":material/check_circle:", type="primary", use_container_width=True):
+            if st.button(
+                "Submit Quiz",
+                icon=":material/check_circle:",
+                type="primary",
+                use_container_width=True,
+            ):
                 try:
                     sub_result = submit_and_grade_quiz(
                         student_id=student_id,
@@ -159,14 +188,20 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                 if pct >= 70:
                     st.success(f"Score: {correct_count}/{total_q} ({pct}%) — Mastery standard met.")
                 elif pct >= 50:
-                    st.info(f"Score: {correct_count}/{total_q} ({pct}%) — Satisfactory performance.")
+                    st.info(
+                        f"Score: {correct_count}/{total_q} ({pct}%) — Satisfactory performance."
+                    )
                 else:
-                    st.warning(f"Score: {correct_count}/{total_q} ({pct}%) — Review recommended. Check textbook references above.")
+                    st.warning(
+                        f"Score: {correct_count}/{total_q} ({pct}%) — Review recommended. Check textbook references above."
+                    )
 
                 if sub_res:
                     status_name = sub_res.get("new_status", "").upper()
                     if sub_res.get("status_changed"):
-                        st.success(f"SWAT Status Updated: {sub_res.get('status_change_summary')} [{status_name}]")
+                        st.success(
+                            f"SWAT Status Updated: {sub_res.get('status_change_summary')} [{status_name}]"
+                        )
                     else:
                         st.info(
                             f"SWAT Chapter Score: {sub_res.get('chapter')} average is "
@@ -174,7 +209,12 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                         )
 
             with res_col2:
-                if st.button("Take Another Quiz", icon=":material/replay:", type="primary", use_container_width=True):
+                if st.button(
+                    "Take Another Quiz",
+                    icon=":material/replay:",
+                    type="primary",
+                    use_container_width=True,
+                ):
                     st.session_state.current_quiz = None
                     st.session_state.quiz_submitted = False
                     st.session_state.quiz_user_answers = {}

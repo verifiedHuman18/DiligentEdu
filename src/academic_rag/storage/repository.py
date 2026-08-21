@@ -4,7 +4,7 @@ import json
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from src.academic_rag.config import config
 from src.academic_rag.exceptions import StorageError
@@ -30,7 +30,10 @@ class QuizRepository:
         Persists a completed quiz attempt and each question's response record.
         """
         clean_student_id = str(student_id).strip()
-        q_id = quiz_id or f"quiz_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+        q_id = (
+            quiz_id
+            or f"quiz_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+        )
         class_level = int(quiz_data.get("class_level", 10))
         chapter = str(quiz_data.get("chapter", "Science"))
         chapter_number = int(quiz_data.get("chapter_number", 0))
@@ -56,7 +59,10 @@ class QuizRepository:
 
             is_corr = False
             if u_ans_clean:
-                if u_ans_clean.upper().startswith(correct_ans) or u_ans_clean.upper() == correct_ans:
+                if (
+                    u_ans_clean.upper().startswith(correct_ans)
+                    or u_ans_clean.upper() == correct_ans
+                ):
                     is_corr = True
 
             if is_corr:
@@ -65,17 +71,19 @@ class QuizRepository:
             sp = q.get("source_pages", [])
             sp_json = json.dumps(sp)
 
-            question_records.append({
-                "quiz_id": q_id,
-                "question_id": q_identifier,
-                "question_text": q_text,
-                "chapter": chapter,
-                "difficulty": difficulty,
-                "user_answer": u_ans_clean,
-                "correct_answer": correct_ans,
-                "is_correct": 1 if is_corr else 0,
-                "source_pages": sp_json,
-            })
+            question_records.append(
+                {
+                    "quiz_id": q_id,
+                    "question_id": q_identifier,
+                    "question_text": q_text,
+                    "chapter": chapter,
+                    "difficulty": difficulty,
+                    "user_answer": u_ans_clean,
+                    "correct_answer": correct_ans,
+                    "is_correct": 1 if is_corr else 0,
+                    "source_pages": sp_json,
+                }
+            )
 
         percentage = (float(score) / float(total_questions) * 100.0) if total_questions > 0 else 0.0
         ts = datetime.now(timezone.utc).isoformat()
@@ -84,27 +92,47 @@ class QuizRepository:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO quiz_attempts (
                         quiz_id, student_id, class_level, chapter, chapter_number,
                         difficulty, score, total_questions, percentage, timestamp
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    q_id, clean_student_id, class_level, chapter, chapter_number,
-                    difficulty, score, total_questions, round(percentage, 2), ts
-                ))
+                """,
+                    (
+                        q_id,
+                        clean_student_id,
+                        class_level,
+                        chapter,
+                        chapter_number,
+                        difficulty,
+                        score,
+                        total_questions,
+                        round(percentage, 2),
+                        ts,
+                    ),
+                )
 
                 for qr in question_records:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         INSERT INTO question_responses (
                             quiz_id, question_id, question_text, chapter, difficulty,
                             user_answer, correct_answer, is_correct, source_pages
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (
-                        qr["quiz_id"], qr["question_id"], qr["question_text"],
-                        qr["chapter"], qr["difficulty"], qr["user_answer"],
-                        qr["correct_answer"], qr["is_correct"], qr["source_pages"]
-                    ))
+                    """,
+                        (
+                            qr["quiz_id"],
+                            qr["question_id"],
+                            qr["question_text"],
+                            qr["chapter"],
+                            qr["difficulty"],
+                            qr["user_answer"],
+                            qr["correct_answer"],
+                            qr["is_correct"],
+                            qr["source_pages"],
+                        ),
+                    )
 
                 conn.commit()
         except Exception as e:
@@ -133,11 +161,14 @@ class QuizRepository:
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT * FROM quiz_attempts
                     WHERE student_id = ?
                     ORDER BY timestamp ASC
-                """, (clean_id,))
+                """,
+                    (clean_id,),
+                )
 
                 rows = cursor.fetchall()
                 history = [dict(row) for row in rows]
@@ -145,13 +176,16 @@ class QuizRepository:
                 if include_questions and history:
                     for item in history:
                         q_cursor = conn.cursor()
-                        q_cursor.execute("""
+                        q_cursor.execute(
+                            """
                             SELECT question_id, question_text, chapter, difficulty,
                                    user_answer, correct_answer, is_correct, source_pages
                             FROM question_responses
                             WHERE quiz_id = ?
                             ORDER BY id ASC
-                        """, (item["quiz_id"],))
+                        """,
+                            (item["quiz_id"],),
+                        )
 
                         q_rows = q_cursor.fetchall()
                         q_list = []
@@ -176,10 +210,13 @@ class QuizRepository:
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     DELETE FROM question_responses
                     WHERE quiz_id IN (SELECT quiz_id FROM quiz_attempts WHERE student_id = ?)
-                """, (clean_id,))
+                """,
+                    (clean_id,),
+                )
                 cursor.execute("DELETE FROM quiz_attempts WHERE student_id = ?", (clean_id,))
                 conn.commit()
         except Exception as e:

@@ -1,12 +1,17 @@
 """Reusable Minimalist Cards and Badges UI Components (Flat, No Heavy Boxes)."""
 
-from typing import List, Optional, Any
+from typing import Any, List, Optional
+
 import streamlit as st
 
 
 def render_metric_card(label: str, value: Any, delta: Optional[str] = None) -> None:
     """Renders a flat minimalist metric with clean typography (no box)."""
-    delta_html = f'<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">{delta}</div>' if delta else ""
+    delta_html = (
+        f'<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">{delta}</div>'
+        if delta
+        else ""
+    )
     html = f"""
     <div class="metric-flat">
         <div class="metric-label">{label}</div>

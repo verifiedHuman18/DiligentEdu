@@ -3,18 +3,21 @@
 import json
 import logging
 import os
-from typing import Dict, Any, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.academic_rag.config import config
-from src.academic_rag.exceptions import CurriculumError, ChapterNotFoundError
-from src.academic_rag.models.curriculum import ChapterInfo, ChapterSummaryStatus
+from src.academic_rag.exceptions import ChapterNotFoundError, CurriculumError
+from src.academic_rag.models.curriculum import ChapterInfo
 
 logger = logging.getLogger(__name__)
 
 
 DEFAULT_CURRICULUM_MAPPING = {
     "class9": {
-        "iesc101.pdf": {"chapter_number": 1, "chapter": "Exploration: Entering the World of Secondary Science"},
+        "iesc101.pdf": {
+            "chapter_number": 1,
+            "chapter": "Exploration: Entering the World of Secondary Science",
+        },
         "iesc102.pdf": {"chapter_number": 2, "chapter": "Cell: The Building Block of Life"},
         "iesc103.pdf": {"chapter_number": 3, "chapter": "Tissues in Action"},
         "iesc104.pdf": {"chapter_number": 4, "chapter": "Describing Motion Around Us"},
@@ -23,10 +26,19 @@ DEFAULT_CURRICULUM_MAPPING = {
         "iesc107.pdf": {"chapter_number": 7, "chapter": "Work, Energy, and Simple Machines"},
         "iesc108.pdf": {"chapter_number": 8, "chapter": "Journey Inside the Atom"},
         "iesc109.pdf": {"chapter_number": 9, "chapter": "Atomic Foundations of Matter"},
-        "iesc110.pdf": {"chapter_number": 10, "chapter": "Sound Waves: Characteristics and Applications"},
+        "iesc110.pdf": {
+            "chapter_number": 10,
+            "chapter": "Sound Waves: Characteristics and Applications",
+        },
         "iesc111.pdf": {"chapter_number": 11, "chapter": "Reproduction: How Life Continues"},
-        "iesc112.pdf": {"chapter_number": 12, "chapter": "Patterns in Life: Diversity and Classification"},
-        "iesc113.pdf": {"chapter_number": 13, "chapter": "Earth as a System: Energy, Matter, and Life"},
+        "iesc112.pdf": {
+            "chapter_number": 12,
+            "chapter": "Patterns in Life: Diversity and Classification",
+        },
+        "iesc113.pdf": {
+            "chapter_number": 13,
+            "chapter": "Earth as a System: Energy, Matter, and Life",
+        },
     },
     "class10": {
         "jesc101.pdf": {"chapter_number": 1, "chapter": "Chemical Reactions and Equations"},
@@ -103,7 +115,9 @@ class CurriculumService:
             raise CurriculumError(f"Invalid class level: {class_level}. Must be 9 or 10.")
 
         if class_int not in (9, 10):
-            raise CurriculumError(f"Invalid class level: {class_int}. Supported class levels are 9 and 10.")
+            raise CurriculumError(
+                f"Invalid class level: {class_int}. Supported class levels are 9 and 10."
+            )
 
         mapping = self.get_mapping()
         class_key = f"class{class_int}"
@@ -135,7 +149,11 @@ class CurriculumService:
         for fname, info in class_map.items():
             ch_title = str(info.get("chapter", ""))
             ch_title_lower = ch_title.lower()
-            if clean_query == ch_title_lower or clean_query in ch_title_lower or ch_title_lower in clean_query:
+            if (
+                clean_query == ch_title_lower
+                or clean_query in ch_title_lower
+                or ch_title_lower in clean_query
+            ):
                 return int(info.get("chapter_number", 0)), ch_title
 
         # Keyword match
@@ -149,9 +167,7 @@ class CurriculumService:
             f"Could not resolve chapter '{chapter_identifier}' for Class {class_int}."
         )
 
-    def get_next_chapter(
-        self, class_level: int, current_chapter_num: int
-    ) -> Tuple[int, str, bool]:
+    def get_next_chapter(self, class_level: int, current_chapter_num: int) -> Tuple[int, str, bool]:
         """
         Finds the next sequential chapter in the NCERT curriculum.
         Returns: (next_chapter_number, next_chapter_title, has_more_chapters)

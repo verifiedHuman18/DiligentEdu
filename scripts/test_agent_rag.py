@@ -4,17 +4,18 @@ Integration test for NCERT Science RAG & Citations
 Tests the end-to-end flow: Question -> Direct RAG -> Pinecone -> Gemini -> Answer + Citation
 """
 
+import asyncio
 import os
 import sys
-import asyncio
+
 from dotenv import load_dotenv
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.academic_rag.rag.engine import stream_ncert_rag_response
 from src.academic_rag.config import config
+from src.academic_rag.rag.engine import stream_ncert_rag_response
 
 # Reconfigure stdout for UTF-8
 if hasattr(sys.stdout, "reconfigure"):

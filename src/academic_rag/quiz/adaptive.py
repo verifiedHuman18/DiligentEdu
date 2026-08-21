@@ -1,7 +1,7 @@
 """Deterministic Adaptive Quiz Engine (Zero LLM / Zero Cost)."""
 
 import logging
-from typing import Dict, Any, Union, Tuple, List
+from typing import Any, Dict
 
 from src.academic_rag.curriculum.service import curriculum_service
 
@@ -76,7 +76,9 @@ def get_next_quiz_config(
             reasoning = f"Score was {percentage:.0f}% (≥ 70%). Stepping up from Medium to Hard difficulty on '{ch_title}'."
 
         else:
-            adv_ch_num, adv_ch_title, has_more = curriculum_service.get_next_chapter(class_level, ch_num)
+            adv_ch_num, adv_ch_title, has_more = curriculum_service.get_next_chapter(
+                class_level, ch_num
+            )
             if has_more:
                 next_difficulty = "medium"
                 next_ch_num = adv_ch_num

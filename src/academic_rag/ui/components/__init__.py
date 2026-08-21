@@ -1,8 +1,8 @@
 """UI Components package."""
 
-from src.academic_rag.ui.components.sidebar import render_sidebar
 from src.academic_rag.ui.components.chat_tab import render_chat_tab
 from src.academic_rag.ui.components.quiz_tab import render_quiz_tab
+from src.academic_rag.ui.components.sidebar import render_sidebar
 from src.academic_rag.ui.components.swat_tab import render_swat_tab
 from src.academic_rag.ui.components.teacher_tab import render_teacher_tab
 

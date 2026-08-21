@@ -5,10 +5,10 @@ Single source of truth facade for all UI, client, and test interactions.
 Completely abstracts internal SQLite databases, Pinecone vector stores, and Gemini LLM calls.
 """
 
+import logging
 import os
 import sys
-import logging
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 # Reconfigure stdout for UTF-8
 if hasattr(sys.stdout, "reconfigure"):
@@ -18,23 +18,31 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.academic_rag.config import config, DEFAULT_DB_PATH, STRONG_THRESHOLD, AVERAGE_THRESHOLD
-from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.storage.repository import quiz_repository
-from src.academic_rag.quiz.generator import create_student_quiz
-from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
+from src.academic_rag.analytics.swat import (
+    format_swat_report,
+)
+from src.academic_rag.analytics.swat import (
+    get_available_chapters as _internal_get_available_chapters,
+)
 from src.academic_rag.analytics.swat import (
     get_student_swat as _internal_get_student_swat,
-    get_available_chapters as _internal_get_available_chapters,
-    format_swat_report,
+)
+from src.academic_rag.analytics.teacher import (
+    get_student_status as _internal_get_student_status,
+)
+from src.academic_rag.analytics.teacher import (
+    get_teacher_chapter_statistics as _internal_get_student_chapter_stats,
 )
 from src.academic_rag.analytics.teacher import (
     get_teacher_student_overview as _internal_get_student_overview,
-    get_teacher_chapter_statistics as _internal_get_student_chapter_stats,
-    get_teacher_quiz_history as _internal_get_teacher_quiz_history,
-    get_student_status as _internal_get_student_status,
+)
+from src.academic_rag.analytics.teacher import (
     get_teacher_student_profile as _internal_get_teacher_student_profile,
 )
+from src.academic_rag.config import DEFAULT_DB_PATH
+from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
+from src.academic_rag.quiz.generator import create_student_quiz
+from src.academic_rag.storage.repository import quiz_repository
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +50,7 @@ logger = logging.getLogger(__name__)
 # =====================================================================
 # 🎓 STUDENT SIDE BACKEND API
 # =====================================================================
+
 
 def get_student_swat(student_id: str, db_path: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -76,7 +85,9 @@ def get_available_chapters(
     Returns:
         List of chapter objects with chapter_number, chapter, status, score, attempts.
     """
-    return _internal_get_available_chapters(class_level=class_level, student_id=student_id, db_path=db_path)
+    return _internal_get_available_chapters(
+        class_level=class_level, student_id=student_id, db_path=db_path
+    )
 
 
 def generate_student_quiz(
@@ -180,6 +191,7 @@ def get_student_quiz_history(
 # =====================================================================
 # 👨‍🏫 TEACHER SIDE BACKEND API
 # =====================================================================
+
 
 def get_student_overview(
     student_id: str,

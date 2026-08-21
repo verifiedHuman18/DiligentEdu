@@ -1,6 +1,7 @@
 """Streamlit session state management and initialization."""
 
 import streamlit as st
+
 from src.academic_rag.config import config
 
 

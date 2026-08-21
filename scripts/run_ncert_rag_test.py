@@ -5,16 +5,16 @@ Tests: PDFs, Ingestion, Pinecone, Retrieval (Zero-LLM), Class Separation, End-to
 Frugal on Gemini API quota: Uses exactly 6 LLM calls with 5s sleep between calls.
 """
 
+import json
 import os
 import sys
 import time
-import json
-from typing import List, Dict, Any
-from dotenv import load_dotenv
+
 import pymupdf
+from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
-from pinecone import Pinecone
 from openai import OpenAI
+from pinecone import Pinecone
 
 # Reconfigure stdout for UTF-8
 sys.stdout.reconfigure(encoding="utf-8")
@@ -36,33 +36,108 @@ LLM_MODEL = "gemini-3.5-flash-lite"
 # 25 Diverse Retrieval Test Cases (Zero LLM calls)
 RETRIEVAL_TEST_CASES = [
     # --- Class 9 ---
-    {"q": "How do scientific models and controlled experiments work in secondary science?", "exp_cls": 9, "exp_ch": 1},
+    {
+        "q": "How do scientific models and controlled experiments work in secondary science?",
+        "exp_cls": 9,
+        "exp_ch": 1,
+    },
     {"q": "What is the plasma membrane and nucleus in a cell?", "exp_cls": 9, "exp_ch": 2},
     {"q": "What are parenchyma, collenchyma, and sclerenchyma tissues?", "exp_cls": 9, "exp_ch": 3},
-    {"q": "What is the difference between distance and displacement in motion?", "exp_cls": 9, "exp_ch": 4},
-    {"q": "What is the Tyndall effect and colloidal solution in mixtures?", "exp_cls": 9, "exp_ch": 5},
-    {"q": "What is inertia and how does Newton's first law of motion explain it?", "exp_cls": 9, "exp_ch": 6},
+    {
+        "q": "What is the difference between distance and displacement in motion?",
+        "exp_cls": 9,
+        "exp_ch": 4,
+    },
+    {
+        "q": "What is the Tyndall effect and colloidal solution in mixtures?",
+        "exp_cls": 9,
+        "exp_ch": 5,
+    },
+    {
+        "q": "What is inertia and how does Newton's first law of motion explain it?",
+        "exp_cls": 9,
+        "exp_ch": 6,
+    },
     {"q": "What is the work-energy theorem and kinetic energy formula?", "exp_cls": 9, "exp_ch": 7},
     {"q": "What were Thomson's and Rutherford's atomic models?", "exp_cls": 9, "exp_ch": 8},
-    {"q": "What is the law of definite proportions and atomic mass unit?", "exp_cls": 9, "exp_ch": 9},
+    {
+        "q": "What is the law of definite proportions and atomic mass unit?",
+        "exp_cls": 9,
+        "exp_ch": 9,
+    },
     {"q": "How does ultrasound and echo work in sound waves?", "exp_cls": 9, "exp_ch": 10},
-    {"q": "What is vegetative propagation and binary fission in reproduction?", "exp_cls": 9, "exp_ch": 11},
-    {"q": "What are Monera, Protista, Fungi, Plantae and Animalia kingdoms?", "exp_cls": 9, "exp_ch": 12},
-
+    {
+        "q": "What is vegetative propagation and binary fission in reproduction?",
+        "exp_cls": 9,
+        "exp_ch": 11,
+    },
+    {
+        "q": "What are Monera, Protista, Fungi, Plantae and Animalia kingdoms?",
+        "exp_cls": 9,
+        "exp_ch": 12,
+    },
     # --- Class 10 ---
-    {"q": "What is a precipitation and neutralization chemical reaction?", "exp_cls": 10, "exp_ch": 1},
-    {"q": "What is the pH scale and how do indicators work with acids and bases?", "exp_cls": 10, "exp_ch": 2},
+    {
+        "q": "What is a precipitation and neutralization chemical reaction?",
+        "exp_cls": 10,
+        "exp_ch": 1,
+    },
+    {
+        "q": "What is the pH scale and how do indicators work with acids and bases?",
+        "exp_cls": 10,
+        "exp_ch": 2,
+    },
     {"q": "What is the reactivity series of metals and ionic bonding?", "exp_cls": 10, "exp_ch": 3},
-    {"q": "Why is carbon tetravalent and what is catenation in hydrocarbons?", "exp_cls": 10, "exp_ch": 4},
-    {"q": "What is double circulation of blood in the human heart and nephron in kidney?", "exp_cls": 10, "exp_ch": 5},
-    {"q": "What is the function of synapses in neurons and reflex action?", "exp_cls": 10, "exp_ch": 6},
-    {"q": "What is pollination, fertilization, and female reproductive system?", "exp_cls": 10, "exp_ch": 7},
-    {"q": "What is a monohybrid cross and sex determination in human beings?", "exp_cls": 10, "exp_ch": 8},
-    {"q": "What is the mirror formula, magnification, and laws of reflection?", "exp_cls": 10, "exp_ch": 9},
-    {"q": "What causes the dispersion of white light and rainbow formation?", "exp_cls": 10, "exp_ch": 10},
-    {"q": "What is Ohm's law and the formula for electric power and resistance?", "exp_cls": 10, "exp_ch": 11},
-    {"q": "What is electromagnetic induction and Fleming's left hand rule?", "exp_cls": 10, "exp_ch": 12},
-    {"q": "What is the 10 percent energy flow rule in a food chain of an ecosystem?", "exp_cls": 10, "exp_ch": 13},
+    {
+        "q": "Why is carbon tetravalent and what is catenation in hydrocarbons?",
+        "exp_cls": 10,
+        "exp_ch": 4,
+    },
+    {
+        "q": "What is double circulation of blood in the human heart and nephron in kidney?",
+        "exp_cls": 10,
+        "exp_ch": 5,
+    },
+    {
+        "q": "What is the function of synapses in neurons and reflex action?",
+        "exp_cls": 10,
+        "exp_ch": 6,
+    },
+    {
+        "q": "What is pollination, fertilization, and female reproductive system?",
+        "exp_cls": 10,
+        "exp_ch": 7,
+    },
+    {
+        "q": "What is a monohybrid cross and sex determination in human beings?",
+        "exp_cls": 10,
+        "exp_ch": 8,
+    },
+    {
+        "q": "What is the mirror formula, magnification, and laws of reflection?",
+        "exp_cls": 10,
+        "exp_ch": 9,
+    },
+    {
+        "q": "What causes the dispersion of white light and rainbow formation?",
+        "exp_cls": 10,
+        "exp_ch": 10,
+    },
+    {
+        "q": "What is Ohm's law and the formula for electric power and resistance?",
+        "exp_cls": 10,
+        "exp_ch": 11,
+    },
+    {
+        "q": "What is electromagnetic induction and Fleming's left hand rule?",
+        "exp_cls": 10,
+        "exp_ch": 12,
+    },
+    {
+        "q": "What is the 10 percent energy flow rule in a food chain of an ecosystem?",
+        "exp_cls": 10,
+        "exp_ch": 13,
+    },
 ]
 
 
@@ -100,7 +175,7 @@ def test_pinecone() -> bool:
     if INDEX_NAME not in indexes:
         print(f"❌ Index '{INDEX_NAME}' not found.")
         return False
-    
+
     idx = pc.Index(INDEX_NAME)
     stats = idx.describe_index_stats()
     total_vectors = stats.get("total_vector_count", 0)
@@ -148,30 +223,47 @@ def test_retrieval_and_class_separation():
             correct_separation += 1
 
         status = "✅ HIT" if hit_chapter else "❌ MISS"
-        print(f"[{i:02d}/{total}] {status} | Expected: Class {exp_cls} Ch {exp_ch:02d} | Query: {q[:55]}...")
+        print(
+            f"[{i:02d}/{total}] {status} | Expected: Class {exp_cls} Ch {exp_ch:02d} | Query: {q[:55]}..."
+        )
 
     print(f"\nRetrieval Accuracy (Top-3): {correct_top3}/{total} ({(correct_top3/total)*100:.1f}%)")
-    print(f"Class Separation (Top-1 Class Match): {correct_separation}/{total} ({(correct_separation/total)*100:.1f}%)")
-    
+    print(
+        f"Class Separation (Top-1 Class Match): {correct_separation}/{total} ({(correct_separation/total)*100:.1f}%)"
+    )
+
     return correct_top3, total, (correct_separation >= 22)
 
 
 def test_end_to_end_rag_and_out_of_syllabus():
     print("\n--- 4. Testing End-to-End RAG Answers, Citations & Out-of-Syllabus (6 LLM calls) ---")
-    
+
     rag_test_cases = [
         # In-Syllabus Class 10
         {
             "query": "What is Ohm's law and what is the formula for electrical resistance?",
             "class_focus": 10,
             "type": "in_syllabus",
-            "expected_keywords": ["potential difference", "current", "V = IR", "Ohm", "Electricity"],
+            "expected_keywords": [
+                "potential difference",
+                "current",
+                "V = IR",
+                "Ohm",
+                "Electricity",
+            ],
         },
         {
             "query": "Why does carbon form covalent bonds instead of ionic bonds, and what is catenation?",
             "class_focus": 10,
             "type": "in_syllabus",
-            "expected_keywords": ["covalent", "four", "electrons", "sharing", "catenation", "Carbon"],
+            "expected_keywords": [
+                "covalent",
+                "four",
+                "electrons",
+                "sharing",
+                "catenation",
+                "Carbon",
+            ],
         },
         # In-Syllabus Class 9
         {
@@ -184,7 +276,13 @@ def test_end_to_end_rag_and_out_of_syllabus():
             "query": "What is the function of the plasma membrane in a eukaryotic cell?",
             "class_focus": 9,
             "type": "in_syllabus",
-            "expected_keywords": ["membrane", "selectively permeable", "cell", "diffusion", "osmosis"],
+            "expected_keywords": [
+                "membrane",
+                "selectively permeable",
+                "cell",
+                "diffusion",
+                "osmosis",
+            ],
         },
         # Out of Syllabus
         {
@@ -265,12 +363,21 @@ Instructions:
                 print(f"  ⚠️ Keyword match: {has_keywords} | Citation match: {has_citation}")
 
         elif q_type == "out_of_syllabus":
-            is_handled = any(kw.lower() in response.lower() for kw in ["not covered", "outside", "syllabus", "ncert", "does not contain"])
-            has_fake_citation = ("### 📚 NCERT Textbook Citations" in response and "Page" in response and ("Entanglement" in response or "Scholes" in response))
+            is_handled = any(
+                kw.lower() in response.lower()
+                for kw in ["not covered", "outside", "syllabus", "ncert", "does not contain"]
+            )
+            has_fake_citation = (
+                "### 📚 NCERT Textbook Citations" in response
+                and "Page" in response
+                and ("Entanglement" in response or "Scholes" in response)
+            )
 
             if is_handled and not has_fake_citation:
                 out_of_syllabus_handled += 1
-                print("  ✓ Out-of-Syllabus: Gracefully identified as outside NCERT curriculum (No fake citations generated).")
+                print(
+                    "  ✓ Out-of-Syllabus: Gracefully identified as outside NCERT curriculum (No fake citations generated)."
+                )
             elif is_handled:
                 out_of_syllabus_handled += 1
                 print("  ✓ Out-of-Syllabus: Gracefully handled.")
@@ -298,7 +405,7 @@ def main():
     print("=" * 70)
     print("NCERT RAG TEST")
     print(f"PDFs: {'PASS' if pdf_pass else 'FAIL'}")
-    print(f"Ingestion: PASS")
+    print("Ingestion: PASS")
     print(f"Pinecone: {'PASS' if pinecone_pass else 'FAIL'}")
     print(f"Retrieval: {ret_correct} / {ret_total} correct")
     print(f"RAG answers: {rag_sat} / 4 satisfactory")

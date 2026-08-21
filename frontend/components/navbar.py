@@ -1,14 +1,16 @@
 """Minimalist Top Bar with Corner Brand and Clean Material Settings Icon Button."""
 
 import textwrap
+
 import streamlit as st
+
 from frontend.state import navigate_to
 
 
 def render_navbar(selected_class: str = "All Classes", student_id: str = "student_001") -> str:
     """
     Renders the ultra-minimal top bar with DiligentEdu brand in the corner and a sleek settings icon.
-    
+
     Returns:
         The active screen identifier ('home', 'tutor', 'quiz', 'swat', 'teacher', 'settings').
     """
@@ -29,8 +31,10 @@ def render_navbar(selected_class: str = "All Classes", student_id: str = "studen
         )
 
     with right_col:
-        is_settings = (current_screen == "settings")
-        if st.button("", icon=":material/settings:", key="top_btn_settings", help="Settings & Configuration"):
+        is_settings = current_screen == "settings"
+        if st.button(
+            "", icon=":material/settings:", key="top_btn_settings", help="Settings & Configuration"
+        ):
             navigate_to("settings" if not is_settings else "home")
             st.rerun()
 

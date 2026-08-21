@@ -1,7 +1,9 @@
 """Session state initialization and helpers for Academic RAG Assistant."""
 
-from typing import Any, Optional
+from typing import Any
+
 import streamlit as st
+
 from src.academic_rag.config import config
 
 
@@ -14,7 +16,9 @@ def init_session_state() -> None:
         "selected_class": "All Classes",
         "selected_chapter": "All Chapters",
         "student_id": "student_001",
-        "model": config.default_llm_model if hasattr(config, "default_llm_model") else "gemini-3.5-flash-lite",
+        "model": config.default_llm_model
+        if hasattr(config, "default_llm_model")
+        else "gemini-3.5-flash-lite",
         "api_key": config.get_google_api_key() or "",
         "current_quiz": None,
         "quiz_submitted": False,

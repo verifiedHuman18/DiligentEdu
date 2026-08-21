@@ -2,25 +2,30 @@
 
 import os
 from datetime import datetime
+
 import streamlit as st
 
+from frontend.state import navigate_to
+from frontend.styles import inject_custom_css
 from src.academic_rag.config import config
 from src.academic_rag.curriculum.service import curriculum_service
 from src.academic_rag.storage.repository import quiz_repository
-from frontend.styles import THEMES, inject_custom_css
-from frontend.state import navigate_to
 
 
 def render_settings_screen() -> None:
     """Renders the dedicated application configuration screen with compact sidebar navigation buttons and icons."""
     # Top Navigation Back to Home
-    if st.button("Back to Home", icon=":material/arrow_back:", type="secondary", key="settings_top_back_btn"):
+    if st.button(
+        "Back to Home", icon=":material/arrow_back:", type="secondary", key="settings_top_back_btn"
+    ):
         navigate_to("home")
         st.rerun()
 
     st.write("")
     st.markdown("### Settings")
-    st.caption("Manage API keys, student profile, AI model selection, theme, and local session data.")
+    st.caption(
+        "Manage API keys, student profile, AI model selection, theme, and local session data."
+    )
     st.write("")
 
     if "settings_tab" not in st.session_state:
@@ -41,9 +46,15 @@ def render_settings_screen() -> None:
         ]
 
         for label, tab_id, icon_name in tabs:
-            is_active = (active_tab == tab_id)
+            is_active = active_tab == tab_id
             btn_type = "primary" if is_active else "secondary"
-            if st.button(label, icon=icon_name, key=f"btn_tab_{tab_id}", type=btn_type, use_container_width=True):
+            if st.button(
+                label,
+                icon=icon_name,
+                key=f"btn_tab_{tab_id}",
+                type=btn_type,
+                use_container_width=True,
+            ):
                 st.session_state.settings_tab = tab_id
                 st.rerun()
 
@@ -51,7 +62,9 @@ def render_settings_screen() -> None:
         # Tab 1: Authentication
         if active_tab == "Authentication":
             st.markdown("#### API Authentication")
-            st.caption("Configure your Google Gemini API key to power grounded Q&A and adaptive quizzes.")
+            st.caption(
+                "Configure your Google Gemini API key to power grounded Q&A and adaptive quizzes."
+            )
             st.write("")
 
             api_key = st.text_input(
@@ -84,7 +97,9 @@ def render_settings_screen() -> None:
             st.write("")
             grade_options = ["All Classes", "Class 9", "Class 10"]
             current_grade = st.session_state.get("selected_class", "All Classes")
-            current_grade_idx = grade_options.index(current_grade) if current_grade in grade_options else 0
+            current_grade_idx = (
+                grade_options.index(current_grade) if current_grade in grade_options else 0
+            )
             selected_class = st.selectbox(
                 "Target Grade",
                 grade_options,
@@ -102,8 +117,12 @@ def render_settings_screen() -> None:
                     chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
 
             curr_chapter = st.session_state.get("selected_chapter", "All Chapters")
-            curr_ch_idx = chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
-            selected_chapter = st.selectbox("Focus Chapter (Optional)", chapter_options, index=curr_ch_idx)
+            curr_ch_idx = (
+                chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
+            )
+            selected_chapter = st.selectbox(
+                "Focus Chapter (Optional)", chapter_options, index=curr_ch_idx
+            )
             st.session_state.selected_chapter = selected_chapter
 
         # Tab 3: AI & Model
@@ -131,7 +150,9 @@ def render_settings_screen() -> None:
             st.session_state.model = selected_model
 
             st.write("")
-            st.info("Flash Lite models provide fastest streaming speed, while Pro models provide deeper conceptual synthesis.")
+            st.info(
+                "Flash Lite models provide fastest streaming speed, while Pro models provide deeper conceptual synthesis."
+            )
 
         # Tab 4: Appearance
         elif active_tab == "Appearance":
@@ -177,17 +198,26 @@ def render_settings_screen() -> None:
                         use_container_width=True,
                     )
                 else:
-                    st.button("Export Chat History", icon=":material/download:", disabled=True, use_container_width=True)
+                    st.button(
+                        "Export Chat History",
+                        icon=":material/download:",
+                        disabled=True,
+                        use_container_width=True,
+                    )
 
             with d2:
-                if st.button("Clear Chat History", icon=":material/delete_sweep:", use_container_width=True):
+                if st.button(
+                    "Clear Chat History", icon=":material/delete_sweep:", use_container_width=True
+                ):
                     st.session_state.messages = []
                     st.success("Chat history cleared.")
                     st.rerun()
 
             with d3:
                 student_id = st.session_state.get("student_id", "student_001")
-                if st.button("Clear Quiz History", icon=":material/restart_alt:", use_container_width=True):
+                if st.button(
+                    "Clear Quiz History", icon=":material/restart_alt:", use_container_width=True
+                ):
                     quiz_repository.clear_student_data(student_id)
                     st.success("Quiz history cleared.")
                     st.rerun()

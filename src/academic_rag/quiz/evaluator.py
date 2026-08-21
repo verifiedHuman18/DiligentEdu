@@ -1,7 +1,7 @@
 """Quiz Submission and Evaluation Engine (Zero LLM calls)."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.storage.repository import quiz_repository
@@ -72,16 +72,18 @@ def submit_and_grade_quiz(
             if u_ans_clean.upper().startswith(correct_ans) or u_ans_clean.upper() == correct_ans:
                 is_corr = True
 
-        question_feedback.append({
-            "question_id": q_identifier,
-            "question_text": q.get("question", f"Question {idx}"),
-            "options": q.get("options", []),
-            "user_answer": u_ans_clean,
-            "correct_answer": correct_ans,
-            "is_correct": is_corr,
-            "explanation": q.get("explanation", "Refer to NCERT textbook."),
-            "source_pages": q.get("source_pages", []),
-        })
+        question_feedback.append(
+            {
+                "question_id": q_identifier,
+                "question_text": q.get("question", f"Question {idx}"),
+                "options": q.get("options", []),
+                "user_answer": u_ans_clean,
+                "correct_answer": correct_ans,
+                "is_correct": is_corr,
+                "explanation": q.get("explanation", "Refer to NCERT textbook."),
+                "source_pages": q.get("source_pages", []),
+            }
+        )
 
     # Step 4: Recalculate SWAT automatically
     new_chapter_score = int(round(percentage))
@@ -97,11 +99,13 @@ def submit_and_grade_quiz(
         logger.warning(f"Could not recalculate SWAT: {e}")
 
     # Determine status change
-    status_changed = (prev_status != new_status)
+    status_changed = prev_status != new_status
     if prev_chapter_score is not None:
         status_change_summary = f"{chapter} average: {prev_chapter_score}% ({prev_status.upper()}) ➔ {new_chapter_score}% ({new_status.upper()})"
     else:
-        status_change_summary = f"{chapter} initial score: {new_chapter_score}% ({new_status.upper()})"
+        status_change_summary = (
+            f"{chapter} initial score: {new_chapter_score}% ({new_status.upper()})"
+        )
 
     return {
         "student_id": clean_student_id,

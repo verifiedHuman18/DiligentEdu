@@ -12,6 +12,7 @@ import asyncio
 import os
 import sys
 import time
+
 from dotenv import load_dotenv
 
 # Reconfigure stdout for UTF-8
@@ -35,6 +36,7 @@ async def test_direct_rag():
     if not api_key:
         # Check secrets.toml
         import toml
+
         secrets_path = os.path.join(PROJECT_ROOT, ".streamlit", "secrets.toml")
         if os.path.exists(secrets_path):
             sec = toml.load(secrets_path)
@@ -74,7 +76,9 @@ async def test_direct_rag():
 
     # Verification assertions
     assert len(full_response) > 100, "Response should be substantive"
-    assert "V = IR" in full_response or "V = I" in full_response or "Ohm" in full_response, "Expected Ohm's law formula"
+    assert (
+        "V = IR" in full_response or "V = I" in full_response or "Ohm" in full_response
+    ), "Expected Ohm's law formula"
     assert "NCERT" in full_response, "Expected NCERT citation block"
     assert "Electricity" in full_response or "Chapter" in full_response, "Expected chapter citation"
 

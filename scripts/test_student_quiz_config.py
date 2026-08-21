@@ -10,7 +10,6 @@ Verifies:
 
 import os
 import sys
-import json
 import time
 
 # Reconfigure stdout for UTF-8
@@ -20,8 +19,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from quiz_storage import record_quiz_attempt, clear_student_history
-from quiz_generator import get_available_chapters, create_student_quiz
+from quiz_generator import create_student_quiz, get_available_chapters
+from quiz_storage import clear_student_history, record_quiz_attempt
 
 
 def run_tests():
@@ -34,20 +33,28 @@ def run_tests():
 
     # 1. Populate some prior history for student_phase11_test:
     # Strong on Chemical Reactions (80%)
-    record_quiz_attempt(student_id, {
-        "class_level": 10,
-        "chapter": "Chemical Reactions and Equations",
-        "difficulty": "medium",
-        "questions": [{"question_id": f"c_{i}", "correct_answer": "A"} for i in range(1, 6)]
-    }, {f"q_choice_{i}": "A" if i <= 4 else "B" for i in range(1, 6)})
+    record_quiz_attempt(
+        student_id,
+        {
+            "class_level": 10,
+            "chapter": "Chemical Reactions and Equations",
+            "difficulty": "medium",
+            "questions": [{"question_id": f"c_{i}", "correct_answer": "A"} for i in range(1, 6)],
+        },
+        {f"q_choice_{i}": "A" if i <= 4 else "B" for i in range(1, 6)},
+    )
 
     # Weak on Electricity (40%)
-    record_quiz_attempt(student_id, {
-        "class_level": 10,
-        "chapter": "Electricity",
-        "difficulty": "easy",
-        "questions": [{"question_id": f"e_{i}", "correct_answer": "A"} for i in range(1, 6)]
-    }, {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)})
+    record_quiz_attempt(
+        student_id,
+        {
+            "class_level": 10,
+            "chapter": "Electricity",
+            "difficulty": "easy",
+            "questions": [{"question_id": f"e_{i}", "correct_answer": "A"} for i in range(1, 6)],
+        },
+        {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)},
+    )
 
     # 2. Test get_available_chapters
     print("\n--- 1. Testing get_available_chapters(class_level=10) ---")
@@ -56,9 +63,15 @@ def run_tests():
     assert len(ch_list) == 13, f"Expected 13 chapters for Class 10, got {len(ch_list)}"
 
     for ch in ch_list:
-        status_icon = "🟢" if ch["status"] == "strong" else ("🔴" if ch["status"] == "weak" else ("🟡" if ch["status"] == "average" else "⚪"))
+        status_icon = (
+            "🟢"
+            if ch["status"] == "strong"
+            else ("🔴" if ch["status"] == "weak" else ("🟡" if ch["status"] == "average" else "⚪"))
+        )
         score_str = f"{ch['score']}%" if ch["score"] is not None else "Not Attempted"
-        print(f"  {status_icon} Ch {ch['chapter_number']:2d}: {ch['chapter']:<36} -> Status: {ch['status']:<14} Score: {score_str}")
+        print(
+            f"  {status_icon} Ch {ch['chapter_number']:2d}: {ch['chapter']:<36} -> Status: {ch['status']:<14} Score: {score_str}"
+        )
 
     # Verify SWAT annotation
     chem_ch = next(c for c in ch_list if c["chapter_number"] == 1)
@@ -117,7 +130,9 @@ def run_tests():
 
     print(f"⏱️ Generated in {elapsed:.2f}s (1 single Gemini request)")
     print(f"Quiz Title: Class {student_quiz['class_level']} — {student_quiz['chapter']}")
-    print(f"Difficulty: {student_quiz['difficulty']} | Total Questions: {student_quiz['total_questions']}")
+    print(
+        f"Difficulty: {student_quiz['difficulty']} | Total Questions: {student_quiz['total_questions']}"
+    )
     print("-" * 50)
 
     assert student_quiz["class_level"] == 10

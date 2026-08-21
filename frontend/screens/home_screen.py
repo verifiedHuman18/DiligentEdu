@@ -1,7 +1,9 @@
 """Home Screen with Large Translucent Background Vector Art, M3 Hero Container, and Aligned Action Buttons with Hover Arrows."""
 
 import textwrap
+
 import streamlit as st
+
 from frontend.state import navigate_to
 from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.curriculum.service import curriculum_service
@@ -27,8 +29,14 @@ def render_home_screen(selected_class: str, student_id: str) -> None:
         quizzes_count = swat["overall"]["quizzes_attempted"]
 
         top_strength = swat["strengths"][0]["chapter"] if swat.get("strengths") else "In Progress"
-        focus_area = swat["weak_topics"][0]["chapter"] if swat.get("weak_topics") else (
-            swat["average_topics"][0]["chapter"] if swat.get("average_topics") else "None identified"
+        focus_area = (
+            swat["weak_topics"][0]["chapter"]
+            if swat.get("weak_topics")
+            else (
+                swat["average_topics"][0]["chapter"]
+                if swat.get("average_topics")
+                else "None identified"
+            )
         )
 
         hero_html = textwrap.dedent(f"""\

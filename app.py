@@ -4,10 +4,11 @@ NCERT Academic Science Assistant — Streamlit Application Entry Point.
 """
 
 import asyncio
+import logging
 import os
 import sys
-import logging
 from datetime import datetime
+
 import streamlit as st
 
 # Ensure project root in sys.path
@@ -20,15 +21,15 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 from frontend import (
-    inject_custom_css,
     init_session_state,
-    render_navbar,
+    inject_custom_css,
     render_home_screen,
-    render_tutor_screen,
+    render_navbar,
     render_quiz_screen,
+    render_settings_screen,
     render_swat_screen,
     render_teacher_screen,
-    render_settings_screen,
+    render_tutor_screen,
 )
 
 
@@ -40,7 +41,9 @@ def setup_logging():
         level=logging.INFO,
         format=log_format,
         handlers=[
-            logging.FileHandler(f'logs/app_{datetime.now().strftime("%Y%m%d")}.log', encoding="utf-8"),
+            logging.FileHandler(
+                f'logs/app_{datetime.now().strftime("%Y%m%d")}.log', encoding="utf-8"
+            ),
             logging.StreamHandler(sys.stdout),
         ],
     )
