@@ -3,17 +3,15 @@
 import streamlit as st
 
 from frontend.components.cards import render_metric_card, render_swat_columns
+from frontend.components.navigation import render_back_to_home
 from frontend.state import navigate_to
 from src.academic_rag.analytics.teacher import get_teacher_student_profile
 
 
 def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> None:
     """Renders the Teacher Master Analytics, 4-Category SWAT, and Action-Plan Diagnostics with dedicated Class toggle (Phase 17)."""
-    if st.button(
-        "Back to Home", icon=":material/arrow_back:", type="secondary", key="teacher_top_back_btn"
-    ):
-        navigate_to("home")
-        st.rerun()
+    # Top Navigation Back to Home (Phases 1-19)
+    render_back_to_home("teacher")
 
     st.write("")
     t_c1, t_c2 = st.columns([3.2, 1.8])

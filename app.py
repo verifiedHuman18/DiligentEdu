@@ -27,6 +27,7 @@ from frontend import (
     render_home_screen,
     render_navbar,
     render_quiz_screen,
+    render_scholarships_screen,
     render_settings_screen,
     render_swat_screen,
     render_teacher_screen,
@@ -99,6 +100,8 @@ async def main():
         render_swat_screen(student_id, selected_class=selected_class)
     elif active_screen == "teacher":
         render_teacher_screen(student_id, selected_class=selected_class)
+    elif active_screen == "scholarships":
+        render_scholarships_screen()
     elif active_screen == "chapter":
         render_chapter_screen(student_id, user_api_key, selected_model)
     elif active_screen == "settings":

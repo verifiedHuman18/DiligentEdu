@@ -6,6 +6,7 @@ import os
 import streamlit as st
 
 from frontend.components.cards import render_metric_card
+from frontend.components.navigation import render_back_to_home
 from frontend.state import get_student_class_level, navigate_to
 from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.curriculum.service import get_chapter_pdf
@@ -20,14 +21,8 @@ def render_chapter_screen(
     selected_model: str = "gemini-3.5-flash-lite",
 ) -> None:
     """Renders the comprehensive Chapter Detail Hub for a selected NCERT chapter."""
-    if st.button(
-        "Back to Home",
-        icon=":material/arrow_back:",
-        type="secondary",
-        key="chapter_detail_back_btn",
-    ):
-        navigate_to("home")
-        st.rerun()
+    # Top Navigation Back to Home (Phases 1-19)
+    render_back_to_home("chapter")
 
     class_level = get_student_class_level()
 

@@ -2,6 +2,7 @@
 
 from frontend.components import (
     get_status_badge_html,
+    render_back_to_home,
     render_citation_box,
     render_header,
     render_metric_card,
@@ -13,6 +14,7 @@ from frontend.screens import (
     render_chapter_screen,
     render_home_screen,
     render_quiz_screen,
+    render_scholarships_screen,
     render_settings_screen,
     render_swat_screen,
     render_teacher_screen,
@@ -30,6 +32,7 @@ __all__ = [
     "set_state",
     "navigate_to",
     "render_navbar",
+    "render_back_to_home",
     "render_header",
     "render_sidebar",
     "render_theme_switcher",
@@ -42,5 +45,6 @@ __all__ = [
     "render_quiz_screen",
     "render_swat_screen",
     "render_teacher_screen",
+    "render_scholarships_screen",
     "render_settings_screen",
 ]

@@ -6,6 +6,7 @@ from typing import Optional
 
 import streamlit as st
 
+from frontend.components.navigation import render_back_to_home
 from frontend.state import get_student_class_level, navigate_to
 from src.academic_rag.rag.engine import stream_ncert_rag_response
 
@@ -18,11 +19,8 @@ async def render_tutor_screen(
     """Renders the conversational NCERT Science Q&A Tutor screen bound to master profile class."""
     streaming_speed = 0.025
 
-    if st.button(
-        "Back to Home", icon=":material/arrow_back:", type="secondary", key="tutor_top_back_btn"
-    ):
-        navigate_to("home")
-        st.rerun()
+    # Top Navigation Back to Home (Phases 1-19)
+    render_back_to_home("tutor")
 
     class_level = get_student_class_level()
 

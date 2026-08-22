@@ -5,6 +5,7 @@ from datetime import datetime
 
 import streamlit as st
 
+from frontend.components.navigation import render_back_to_home
 from frontend.state import navigate_to
 from frontend.styles import inject_custom_css
 from src.academic_rag.config import config
@@ -14,14 +15,9 @@ from src.academic_rag.storage.repository import quiz_repository
 
 def render_settings_screen() -> None:
     """Renders the dedicated application configuration screen with compact sidebar navigation buttons and icons."""
-    # Top Navigation Back to Home
-    if st.button(
-        "Back to Home", icon=":material/arrow_back:", type="secondary", key="settings_top_back_btn"
-    ):
-        navigate_to("home")
-        st.rerun()
+    # Top Navigation Back to Home (Phases 1-19)
+    render_back_to_home("settings")
 
-    st.write("")
     st.markdown("### Settings")
     st.caption(
         "Manage API keys, student profile, AI model selection, theme, and local session data."

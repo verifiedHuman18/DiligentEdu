@@ -162,11 +162,11 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     # 3. Quick Action Modules
     st.markdown("### Modules")
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
         if st.button(
-            "**NCERT Tutor**\n\nAsk questions & get citations",
+            "**NCERT Tutor**\n\nAsk doubts & citations",
             key="btn_module_tutor",
             icon=":material/chat:",
             use_container_width=True,
@@ -176,7 +176,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     with col2:
         if st.button(
-            "**Practice Quiz**\n\nChapter quizzes & instant scoring",
+            "**Practice Quiz**\n\nChapter quizzes",
             key="btn_module_quiz",
             icon=":material/quiz:",
             use_container_width=True,
@@ -186,7 +186,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     with col3:
         if st.button(
-            "**Student Analytics**\n\nMastery breakdown & quiz history",
+            "**Analytics**\n\nSWAT & mastery",
             key="btn_module_analytics",
             icon=":material/insights:",
             use_container_width=True,
@@ -196,13 +196,45 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     with col4:
         if st.button(
-            "**Teacher View**\n\nDiagnostic alerts & class metrics",
+            "**Teacher View**\n\nDiagnostic alerts",
             key="btn_module_teacher",
             icon=":material/school:",
             use_container_width=True,
         ):
             navigate_to("teacher")
             st.rerun()
+
+    with col5:
+        if st.button(
+            "**Scholarships**\n\nDiscovery & Q&A",
+            key="btn_module_scholarships",
+            icon=":material/verified:",
+            use_container_width=True,
+        ):
+            navigate_to("scholarships")
+            st.rerun()
+
+    st.write("")
+
+    # 3.5. Single Unified Scholarship Banner (Phases 1 & 2)
+    st.markdown(
+        f"""
+        <div style="background: var(--surface-container-high); border: 1px solid var(--outline-variant); border-left: 4px solid var(--md-primary); border-radius: 12px; padding: 1.2rem 1.4rem; margin-top: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="flex: 1; min-width: 260px;">
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    🎓 Scholarships — Class {class_level}
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Explore verified National Scholarship Portal (NSP) schemes, check your eligibility, and get answers to scholarship questions.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("Explore Scholarships", key="home_sch_unified_btn", type="primary", icon=":material/arrow_forward:", use_container_width=False):
+        navigate_to("scholarships")
+        st.rerun()
 
     st.write("")
     st.write("")

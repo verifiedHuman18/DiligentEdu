@@ -5,6 +5,7 @@ from typing import Optional
 import streamlit as st
 
 from frontend.components.cards import render_metric_card, render_swat_columns
+from frontend.components.navigation import render_back_to_home
 from frontend.state import get_student_class_level, navigate_to
 from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.storage.repository import quiz_repository
@@ -12,11 +13,8 @@ from src.academic_rag.storage.repository import quiz_repository
 
 def render_swat_screen(student_id: str, selected_class: Optional[str] = None) -> None:
     """Renders the Student Analytics and SWAT dashboard strictly bound to master profile class."""
-    if st.button(
-        "Back to Home", icon=":material/arrow_back:", type="secondary", key="swat_top_back_btn"
-    ):
-        navigate_to("home")
-        st.rerun()
+    # Top Navigation Back to Home (Phases 1-19)
+    render_back_to_home("swat")
 
     class_level = get_student_class_level()
 

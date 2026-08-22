@@ -1,6 +1,7 @@
 from frontend.screens.chapter_screen import render_chapter_screen
 from frontend.screens.home_screen import render_home_screen
 from frontend.screens.quiz_screen import render_quiz_screen
+from frontend.screens.scholarships_screen import render_scholarships_screen
 from frontend.screens.settings_screen import render_settings_screen
 from frontend.screens.swat_screen import render_swat_screen
 from frontend.screens.teacher_screen import render_teacher_screen
@@ -13,5 +14,6 @@ __all__ = [
     "render_quiz_screen",
     "render_swat_screen",
     "render_teacher_screen",
+    "render_scholarships_screen",
     "render_settings_screen",
 ]

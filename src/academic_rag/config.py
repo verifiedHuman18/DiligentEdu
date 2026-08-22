@@ -38,6 +38,22 @@ class AppConfig:
         return self.data_dir / "metadata" / "ncert_mapping.json"
 
     @property
+    def scholarships_data_dir(self) -> Path:
+        return self.data_dir / "scholarships"
+
+    @property
+    def scholarships_raw_dir(self) -> Path:
+        return self.scholarships_data_dir / "raw"
+
+    @property
+    def scholarships_structured_dir(self) -> Path:
+        return self.scholarships_data_dir / "structured"
+
+    @property
+    def scholarships_sources_file(self) -> Path:
+        return self.project_root / "scholarships" / "sources.json"
+
+    @property
     def logs_dir(self) -> Path:
         return self.project_root / "logs"
 
