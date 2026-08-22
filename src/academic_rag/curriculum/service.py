@@ -208,7 +208,9 @@ def get_ncert_curriculum(class_level: int) -> List[Dict[str, Any]]:
         raise ValueError(f"Invalid class_level {class_level!r}. Must be an integer 9 or 10.")
 
     if cls_int not in (9, 10):
-        raise ValueError(f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported.")
+        raise ValueError(
+            f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported."
+        )
 
     chapters = curriculum_service.get_chapters_for_grade(cls_int)
     results = []
@@ -265,7 +267,9 @@ def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Di
         raise ValueError(f"Invalid class_level {class_level!r}. Must be an integer 9 or 10.")
 
     if cls_int not in (9, 10):
-        raise ValueError(f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported.")
+        raise ValueError(
+            f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported."
+        )
 
     ch_num, ch_title = curriculum_service.resolve_chapter(cls_int, chapter_identifier)
 

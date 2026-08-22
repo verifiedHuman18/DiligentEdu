@@ -279,4 +279,3 @@ def get_student_class_history(
         class_level=class_level,
         include_questions=include_questions,
     )
-

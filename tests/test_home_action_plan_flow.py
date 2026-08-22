@@ -3,6 +3,7 @@
 import os
 import tempfile
 import unittest
+
 import streamlit as st
 
 import backend
@@ -39,7 +40,9 @@ class TestHomeActionPlanFlow(unittest.TestCase):
                 "chapter": "Chemical Reactions and Equations",
                 "chapter_number": 1,
                 "difficulty": "medium",
-                "questions": [{"question_id": f"q_c10_{i}", "correct_answer": "A"} for i in range(1, 6)],
+                "questions": [
+                    {"question_id": f"q_c10_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
             },
             {f"q_choice_{i}": "A" if i <= 4 else "B" for i in range(1, 6)},
         )
@@ -51,7 +54,9 @@ class TestHomeActionPlanFlow(unittest.TestCase):
                 "chapter": "Electricity",
                 "chapter_number": 11,
                 "difficulty": "hard",
-                "questions": [{"question_id": f"q_elec_{i}", "correct_answer": "A"} for i in range(1, 6)],
+                "questions": [
+                    {"question_id": f"q_elec_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
             },
             {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)},
         )
@@ -68,7 +73,9 @@ class TestHomeActionPlanFlow(unittest.TestCase):
         cls = get_student_class_level()
         self.assertEqual(cls, 10)
 
-        plan = backend.get_student_action_plan(self.student_id, class_level=cls, db_path=self.db_path)
+        plan = backend.get_student_action_plan(
+            self.student_id, class_level=cls, db_path=self.db_path
+        )
         self.assertEqual(plan["class_level"], 10)
 
         # First action is Weak Electricity
@@ -88,7 +95,9 @@ class TestHomeActionPlanFlow(unittest.TestCase):
         cls = get_student_class_level()
         self.assertEqual(cls, 9)
 
-        plan = backend.get_student_action_plan(self.student_id, class_level=cls, db_path=self.db_path)
+        plan = backend.get_student_action_plan(
+            self.student_id, class_level=cls, db_path=self.db_path
+        )
         self.assertEqual(plan["class_level"], 9)
 
         # Since Class 9 has no attempts, all recommendations are unattempted Class 9 chapters

@@ -67,9 +67,12 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                     default_idx = idx
                     break
 
-        selected_ch_label = st.selectbox("Select Chapter", ch_labels, index=default_idx, key="screen_quiz_ch")
+        selected_ch_label = st.selectbox(
+            "Select Chapter", ch_labels, index=default_idx, key="screen_quiz_ch"
+        )
         selected_ch_title = ch_display_map.get(
-            selected_ch_label, available_chs[0]["chapter"] if available_chs else "Chemical Reactions and Equations"
+            selected_ch_label,
+            available_chs[0]["chapter"] if available_chs else "Chemical Reactions and Equations",
         )
 
     with c2:
@@ -196,7 +199,7 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
                         f"Incorrect. Your answer: Option {student_choice or 'None'} | Correct answer: Option {correct_letter}"
                     )
 
-                with st.expander(f"💡 Explanation & NCERT Citations (Q{idx})", expanded=True):
+                with st.expander(f"Explanation & NCERT Citations (Q{idx})", expanded=True):
                     exp_text = q_data.get("explanation", "Refer to NCERT textbook.")
                     st.markdown(f"**Explanation:** {exp_text}")
 

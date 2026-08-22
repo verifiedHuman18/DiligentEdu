@@ -1,5 +1,7 @@
 """Teacher Analytics & Early-Warning Diagnostic Dashboard UI component."""
 
+from typing import Optional
+
 import streamlit as st
 
 from src.academic_rag.analytics.teacher import get_teacher_student_profile
@@ -140,8 +142,14 @@ def render_teacher_tab(student_id: str, class_level: Optional[int] = None):
             p_badge = act.get("priority_icon", "⚪")
             p_label = act.get("priority_label", "RECOMMENDATION")
             score_str = f"{act['score']}%" if act["score"] is not None else "Not attempted"
-            attempts_str = f"{act.get('attempts', 0)} attempt{'s' if act.get('attempts', 0) != 1 else ''}"
-            recent_str = f" | Trajectory: {act.get('recent_performance')}" if act.get("attempts", 0) > 1 else ""
+            attempts_str = (
+                f"{act.get('attempts', 0)} attempt{'s' if act.get('attempts', 0) != 1 else ''}"
+            )
+            recent_str = (
+                f" | Trajectory: {act.get('recent_performance')}"
+                if act.get("attempts", 0) > 1
+                else ""
+            )
             st.info(
                 f"**{p_badge} {p_label} (Priority {act['priority_rank']}): {act['chapter']}**  \n"
                 f"Score: **{score_str}** | Attempts: **{attempts_str}**{recent_str}  \n"

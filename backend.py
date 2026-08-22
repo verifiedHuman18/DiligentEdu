@@ -23,18 +23,33 @@ from src.academic_rag.analytics.action_plan import (
 )
 from src.academic_rag.analytics.swat import (
     format_swat_report,
+)
+from src.academic_rag.analytics.swat import (
     get_attempted_chapters as _internal_get_attempted_chapters,
+)
+from src.academic_rag.analytics.swat import (
     get_available_chapters as _internal_get_available_chapters,
+)
+from src.academic_rag.analytics.swat import (
     get_student_swat as _internal_get_student_swat,
+)
+from src.academic_rag.analytics.swat import (
     get_unattempted_chapters as _internal_get_unattempted_chapters,
 )
 from src.academic_rag.analytics.teacher import (
     get_student_status as _internal_get_student_status,
+)
+from src.academic_rag.analytics.teacher import (
     get_teacher_chapter_statistics as _internal_get_student_chapter_stats,
+)
+from src.academic_rag.analytics.teacher import (
     get_teacher_quiz_history as _internal_get_teacher_quiz_history,
+)
+from src.academic_rag.analytics.teacher import (
     get_teacher_student_overview as _internal_get_student_overview,
+)
+from src.academic_rag.analytics.teacher import (
     get_teacher_student_profile as _internal_get_teacher_student_profile,
-    get_teacher_swat_summary as _internal_get_teacher_swat_summary,
 )
 from src.academic_rag.config import DEFAULT_DB_PATH
 from src.academic_rag.curriculum.service import (
@@ -413,4 +428,7 @@ __all__ = [
     "get_student_overview",
     "clear_student_data",
     "format_swat_report",
+    "curriculum_service",
+    "get_ncert_curriculum",
+    "get_chapter_pdf",
 ]

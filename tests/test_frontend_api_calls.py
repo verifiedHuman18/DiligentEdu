@@ -3,6 +3,7 @@
 import os
 import tempfile
 import unittest
+
 import streamlit as st
 
 import backend
@@ -81,7 +82,9 @@ class TestFrontendApiCalls(unittest.TestCase):
         self.assertNotIn("Describing Motion Around Us", ch_names)
 
         # 2. Action Plan call
-        plan = backend.get_student_action_plan(self.student_id, class_level=cls, db_path=self.db_path)
+        plan = backend.get_student_action_plan(
+            self.student_id, class_level=cls, db_path=self.db_path
+        )
         self.assertEqual(plan["class_level"], 10)
         self.assertEqual(plan["actions"][0]["chapter"], "Electricity")
         self.assertEqual(plan["actions"][0]["status"], "weak")
@@ -100,7 +103,9 @@ class TestFrontendApiCalls(unittest.TestCase):
         self.assertNotIn("Electricity", ch_names)
 
         # 2. Action Plan call
-        plan = backend.get_student_action_plan(self.student_id, class_level=cls, db_path=self.db_path)
+        plan = backend.get_student_action_plan(
+            self.student_id, class_level=cls, db_path=self.db_path
+        )
         self.assertEqual(plan["class_level"], 9)
         # Unattempted chapters are Priority 2, strong chapter is Priority 4
         self.assertEqual(plan["actions"][0]["status"], "unattempted")
@@ -110,10 +115,14 @@ class TestFrontendApiCalls(unittest.TestCase):
     def test_frontend_api_class_propagation(self):
         """Phase 11: Verify backend functions accept class_level explicitly."""
         # get_chapters_with_status
-        chs_9 = backend.get_chapters_with_status(self.student_id, class_level=9, db_path=self.db_path)
+        chs_9 = backend.get_chapters_with_status(
+            self.student_id, class_level=9, db_path=self.db_path
+        )
         self.assertEqual(len(chs_9), 13)
 
-        chs_10 = backend.get_chapters_with_status(self.student_id, class_level=10, db_path=self.db_path)
+        chs_10 = backend.get_chapters_with_status(
+            self.student_id, class_level=10, db_path=self.db_path
+        )
         self.assertEqual(len(chs_10), 13)
 
 

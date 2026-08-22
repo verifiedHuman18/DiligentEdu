@@ -143,7 +143,7 @@ def run_tests():
     weak_names = [w["chapter"] for w in swat["weak_topics"]]
 
     print(f"✓ Strengths (>= {STRONG_THRESHOLD}%): {strength_names}")
-    print(f"✓ Average Topics ({AVERAGE_THRESHOLD}% - {STRONG_THRESHOLD-1}%): {avg_names}")
+    print(f"✓ Average Topics ({AVERAGE_THRESHOLD}% - {STRONG_THRESHOLD - 1}%): {avg_names}")
     print(f"✓ Weak Topics (< {AVERAGE_THRESHOLD}%): {weak_names}")
 
     assert "Chemical Reactions and Equations" in strength_names

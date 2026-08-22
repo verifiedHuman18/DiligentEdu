@@ -1,6 +1,7 @@
 """Unit tests for Phases 5 to 8: Interactive Curriculum Cards & Dedicated Chapter Detail Screen."""
 
 import unittest
+
 import streamlit as st
 
 from frontend.screens.chapter_screen import render_chapter_screen

@@ -12,7 +12,9 @@ from src.academic_rag.rag.engine import stream_ncert_rag_response
 logger = logging.getLogger(__name__)
 
 
-async def render_tutor_screen(selected_model: str, user_api_key: str, selected_class: Optional[str] = None) -> None:
+async def render_tutor_screen(
+    selected_model: str, user_api_key: str, selected_class: Optional[str] = None
+) -> None:
     """Renders the conversational NCERT Science Q&A Tutor screen bound to master profile class."""
     streaming_speed = 0.025
 
@@ -91,7 +93,10 @@ async def render_tutor_screen(selected_model: str, user_api_key: str, selected_c
     cols = [col1, col2, col3, col4]
     for idx, (label, prompt_text) in enumerate(quick_prompts):
         if cols[idx].button(
-            label, icon=":material/lightbulb:", key=f"qp_{class_level}_{idx}", use_container_width=True
+            label,
+            icon=":material/lightbulb:",
+            key=f"qp_{class_level}_{idx}",
+            use_container_width=True,
         ):
             st.session_state.active_prompt = prompt_text
 

@@ -51,7 +51,7 @@ def generate_action_plan(
                 "reason": f"Your performance is below target ({score_val}%).",
                 "priority_rank": 1,
                 "priority_label": "HIGH PRIORITY",
-                "priority_icon": "🔴",
+                "priority_icon": "",
             }
         )
 
@@ -73,7 +73,7 @@ def generate_action_plan(
                 "reason": "Not attempted yet. Take a diagnostic quiz to establish baseline mastery.",
                 "priority_rank": 2,
                 "priority_label": "NEW TOPIC",
-                "priority_icon": "⚪",
+                "priority_icon": "",
             }
         )
 
@@ -96,7 +96,7 @@ def generate_action_plan(
                 "reason": f"Performance is moderate ({score_val}%). Practice to achieve strong mastery.",
                 "priority_rank": 3,
                 "priority_label": "CONTINUE PRACTICE",
-                "priority_icon": "🟡",
+                "priority_icon": "",
             }
         )
 
@@ -119,14 +119,16 @@ def generate_action_plan(
                 "reason": f"Strong performance ({score_val}%). Optional advanced practice to maintain mastery.",
                 "priority_rank": 4,
                 "priority_label": "ADVANCED PRACTICE",
-                "priority_icon": "🟢",
+                "priority_icon": "",
             }
         )
 
     # Overall Priority Determination
     if swat.get("weak"):
         overall_priority = "high"
-        summary = f"High priority: Focus on {len(swat['weak'])} weak topic(s) to raise mastery above 50%."
+        summary = (
+            f"High priority: Focus on {len(swat['weak'])} weak topic(s) to raise mastery above 50%."
+        )
     elif swat.get("unattempted"):
         overall_priority = "medium"
         summary = f"Medium priority: Attempt {len(swat['unattempted'])} unattempted chapter(s) to establish baseline mastery."

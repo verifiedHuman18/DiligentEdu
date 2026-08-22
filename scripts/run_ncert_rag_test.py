@@ -227,9 +227,11 @@ def test_retrieval_and_class_separation():
             f"[{i:02d}/{total}] {status} | Expected: Class {exp_cls} Ch {exp_ch:02d} | Query: {q[:55]}..."
         )
 
-    print(f"\nRetrieval Accuracy (Top-3): {correct_top3}/{total} ({(correct_top3/total)*100:.1f}%)")
     print(
-        f"Class Separation (Top-1 Class Match): {correct_separation}/{total} ({(correct_separation/total)*100:.1f}%)"
+        f"\nRetrieval Accuracy (Top-3): {correct_top3}/{total} ({(correct_top3 / total) * 100:.1f}%)"
+    )
+    print(
+        f"Class Separation (Top-1 Class Match): {correct_separation}/{total} ({(correct_separation / total) * 100:.1f}%)"
     )
 
     return correct_top3, total, (correct_separation >= 22)

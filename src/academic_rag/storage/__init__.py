@@ -17,4 +17,3 @@ __all__ = [
     "quiz_repository",
     "get_student_class_history",
 ]
-

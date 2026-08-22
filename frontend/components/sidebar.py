@@ -55,6 +55,7 @@ def render_sidebar() -> Tuple[str, str, str, str]:
             # 3. Class & Focus Chapter
             st.markdown("#### Class & Focus")
             from frontend.state import get_student_class_level, set_student_class_level
+
             curr_cls = get_student_class_level()
             class_options = ["Class 10", "Class 9"]
             curr_cls_idx = 0 if curr_cls == 10 else 1
@@ -65,6 +66,7 @@ def render_sidebar() -> Tuple[str, str, str, str]:
                 key="sidebar_class_radio",
                 help="Filters NCERT textbook retrieval to Class 10 or Class 9.",
             )
+            selected_class = selected_class_label
             target_cls_int = 10 if selected_class_label == "Class 10" else 9
             if target_cls_int != curr_cls:
                 set_student_class_level(target_cls_int)
@@ -76,7 +78,9 @@ def render_sidebar() -> Tuple[str, str, str, str]:
             for ch in chs:
                 chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
 
-            selected_chapter = st.selectbox("Focus Chapter (Optional)", chapter_options, key="sidebar_ch_select")
+            selected_chapter = st.selectbox(
+                "Focus Chapter (Optional)", chapter_options, key="sidebar_ch_select"
+            )
             st.session_state.selected_chapter = selected_chapter
 
             st.divider()

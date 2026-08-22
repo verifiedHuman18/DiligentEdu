@@ -139,21 +139,29 @@ class TestClassIsolationContracts(unittest.TestCase):
         Class 10 action plan -> Priority 1: Electricity (30%)
         """
         # Student Action Plans
-        plan_9 = backend.get_student_action_plan(self.student_id, class_level=9, db_path=self.db_path)
+        plan_9 = backend.get_student_action_plan(
+            self.student_id, class_level=9, db_path=self.db_path
+        )
         self.assertEqual(plan_9["actions"][0]["chapter"], "How Forces Affect Motion")
         self.assertEqual(plan_9["actions"][0]["status"], "weak")
         self.assertEqual(plan_9["actions"][0]["score"], 40)
 
-        plan_10 = backend.get_student_action_plan(self.student_id, class_level=10, db_path=self.db_path)
+        plan_10 = backend.get_student_action_plan(
+            self.student_id, class_level=10, db_path=self.db_path
+        )
         self.assertEqual(plan_10["actions"][0]["chapter"], "Electricity")
         self.assertEqual(plan_10["actions"][0]["status"], "weak")
         self.assertEqual(plan_10["actions"][0]["score"], 30)
 
         # Teacher Action Plans (shares the same engine)
-        t_plan_9 = backend.get_teacher_action_plan(self.student_id, class_level=9, db_path=self.db_path)
+        t_plan_9 = backend.get_teacher_action_plan(
+            self.student_id, class_level=9, db_path=self.db_path
+        )
         self.assertEqual(t_plan_9["actions"][0]["chapter"], "How Forces Affect Motion")
 
-        t_plan_10 = backend.get_teacher_action_plan(self.student_id, class_level=10, db_path=self.db_path)
+        t_plan_10 = backend.get_teacher_action_plan(
+            self.student_id, class_level=10, db_path=self.db_path
+        )
         self.assertEqual(t_plan_10["actions"][0]["chapter"], "Electricity")
 
     def test_teacher_swat_shares_student_engine(self):
@@ -168,13 +176,17 @@ class TestClassIsolationContracts(unittest.TestCase):
 
     def test_get_chapters_with_status_contract(self):
         """Verify get_chapters_with_status returns accurate class-scoped chapter list."""
-        chs_9 = backend.get_chapters_with_status(self.student_id, class_level=9, db_path=self.db_path)
+        chs_9 = backend.get_chapters_with_status(
+            self.student_id, class_level=9, db_path=self.db_path
+        )
         self.assertEqual(len(chs_9), 13)
         chs_9_dict = {c["chapter"]: c for c in chs_9}
         self.assertEqual(chs_9_dict["Describing Motion Around Us"]["status"], "strong")
         self.assertEqual(chs_9_dict["How Forces Affect Motion"]["status"], "weak")
 
-        chs_10 = backend.get_chapters_with_status(self.student_id, class_level=10, db_path=self.db_path)
+        chs_10 = backend.get_chapters_with_status(
+            self.student_id, class_level=10, db_path=self.db_path
+        )
         self.assertEqual(len(chs_10), 13)
         chs_10_dict = {c["chapter"]: c for c in chs_10}
         self.assertEqual(chs_10_dict["Electricity"]["status"], "weak")

@@ -1,7 +1,9 @@
 """Session state initialization and helpers for Academic RAG Assistant."""
 
 from typing import Any, Dict
+
 import streamlit as st
+
 from src.academic_rag.config import config
 
 VALID_CLASS_LEVELS = (9, 10)

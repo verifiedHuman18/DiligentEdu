@@ -164,9 +164,7 @@ class TestClassIsolation(unittest.TestCase):
         """Verify chapter list status overlay only reflects attempts in that grade."""
         chs_9 = get_available_chapters(9, student_id=self.student_id, db_path=self.db_path)
         ch1_9 = next(c for c in chs_9 if c["chapter_number"] == 1)
-        self.assertEqual(
-            ch1_9["chapter"], "Exploration: Entering the World of Secondary Science"
-        )
+        self.assertEqual(ch1_9["chapter"], "Exploration: Entering the World of Secondary Science")
         self.assertEqual(ch1_9["status"], "strong")
         self.assertEqual(ch1_9["score"], 100)
 
@@ -227,9 +225,7 @@ class TestClassIsolation(unittest.TestCase):
         self.assertEqual(prof_9["overview"]["overall_average"], 90)
         self.assertEqual(len(prof_9["chapter_statistics"]), 2)
 
-        prof_10 = get_teacher_student_profile(
-            self.student_id, class_level=10, db_path=self.db_path
-        )
+        prof_10 = get_teacher_student_profile(self.student_id, class_level=10, db_path=self.db_path)
         self.assertEqual(prof_10["overview"]["overall_average"], 50)
         self.assertEqual(len(prof_10["chapter_statistics"]), 2)
 

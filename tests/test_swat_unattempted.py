@@ -46,15 +46,21 @@ class TestSwatUnattemptedChapters(unittest.TestCase):
 
         # Verify NO chapter receives artificial 0%
         for item in unattempted:
-            self.assertIsNone(item["score"], f"Chapter {item['chapter']} received artificial score!")
+            self.assertIsNone(
+                item["score"], f"Chapter {item['chapter']} received artificial score!"
+            )
             self.assertIsNone(item["accuracy"])
             self.assertEqual(item["attempts"], 0)
             self.assertEqual(item["category"], "unattempted")
 
         # Verify helper
-        unatt_helper = get_unattempted_chapters(self.student_id, class_level=10, db_path=self.db_path)
+        unatt_helper = get_unattempted_chapters(
+            self.student_id, class_level=10, db_path=self.db_path
+        )
         self.assertEqual(len(unatt_helper), 13)
-        attempted_helper = get_attempted_chapters(self.student_id, class_level=10, db_path=self.db_path)
+        attempted_helper = get_attempted_chapters(
+            self.student_id, class_level=10, db_path=self.db_path
+        )
         self.assertEqual(len(attempted_helper), 0)
 
     def test_partial_attempts_four_categories(self):

@@ -3,6 +3,7 @@
 import os
 import tempfile
 import unittest
+
 import streamlit as st
 
 import backend
@@ -39,7 +40,9 @@ class TestChapterHub(unittest.TestCase):
                 "chapter": "Electricity",
                 "chapter_number": 11,
                 "difficulty": "easy",
-                "questions": [{"question_id": f"q_elec1_{i}", "correct_answer": "A"} for i in range(1, 6)],
+                "questions": [
+                    {"question_id": f"q_elec1_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
             },
             {f"q_choice_{i}": "A" if i <= 2 else "B" for i in range(1, 6)},
         )
@@ -50,7 +53,9 @@ class TestChapterHub(unittest.TestCase):
                 "chapter": "Electricity",
                 "chapter_number": 11,
                 "difficulty": "medium",
-                "questions": [{"question_id": f"q_elec2_{i}", "correct_answer": "A"} for i in range(1, 6)],
+                "questions": [
+                    {"question_id": f"q_elec2_{i}", "correct_answer": "A"} for i in range(1, 6)
+                ],
             },
             {f"q_choice_{i}": "A" if i <= 3 else "B" for i in range(1, 6)},
         )

@@ -46,7 +46,7 @@ async def run_test():
     ]
 
     for tc in test_queries:
-        print(f"\n💬 Query: \"{tc['query']}\" (Class Filter: {tc['class_filter']})")
+        print(f'\n💬 Query: "{tc["query"]}" (Class Filter: {tc["class_filter"]})')
         print("-" * 50)
 
         full_resp = ""

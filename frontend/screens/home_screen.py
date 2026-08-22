@@ -11,7 +11,9 @@ from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.curriculum.service import get_ncert_curriculum
 
 
-def render_home_screen(selected_class: Optional[str] = None, student_id: str = "student_001") -> None:
+def render_home_screen(
+    selected_class: Optional[str] = None, student_id: str = "student_001"
+) -> None:
     """Renders the Home Screen with Action Plan, interactive curriculum navigator with SWAT indicators, and module action cards."""
 
     # 1. Fetch active student data with master class isolation (0 Gemini calls, Phase 14)
@@ -83,7 +85,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
     st.write("")
 
     # 2. YOUR ACTION PLAN (Phases 9, 10, 11, 14, 16, 17)
-    st.markdown(f"### 📋 YOUR ACTION PLAN — Class {class_level} · Science")
+    st.markdown(f"### Your Action Plan — Class {class_level} · Science")
     plan = generate_action_plan(student_id, class_level=class_level)
 
     if has_data and plan.get("actions"):
@@ -95,7 +97,6 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
         act_cols = st.columns(len(top_actions))
         for idx, (col, act) in enumerate(zip(act_cols, top_actions)):
             with col:
-                p_badge = act.get("priority_icon", "⚪")
                 p_label = act.get("priority_label", "RECOMMENDATION")
                 score_str = f"{act['score']}%" if act["score"] is not None else "Not attempted"
                 ch_title = (
@@ -107,10 +108,10 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
                 st.markdown(
                     f"""
                     <div style="background: var(--surface-container); border-radius: 10px; padding: 14px; margin-bottom: 10px; border-top: 3px solid var(--md-primary);">
-                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px;">{p_badge} {p_label}</div>
+                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px;">{p_label}</div>
                         <div style="font-size: 0.98rem; font-weight: 700; color: var(--on-surface); margin-bottom: 2px;">{ch_title}</div>
                         <div style="font-size: 0.86rem; color: var(--md-secondary); font-weight: 600; margin-bottom: 6px;">{score_str}</div>
-                        <div style="font-size: 0.8rem; color: var(--on-surface-variant); min-height: 40px; margin-bottom: 8px;">{act['reason']}</div>
+                        <div style="font-size: 0.8rem; color: var(--on-surface-variant); min-height: 40px; margin-bottom: 8px;">{act["reason"]}</div>
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -119,7 +120,8 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
                 btn_key = f"home_action_btn_{class_level}_{idx}_{act['chapter']}"
                 btn_type = "primary" if act["priority_rank"] == 1 else "secondary"
                 if st.button(
-                    f"👉 {act['button_text']}",
+                    act["button_text"],
+                    icon=":material/play_arrow:",
                     key=btn_key,
                     type=btn_type,
                     use_container_width=True,
@@ -135,7 +137,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
         st.markdown(
             f"""
             <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 10px; padding: 18px; text-align: center; margin-bottom: 12px;">
-                <div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px;">🚀 Start Exploring Your Class {class_level} Curriculum</div>
+                <div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px;">Start Exploring Your Class {class_level} Curriculum</div>
                 <div style="font-size: 0.86rem; color: var(--on-surface-variant); max-width: 540px; margin: 0 auto 12px auto;">
                     You haven't attempted any quizzes in Class {class_level} Science yet. Take an introductory diagnostic quiz to unlock your personal mastery roadmap.
                 </div>
@@ -208,7 +210,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
     # 4. NCERT Curriculum Navigator with SWAT Indicators (Phases 12, 13, 14)
     st.markdown(f"### NCERT Science Curriculum — Class {class_level}")
     st.caption(
-        f"Click any chapter below to explore textbook source details, practice quizzes, or ask doubts."
+        "Click any chapter below to explore textbook source details, practice quizzes, or ask doubts."
     )
 
     curriculum_chapters = get_ncert_curriculum(class_level)
@@ -224,18 +226,22 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
             ch_stats = breakdown.get(ch_name)
 
             # Phase 13: Determine SWAT Indicator
-            if ch_stats and ch_stats.get("status") != "unattempted" and ch_stats.get("score") is not None:
+            if (
+                ch_stats
+                and ch_stats.get("status") != "unattempted"
+                and ch_stats.get("score") is not None
+            ):
                 score = ch_stats["score"]
                 status = ch_stats.get("status", "average")
                 if status == "strong":
-                    indicator = f"🟢 {score}%"
+                    indicator = f"{score}% (Strong)"
                 elif status == "weak":
-                    indicator = f"🔴 {score}%"
+                    indicator = f"{score}% (Weak)"
                 else:
-                    indicator = f"🟡 {score}%"
+                    indicator = f"{score}% (Average)"
             else:
                 # Phase 13: Unattempted chapters NEVER show artificial 0%
-                indicator = "⚪ Not Attempted"
+                indicator = "Not Attempted"
 
             btn_label = f"**{ch_num_str}**  {ch_name}  ·  {indicator}"
             if st.button(

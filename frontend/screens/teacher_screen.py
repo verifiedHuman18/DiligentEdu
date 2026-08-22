@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from frontend.components.cards import render_metric_card
+from frontend.components.cards import render_metric_card, render_swat_columns
 from frontend.state import navigate_to
 from src.academic_rag.analytics.teacher import get_teacher_student_profile
 
@@ -35,9 +35,7 @@ def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> 
     prof = get_teacher_student_profile(student_id, class_level=cls_int)
 
     if not prof.get("has_data"):
-        st.info(
-            f"No quiz data found for student `{student_id}` in {teacher_class}."
-        )
+        st.info(f"No quiz data found for student `{student_id}` in {teacher_class}.")
         return
 
     st_overview = prof["overview"]
@@ -58,14 +56,16 @@ def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> 
     elif status_code in ["improving", "improving_low_base"]:
         st.info(
             f"Overall Status: **{status_title}** "
-            f"(Upward Trajectory: {st_status['trend']['earlier_average']}% ➔ {st_status['trend']['recent_average']}%)"
+            f"(Upward Trajectory: {st_status['trend']['earlier_average']}% -> {st_status['trend']['recent_average']}%)"
         )
     elif status_code == "monitor":
         st.warning(
             f"Overall Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
         )
     else:
-        st.error(f"Overall Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)")
+        st.error(
+            f"Overall Status: **{status_title}** (Overall Average: {st_overview['overall_average']}%)"
+        )
 
     # Alerts & Positive Notes
     if st_status.get("alerts"):
@@ -97,29 +97,36 @@ def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> 
     st.write("")
 
     # 3. Phase 19: Recommended Focus & Action-Plan Statistics (with Reasoning)
-    st.markdown("#### 🎯 Recommended Action Plan & Diagnostic Statistics")
-    st.caption("Pedagogical recommendations with attempt counts, score trajectories, and underlying rationale.")
+    st.markdown("#### Recommended Action Plan & Diagnostic Statistics")
+    st.caption(
+        "Pedagogical recommendations with attempt counts, score trajectories, and underlying rationale."
+    )
 
     actions = st_plan.get("actions", [])
     if actions:
         # Display top priorities in clean cards
         for act in actions[:4]:
-            p_badge = act.get("priority_icon", "⚪")
             p_label = act.get("priority_label", "RECOMMENDATION")
             ch_name = act["chapter"]
             score_str = f"{act['score']}%" if act["score"] is not None else "Not attempted"
-            attempts_str = f"{act.get('attempts', 0)} attempt{'s' if act.get('attempts', 0) != 1 else ''}"
-            recent_str = f"Trajectory: {act.get('recent_performance', '—')}" if act.get("attempts", 0) > 1 else ""
+            attempts_str = (
+                f"{act.get('attempts', 0)} attempt{'s' if act.get('attempts', 0) != 1 else ''}"
+            )
+            recent_str = (
+                f"Trajectory: {act.get('recent_performance', '—')}"
+                if act.get("attempts", 0) > 1
+                else ""
+            )
 
             st.markdown(
                 f"""
                 <div style="background: var(--surface-container); border-left: 4px solid var(--md-primary); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;">
-                    <div style="font-weight: 700; font-size: 0.85rem; color: var(--md-primary);">{p_badge} {p_label} — Priority {act['priority_rank']}</div>
+                    <div style="font-weight: 700; font-size: 0.85rem; color: var(--md-primary);">{p_label} — Priority {act["priority_rank"]}</div>
                     <div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin: 4px 0;">{ch_name}</div>
                     <div style="font-size: 0.88rem; color: var(--on-surface-variant); margin-bottom: 4px;">
-                        <strong>Score:</strong> {score_str} &nbsp;|&nbsp; <strong>Attempts:</strong> {attempts_str} {('&nbsp;|&nbsp; <strong>' + recent_str + '</strong>') if recent_str else ''}
+                        <strong>Score:</strong> {score_str} &nbsp;|&nbsp; <strong>Attempts:</strong> {attempts_str} {("&nbsp;|&nbsp; <strong>" + recent_str + "</strong>") if recent_str else ""}
                     </div>
-                    <div style="font-size: 0.85rem; color: var(--on-surface);"><strong>Reason:</strong> {act['reason']}</div>
+                    <div style="font-size: 0.85rem; color: var(--on-surface);"><strong>Reason:</strong> {act["reason"]}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -130,52 +137,13 @@ def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> 
     st.write("")
 
     # 4. Phase 19: 4-Category SWAT Summary
-    st.markdown("#### 📊 Chapter Mastery (4-Category SWAT)")
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown("🟢 **Strong (≥ 70%)**")
-        strong_list = st_swat.get("strengths", [])
-        if strong_list:
-            for s in strong_list:
-                perf = f" ({s.get('recent_performance')})" if s.get("attempts", 1) > 1 else ""
-                st.success(f"{s['chapter']} — **{s['score']}%**{perf}")
-        else:
-            st.caption("No strong chapters yet.")
-
-    with col2:
-        st.markdown("🟡 **Average (50%–69%)**")
-        avg_list = st_swat.get("average_topics", [])
-        if avg_list:
-            for a in avg_list:
-                perf = f" ({a.get('recent_performance')})" if a.get("attempts", 1) > 1 else ""
-                st.info(f"{a['chapter']} — **{a['score']}%**{perf}")
-        else:
-            st.caption("No average chapters.")
-
-    with col3:
-        st.markdown("🔴 **Weak (< 50%)**")
-        weak_list = st_swat.get("weak_topics", [])
-        if weak_list:
-            for w in weak_list:
-                perf = f" ({w.get('recent_performance')})" if w.get("attempts", 1) > 1 else ""
-                st.error(f"{w['chapter']} — **{w['score']}%**{perf}")
-        else:
-            st.caption("No weak chapters.")
-
-    with col4:
-        st.markdown("⚪ **Unattempted**")
-        unatt_list = st_swat.get("unattempted_topics", [])
-        if unatt_list:
-            for u in unatt_list:
-                st.markdown(f"- {u['chapter']}")
-        else:
-            st.caption("All chapters attempted.")
+    st.markdown("#### Chapter Mastery (4-Category SWAT)")
+    render_swat_columns(st_swat)
 
     st.write("")
 
     # 5. Recent Student Activity Log
-    st.markdown("#### 📝 Chronological Quiz History")
+    st.markdown("#### Chronological Quiz History")
     if st_history:
         for q in reversed(st_history[-6:]):
             st.markdown(

@@ -37,8 +37,9 @@ def render_navbar(selected_class: str = "Class 10", student_id: str = "student_0
             st.markdown(
                 f"""
                 <div style="display: flex; justify-content: flex-end; align-items: center; height: 100%; gap: 6px; padding-top: 4px;">
-                    <span style="background: var(--surface-container-high); color: var(--on-surface); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--outline-variant);">
-                        👤 {student_id} · Class {class_level}
+                    <span style="background: var(--surface-container-high); color: var(--on-surface); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--outline-variant); display: inline-flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 0.95rem;">person</span>
+                        {student_id} · Class {class_level}
                     </span>
                 </div>
                 """,
@@ -47,7 +48,10 @@ def render_navbar(selected_class: str = "Class 10", student_id: str = "student_0
         with r_c2:
             is_settings = current_screen == "settings"
             if st.button(
-                "", icon=":material/settings:", key="top_btn_settings", help="Settings & Profile Configuration"
+                "",
+                icon=":material/settings:",
+                key="top_btn_settings",
+                help="Settings & Profile Configuration",
             ):
                 navigate_to("settings" if not is_settings else "home")
                 st.rerun()

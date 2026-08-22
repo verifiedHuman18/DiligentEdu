@@ -1,6 +1,7 @@
 """Unit tests for Frontend Master Class State & Quiz Chapter Isolation (Phases 1-7)."""
 
 import unittest
+
 import streamlit as st
 
 from frontend.state import (
@@ -10,7 +11,6 @@ from frontend.state import (
     set_student_class_level,
 )
 from src.academic_rag.analytics.swat import get_available_chapters
-from src.academic_rag.curriculum.service import curriculum_service
 
 
 class TestFrontendClassState(unittest.TestCase):

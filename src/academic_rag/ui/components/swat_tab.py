@@ -1,5 +1,7 @@
 """Student SWAT Dashboard UI component."""
 
+from typing import Optional
+
 import streamlit as st
 
 from src.academic_rag.analytics.swat import get_student_swat
@@ -57,7 +59,9 @@ def render_swat_tab(student_id: str, class_level: Optional[int] = None):
 
     # SWAT Categorization
     st.markdown("#### 🎯 Chapter-Wise SWAT Breakdown")
-    st.caption("🟢 **STRONG** (≥ 70%) | 🟡 **AVERAGE** (50%–69%) | 🔴 **WEAK** (< 50%) | ⚪ **NOT ATTEMPTED**")
+    st.caption(
+        "🟢 **STRONG** (≥ 70%) | 🟡 **AVERAGE** (50%–69%) | 🔴 **WEAK** (< 50%) | ⚪ **NOT ATTEMPTED**"
+    )
 
     c_col1, c_col2, c_col3, c_col4 = st.columns(4)
 

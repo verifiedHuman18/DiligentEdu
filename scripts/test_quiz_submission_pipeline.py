@@ -135,7 +135,7 @@ def run_tests():
     )
     elapsed = time.time() - start_t
 
-    print(f"⏱️ Evaluated & Persisted in {elapsed*1000:.2f}ms (Zero LLM calls)")
+    print(f"⏱️ Evaluated & Persisted in {elapsed * 1000:.2f}ms (Zero LLM calls)")
     print("\n--- Pipeline Result ---")
     print(
         json.dumps(

@@ -8,6 +8,7 @@ import streamlit as st
 def render_header(selected_class: str = "Class 10", student_id: str = "student_001") -> None:
     """Renders the clean, modern top header with student details."""
     from frontend.state import get_student_class_level
+
     cls_int = get_student_class_level()
     class_label = f"Class {cls_int}"
 

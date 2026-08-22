@@ -86,7 +86,9 @@ def render_settings_screen() -> None:
             from frontend.state import get_student_class_level, set_student_class_level
 
             st.markdown("#### Student Profile & Standard Settings")
-            st.caption("This is the master configuration for your student identity and NCERT textbook grade level.")
+            st.caption(
+                "This is the master configuration for your student identity and NCERT textbook grade level."
+            )
             st.write("")
 
             student_id = st.text_input(
@@ -122,11 +124,18 @@ def render_settings_screen() -> None:
             )
 
             st.write("")
-            if st.button("Save Changes", type="primary", key="save_profile_settings_btn", icon=":material/save:"):
+            if st.button(
+                "Save Changes",
+                type="primary",
+                key="save_profile_settings_btn",
+                icon=":material/save:",
+            ):
                 set_student_class_level(new_cls_int)
                 st.session_state.student_id = student_id.strip() or "student_001"
                 st.session_state.selected_chapter = selected_chapter
-                st.success(f"Profile saved successfully! Master Standard set to Class {new_cls_int}.")
+                st.success(
+                    f"Profile saved successfully! Master Standard set to Class {new_cls_int}."
+                )
                 st.rerun()
 
         # Tab 3: AI & Model

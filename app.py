@@ -43,7 +43,7 @@ def setup_logging():
         format=log_format,
         handlers=[
             logging.FileHandler(
-                f'logs/app_{datetime.now().strftime("%Y%m%d")}.log', encoding="utf-8"
+                f"logs/app_{datetime.now().strftime('%Y%m%d')}.log", encoding="utf-8"
             ),
             logging.StreamHandler(sys.stdout),
         ],
@@ -78,6 +78,7 @@ async def main():
     inject_custom_css()
 
     from frontend.state import get_student_class_level
+
     cls_int = get_student_class_level()
     selected_class = f"Class {cls_int}"
     student_id = st.session_state.get("student_id", "student_001")

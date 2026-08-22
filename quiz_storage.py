@@ -186,4 +186,3 @@ __all__ = [
     "DEFAULT_DB_PATH",
     "STORAGE_DIR",
 ]
-

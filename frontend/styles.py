@@ -128,49 +128,49 @@ def inject_custom_css(theme_name: str = None) -> None:
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {{
-    --bg-app: {t['bg_app']};
-    --bg-surface: {t['bg_surface']};
-    --surface-container_lowest: {t['surface_container_lowest']};
-    --surface-container-low: {t['surface_container_low']};
-    --surface-container: {t['surface_container']};
-    --surface-container-high: {t['surface_container_high']};
-    --surface-container-highest: {t['surface_container_highest']};
-    --border-outline: {t['border_outline']};
-    --border-outline-variant: {t['border_outline_variant']};
-    --text-primary: {t['text_primary']};
-    --text-secondary: {t['text_secondary']};
-    --text-muted: {t['text_muted']};
-    --md-primary: {t['md_primary']};
-    --md-on-primary: {t['md_on_primary']};
-    --md-primary-container: {t['md_primary_container']};
-    --md-on-primary-container: {t['md_on_primary_container']};
-    --md-secondary: {t['md_secondary']};
-    --md-secondary-container: {t['md_secondary_container']};
-    --md-on-secondary-container: {t['md_on_secondary_container']};
-    --md-tertiary: {t['md_tertiary']};
-    --md-tertiary-container: {t['md_tertiary_container']};
-    --md-on-tertiary-container: {t['md_on_tertiary_container']};
-    --md-amber: {t['md_amber']};
-    --md-amber-container: {t['md_amber_container']};
-    --md-on-amber-container: {t['md_on_amber_container']};
-    --md-error: {t['md_error']};
-    --md-error-container: {t['md_error_container']};
-    --md-on-error-container: {t['md_on_error_container']};
-    --md-cyan: {t['md_cyan']};
-    --md-cyan-container: {t['md_cyan_container']};
-    --md-on-cyan-container: {t['md_on_cyan_container']};
-    --btn-tutor-bg: {t['btn_tutor_bg']};
-    --btn-tutor-border: {t['btn_tutor_border']};
-    --btn-tutor-text: {t['btn_tutor_text']};
-    --btn-quiz-bg: {t['btn_quiz_bg']};
-    --btn-quiz-border: {t['btn_quiz_border']};
-    --btn-quiz-text: {t['btn_quiz_text']};
-    --btn-analytics-bg: {t['btn_analytics_bg']};
-    --btn-analytics-border: {t['btn_analytics_border']};
-    --btn-analytics-text: {t['btn_analytics_text']};
-    --btn-teacher-bg: {t['btn_teacher_bg']};
-    --btn-teacher-border: {t['btn_teacher_border']};
-    --btn-teacher-text: {t['btn_teacher_text']};
+    --bg-app: {t["bg_app"]};
+    --bg-surface: {t["bg_surface"]};
+    --surface-container_lowest: {t["surface_container_lowest"]};
+    --surface-container-low: {t["surface_container_low"]};
+    --surface-container: {t["surface_container"]};
+    --surface-container-high: {t["surface_container_high"]};
+    --surface-container-highest: {t["surface_container_highest"]};
+    --border-outline: {t["border_outline"]};
+    --border-outline-variant: {t["border_outline_variant"]};
+    --text-primary: {t["text_primary"]};
+    --text-secondary: {t["text_secondary"]};
+    --text-muted: {t["text_muted"]};
+    --md-primary: {t["md_primary"]};
+    --md-on-primary: {t["md_on_primary"]};
+    --md-primary-container: {t["md_primary_container"]};
+    --md-on-primary-container: {t["md_on_primary_container"]};
+    --md-secondary: {t["md_secondary"]};
+    --md-secondary-container: {t["md_secondary_container"]};
+    --md-on-secondary-container: {t["md_on_secondary_container"]};
+    --md-tertiary: {t["md_tertiary"]};
+    --md-tertiary-container: {t["md_tertiary_container"]};
+    --md-on-tertiary-container: {t["md_on_tertiary_container"]};
+    --md-amber: {t["md_amber"]};
+    --md-amber-container: {t["md_amber_container"]};
+    --md-on-amber-container: {t["md_on_amber_container"]};
+    --md-error: {t["md_error"]};
+    --md-error-container: {t["md_error_container"]};
+    --md-on-error-container: {t["md_on_error_container"]};
+    --md-cyan: {t["md_cyan"]};
+    --md-cyan-container: {t["md_cyan_container"]};
+    --md-on-cyan-container: {t["md_on_cyan_container"]};
+    --btn-tutor-bg: {t["btn_tutor_bg"]};
+    --btn-tutor-border: {t["btn_tutor_border"]};
+    --btn-tutor-text: {t["btn_tutor_text"]};
+    --btn-quiz-bg: {t["btn_quiz_bg"]};
+    --btn-quiz-border: {t["btn_quiz_border"]};
+    --btn-quiz-text: {t["btn_quiz_text"]};
+    --btn-analytics-bg: {t["btn_analytics_bg"]};
+    --btn-analytics-border: {t["btn_analytics_border"]};
+    --btn-analytics-text: {t["btn_analytics_text"]};
+    --btn-teacher-bg: {t["btn_teacher_bg"]};
+    --btn-teacher-border: {t["btn_teacher_border"]};
+    --btn-teacher-text: {t["btn_teacher_text"]};
     --radius-xs: 6px;
     --radius-sm: 10px;
     --radius-md: 14px;
@@ -787,6 +787,177 @@ hr {{
     border: none !important;
     border-top: 1px solid transparent !important;
     margin: 1.5rem 0 !important;
+}}
+
+/* SWAT Kanban Board Styles */
+.swat-board-grid {{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}}
+
+@media (max-width: 960px) {{
+    .swat-board-grid {{
+        grid-template-columns: repeat(2, 1fr);
+    }}
+}}
+
+@media (max-width: 580px) {{
+    .swat-board-grid {{
+        grid-template-columns: 1fr;
+    }}
+}}
+
+.swat-col-card {{
+    background: var(--surface-container-low);
+    border: 1px solid var(--border-outline-variant);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 350px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}}
+
+.swat-col-card:hover {{
+    border-color: var(--border-outline);
+}}
+
+.swat-col-header {{
+    padding: 12px 14px 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-outline-variant);
+    font-weight: 700;
+    font-size: 0.86rem;
+}}
+
+.swat-col-header-strong {{
+    border-top: 3px solid var(--md-tertiary);
+    color: var(--md-tertiary);
+}}
+
+.swat-col-header-average {{
+    border-top: 3px solid var(--md-amber);
+    color: var(--md-amber);
+}}
+
+.swat-col-header-weak {{
+    border-top: 3px solid var(--md-error);
+    color: var(--md-error);
+}}
+
+.swat-col-header-unattempted {{
+    border-top: 3px solid var(--text-muted);
+    color: var(--text-secondary);
+}}
+
+.swat-count-badge {{
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    background: var(--surface-container-high);
+    color: var(--text-primary);
+}}
+
+.swat-col-scroll {{
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}}
+
+.swat-col-scroll::-webkit-scrollbar {{
+    width: 5px;
+}}
+
+.swat-col-scroll::-webkit-scrollbar-track {{
+    background: transparent;
+}}
+
+.swat-col-scroll::-webkit-scrollbar-thumb {{
+    background: var(--border-outline-variant);
+    border-radius: 4px;
+}}
+
+.swat-col-scroll::-webkit-scrollbar-thumb:hover {{
+    background: var(--border-outline);
+}}
+
+.swat-item-card {{
+    background: var(--surface-container);
+    border: 1px solid var(--border-outline-variant);
+    border-radius: 6px;
+    padding: 7px 10px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.83rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}}
+
+.swat-item-card:hover {{
+    background: var(--surface-container-high);
+    border-color: var(--border-outline);
+}}
+
+.swat-item-title {{
+    flex: 1;
+    min-width: 0;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.35;
+    word-break: break-word;
+}}
+
+.swat-item-num {{
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-right: 4px;
+}}
+
+.swat-item-score {{
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+}}
+
+.swat-score-strong {{
+    background: var(--surface-container-highest);
+    color: var(--md-tertiary);
+}}
+
+.swat-score-average {{
+    background: var(--surface-container-highest);
+    color: var(--md-amber);
+}}
+
+.swat-score-weak {{
+    background: var(--surface-container-highest);
+    color: var(--md-error);
+}}
+
+.swat-empty-state {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    padding: 20px 10px;
 }}
 
 /* Hide unnecessary default Streamlit decoration and sidebar */

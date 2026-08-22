@@ -1,6 +1,7 @@
 """Unit tests for Phases 1 to 4: Class-Scoped Curriculum Contract & Home Screen."""
 
 import unittest
+
 import streamlit as st
 
 import backend
@@ -26,7 +27,9 @@ class TestHomeCurriculum(unittest.TestCase):
 
         titles_9 = [c["chapter"] for c in chs_9]
         self.assertEqual(chs_9[0]["chapter_number"], 1)
-        self.assertEqual(chs_9[0]["chapter"], "Exploration: Entering the World of Secondary Science")
+        self.assertEqual(
+            chs_9[0]["chapter"], "Exploration: Entering the World of Secondary Science"
+        )
         self.assertIn("Describing Motion Around Us", titles_9)
         self.assertIn("Cell: The Building Block of Life", titles_9)
 

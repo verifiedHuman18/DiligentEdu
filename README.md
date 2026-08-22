@@ -128,10 +128,10 @@ PINECONE_API_KEY=your_pinecone_api_key_here
 ### Configurable Parameters
 
 ```python
-CHUNK_OVERLAP = 100        # Text chunk overlap for context
-RETRIEVER_K_MMR = 2       # MMR retrieval count
-RETRIEVER_K_SIMILARITY = 5 # Similarity search count
-LAMBDA_MUL = 0.7          # MMR diversity parameter
+CHUNK_OVERLAP = 100  # Text chunk overlap for context
+RETRIEVER_K_MMR = 2  # MMR retrieval count
+RETRIEVER_K_SIMILARITY = 5  # Similarity search count
+LAMBDA_MUL = 0.7  # MMR diversity parameter
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 ```
 

@@ -2,6 +2,7 @@
 
 import os
 import unittest
+
 import streamlit as st
 
 from frontend.screens.chapter_screen import render_chapter_screen

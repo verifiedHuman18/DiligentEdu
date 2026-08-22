@@ -2,6 +2,7 @@
 
 import os
 import unittest
+
 import streamlit as st
 
 import backend
@@ -10,7 +11,7 @@ from frontend.state import (
     init_session_state,
     set_student_class_level,
 )
-from src.academic_rag.curriculum.service import get_chapter_pdf, get_ncert_curriculum
+from src.academic_rag.curriculum.service import get_chapter_pdf
 from src.academic_rag.exceptions import ChapterNotFoundError
 
 

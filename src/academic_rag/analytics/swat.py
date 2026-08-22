@@ -348,7 +348,6 @@ def get_student_swat(
     }
 
 
-
 def get_available_chapters(
     class_level: int,
     student_id: Optional[str] = None,

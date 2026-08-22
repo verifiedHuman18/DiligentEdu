@@ -334,4 +334,3 @@ def get_teacher_student_profile(
         "status": status,
         "action_plan": action_plan,
     }
-

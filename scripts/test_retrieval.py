@@ -54,7 +54,7 @@ def test_retrieval():
     ]
 
     for tc in test_cases:
-        print(f"\n🔎 Test Query: \"{tc['query']}\"")
+        print(f'\n🔎 Test Query: "{tc["query"]}"')
         print(f"   Filter: {tc['filter']} ({tc['description']})")
 
         # Generate query vector
