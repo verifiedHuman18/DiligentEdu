@@ -78,6 +78,33 @@ class TestScholarshipSourceIntegrity(unittest.TestCase):
                     f"Scheme {m.scholarship_id} was improperly matched despite income violation!",
                 )
 
+    def test_profile_iterable_and_dict_conversion(self):
+        """Verify that StudentScholarshipProfile is safely iterable and convertible to dict."""
+        from src.academic_rag.scholarships.models import normalize_student_profile
+
+        profile = StudentScholarshipProfile(
+            class_level=10,
+            family_income=200000,
+            category="OBC",
+            school_type="Government School",
+        )
+
+        # 1. dict(profile) must work without TypeError
+        d = dict(profile)
+        self.assertIsInstance(d, dict)
+        self.assertEqual(d["class_level"], 10)
+        self.assertEqual(d["family_income"], 200000)
+
+        # 2. normalize_student_profile on StudentScholarshipProfile instance
+        norm = normalize_student_profile(profile)
+        self.assertIsInstance(norm, StudentScholarshipProfile)
+        self.assertEqual(norm.class_level, 10)
+
+        # 3. normalize_student_profile on dict(profile)
+        norm_from_dict = normalize_student_profile(d)
+        self.assertEqual(norm_from_dict.class_level, 10)
+        self.assertEqual(norm_from_dict.family_income, 200000)
+
 
 if __name__ == "__main__":
     unittest.main()
