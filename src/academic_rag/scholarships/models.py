@@ -389,6 +389,10 @@ class StudentScholarshipProfile:
     academic_score: Optional[float] = None  # Previous class percentage
     occupational_background: Optional[str] = None  # e.g., "Beedi Worker", "Cine Worker", "Mine Worker", "Sanitation / Waste Picker", "General"
 
+    def __iter__(self):
+        """Enable iteration so dict(profile) and dictionary-unpacking work safely."""
+        return iter(self.to_dict().items())
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "class_level": self.class_level,
@@ -404,6 +408,14 @@ class StudentScholarshipProfile:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "StudentScholarshipProfile":
+        if hasattr(data, "to_dict") and callable(getattr(data, "to_dict")):
+            data = data.to_dict()
+        elif not isinstance(data, dict):
+            try:
+                data = dict(data)
+            except Exception:
+                data = {}
+
         return cls(
             class_level=data.get("class_level"),
             state=data.get("state", "ALL"),
@@ -437,22 +449,21 @@ def normalize_student_profile(
     if raw_data is None:
         return StudentScholarshipProfile(class_level=default_class_level or 10)
 
-    if isinstance(raw_data, StudentScholarshipProfile):
-        cls_lvl = raw_data.class_level or default_class_level or 10
-        return StudentScholarshipProfile(
-            class_level=cls_lvl,
-            state=raw_data.state or "ALL",
-            family_income=raw_data.family_income,
-            category=raw_data.category,
-            gender=raw_data.gender,
-            disability_status=raw_data.disability_status,
-            school_type=raw_data.school_type,
-            academic_score=raw_data.academic_score,
-            occupational_background=raw_data.occupational_background,
-        )
-
-    # Dictionary input normalization
-    data = dict(raw_data)
+    # Safe extraction across dicts, dataclasses, and custom objects
+    if hasattr(raw_data, "to_dict") and callable(getattr(raw_data, "to_dict")):
+        data = raw_data.to_dict()
+    elif isinstance(raw_data, dict):
+        data = dict(raw_data)
+    elif hasattr(raw_data, "__dataclass_fields__"):
+        import dataclasses
+        data = dataclasses.asdict(raw_data)
+    elif hasattr(raw_data, "__dict__"):
+        data = dict(raw_data.__dict__)
+    else:
+        try:
+            data = dict(raw_data)
+        except Exception:
+            data = {}
 
     # 1. Class level
     raw_cls = data.get("class_level") or data.get("selected_class") or data.get("class") or default_class_level
