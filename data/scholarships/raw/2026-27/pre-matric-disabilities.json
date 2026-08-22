@@ -1,0 +1,27 @@
+{
+  "id": "pre-matric-disabilities",
+  "name": "Pre-Matric Scholarship for Students with Disabilities",
+  "academic_year": "2026-27",
+  "provider": "Department of Empowerment of Persons with Disabilities (DEPwD)",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-disabilities_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-disabilities_faq.html",
+  "raw": {
+    "catalogue_text": "Pre-Matric Scholarship for Students with Disabilities | Provider: Department of Empowerment of Persons with Disabilities (DEPwD) | Academic Year: 2026-27 | Type: Persons with Disabilities (PwD) | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: Pre-Matric Scholarship for Students with Disabilities\nMinistry: Ministry of Social Justice & Empowerment\nDepartment: Department of Empowerment of Persons with Disabilities (DEPwD)\nTarget Classes: Class 9, Class 10\nAcademic Requirement: Studying as a regular, full-time student in Class 9 or Class 10 in a government or government-recognized school.\nSchool Type Requirement: Government or recognized private schools.\nAnnual Income Ceiling: Rs. 250000\nSelection Mode: Direct / Merit\nFinancial Assistance: Includes maintenance allowance (₹500/month for day scholars, ₹800/month for hostellers), annual book grant of ₹1,000, and disability allowances (braille/escort/reader allowances up to ₹4,000/yr). - Rs. 10000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for Pre-Matric Scholarship for Students with Disabilities?\nA: Eligible students studying in Class 9, Class 10.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 250000,
+      "disability_requirement": "Minimum 40% disability certified by competent medical authority with a valid UDID / Disability Certificate.",
+      "academic_requirement": "Studying as a regular, full-time student in Class 9 or Class 10 in a government or government-recognized school.",
+      "school_type_requirement": "Government or recognized private schools."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 10000,
+      "details": "Includes maintenance allowance (₹500/month for day scholars, ₹800/month for hostellers), annual book grant of ₹1,000, and disability allowances (braille/escort/reader allowances up to ₹4,000/yr).",
+      "duration": "Classes 9 and 10"
+    },
+    "inclusion_rationale": "Critical accessibility and financial inclusion scheme for disabled students completing secondary education in Class 9 and 10."
+  },
+  "scraped_at": "2026-08-22T18:09:45.285538+00:00"
+}

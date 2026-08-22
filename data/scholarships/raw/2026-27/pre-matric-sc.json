@@ -1,0 +1,27 @@
+{
+  "id": "pre-matric-sc",
+  "name": "Pre-Matric Scholarship Scheme for SC Students and Others (Component I - Class IX & X)",
+  "academic_year": "2026-27",
+  "provider": "Department of Social Justice and Empowerment",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-sc_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-sc_faq.html",
+  "raw": {
+    "catalogue_text": "Pre-Matric Scholarship Scheme for SC Students and Others (Component I - Class IX & X) | Provider: Department of Social Justice and Empowerment | Academic Year: 2026-27 | Type: Scheduled Castes (SC) | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: Pre-Matric Scholarship Scheme for SC Students and Others (Component I - Class IX & X)\nMinistry: Ministry of Social Justice & Empowerment\nDepartment: Department of Social Justice and Empowerment\nTarget Classes: Class 9, Class 10\nAcademic Requirement: Regular student studying in Class 9 or 10 in a recognized school.\nSchool Type Requirement: Government schools, schools run by local bodies, or recognized private schools.\nAnnual Income Ceiling: Rs. 250000\nSelection Mode: Direct / Merit\nFinancial Assistance: Academic allowance of ₹3,500/year (Day Scholar) to ₹7,000/year (Hosteller) plus 10% disability allowance if applicable. - Rs. 4000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for Pre-Matric Scholarship Scheme for SC Students and Others (Component I - Class IX & X)?\nA: Eligible students studying in Class 9, Class 10.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 250000,
+      "academic_requirement": "Regular student studying in Class 9 or 10 in a recognized school.",
+      "school_type_requirement": "Government schools, schools run by local bodies, or recognized private schools.",
+      "social_category": "Students belonging to Scheduled Castes."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 4000,
+      "details": "Academic allowance of ₹3,500/year (Day Scholar) to ₹7,000/year (Hosteller) plus 10% disability allowance if applicable.",
+      "duration": "Classes 9 and 10"
+    },
+    "inclusion_rationale": "Centrally sponsored scheme designed to curb dropout rates at the secondary level for SC students transitioning into Class 9 & 10."
+  },
+  "scraped_at": "2026-08-22T18:09:45.749507+00:00"
+}

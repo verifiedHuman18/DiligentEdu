@@ -1,0 +1,26 @@
+{
+  "id": "pre-matric-beedi-cine-workers",
+  "name": "Financial Assistance for Education of the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre-Matric)",
+  "academic_year": "2026-27",
+  "provider": "Labour Welfare Organisation",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-beedi-cine-workers_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-beedi-cine-workers_faq.html",
+  "raw": {
+    "catalogue_text": "Financial Assistance for Education of the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre-Matric) | Provider: Labour Welfare Organisation | Academic Year: 2026-27 | Type: Labour Welfare / Industrial Wards | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: Financial Assistance for Education of the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre-Matric)\nMinistry: Ministry of Labour and Employment\nDepartment: Labour Welfare Organisation\nTarget Classes: Class 1, Class 2, Class 3, Class 4, Class 5, Class 6, Class 7, Class 8, Class 9, Class 10\nAcademic Requirement: Passed previous year examination on first attempt and enrolled in a recognized school.\nSchool Type Requirement: \nAnnual Income Ceiling: Rs. 120000\nSelection Mode: Direct / Merit\nFinancial Assistance: For Class 9 and 10 students: ₹2,000 per annum (Class 1-4: ₹1,000, Class 5-8: ₹1,500). - Rs. 2000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for Financial Assistance for Education of the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre-Matric)?\nA: Eligible students studying in Class 1, Class 2, Class 3, Class 4, Class 5, Class 6, Class 7, Class 8, Class 9, Class 10.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 120000,
+      "occupational_requirement": "At least one parent must be an active worker in Beedi, Cine, Iron Ore/Manganese Ore/Chrome Ore (IOMC), or Limestone and Dolomite Mines (LSDM) with at least 6 months of continuous service.",
+      "academic_requirement": "Passed previous year examination on first attempt and enrolled in a recognized school."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 2000,
+      "details": "For Class 9 and 10 students: ₹2,000 per annum (Class 1-4: ₹1,000, Class 5-8: ₹1,500).",
+      "duration": "Annual renewal up to Class 10"
+    },
+    "inclusion_rationale": "Direct financial aid scheme specifically for children of unorganized mine and factory workers attending secondary school (Classes 9 and 10)."
+  },
+  "scraped_at": "2026-08-22T18:09:46.706637+00:00"
+}

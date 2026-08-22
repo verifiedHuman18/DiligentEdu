@@ -1,0 +1,27 @@
+{
+  "id": "pre-matric-st",
+  "name": "Pre-Matric Scholarship Scheme for ST Students (Class IX & X)",
+  "academic_year": "2026-27",
+  "provider": "Education Section",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-st_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-st_faq.html",
+  "raw": {
+    "catalogue_text": "Pre-Matric Scholarship Scheme for ST Students (Class IX & X) | Provider: Education Section | Academic Year: 2026-27 | Type: Scheduled Tribes (ST) | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: Pre-Matric Scholarship Scheme for ST Students (Class IX & X)\nMinistry: Ministry of Tribal Affairs\nDepartment: Education Section\nTarget Classes: Class 9, Class 10\nAcademic Requirement: Regular, full-time student enrolled in Class 9 or Class 10.\nSchool Type Requirement: Government or government-recognized secondary schools.\nAnnual Income Ceiling: Rs. 250000\nSelection Mode: Direct / Merit\nFinancial Assistance: Consolidated academic allowance and maintenance grant (₹3,000 - ₹6,250 depending on day scholar vs hosteller status). - Rs. 3500 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for Pre-Matric Scholarship Scheme for ST Students (Class IX & X)?\nA: Eligible students studying in Class 9, Class 10.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 250000,
+      "academic_requirement": "Regular, full-time student enrolled in Class 9 or Class 10.",
+      "school_type_requirement": "Government or government-recognized secondary schools.",
+      "social_category": "Students belonging to Scheduled Tribes."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 3500,
+      "details": "Consolidated academic allowance and maintenance grant (₹3,000 - ₹6,250 depending on day scholar vs hosteller status).",
+      "duration": "Classes 9 and 10"
+    },
+    "inclusion_rationale": "Core tribal education initiative addressing secondary school retention for Class 9 and 10 tribal students."
+  },
+  "scraped_at": "2026-08-22T18:09:46.210343+00:00"
+}

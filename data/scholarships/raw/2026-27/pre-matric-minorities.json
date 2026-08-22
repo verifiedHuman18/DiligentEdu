@@ -1,0 +1,27 @@
+{
+  "id": "pre-matric-minorities",
+  "name": "Pre-Matric Scholarship Scheme for Minorities (Class IX & X)",
+  "academic_year": "2026-27",
+  "provider": "Scholarship Division",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-minorities_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-minorities_faq.html",
+  "raw": {
+    "catalogue_text": "Pre-Matric Scholarship Scheme for Minorities (Class IX & X) | Provider: Scholarship Division | Academic Year: 2026-27 | Type: Minority Communities | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: Pre-Matric Scholarship Scheme for Minorities (Class IX & X)\nMinistry: Ministry of Minority Affairs\nDepartment: Scholarship Division\nTarget Classes: Class 9, Class 10\nAcademic Requirement: Secured not less than 50% marks or equivalent grade in previous final examination.\nSchool Type Requirement: Government or private recognized secondary schools.\nAnnual Income Ceiling: Rs. 100000\nSelection Mode: Direct / Merit\nFinancial Assistance: Tuition fee up to ₹4,000/year (or actual) plus maintenance allowance (₹500/month for hostellers, ₹100/month for day scholars). - Rs. 4000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for Pre-Matric Scholarship Scheme for Minorities (Class IX & X)?\nA: Eligible students studying in Class 9, Class 10.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 100000,
+      "academic_requirement": "Secured not less than 50% marks or equivalent grade in previous final examination.",
+      "school_type_requirement": "Government or private recognized secondary schools.",
+      "social_category": "Notified minority communities (Muslims, Christians, Sikhs, Buddhists, Jains, and Parsis)."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 4000,
+      "details": "Tuition fee up to ₹4,000/year (or actual) plus maintenance allowance (₹500/month for hostellers, ₹100/month for day scholars).",
+      "duration": "Classes 9 and 10"
+    },
+    "inclusion_rationale": "Key minority welfare scheme supporting Class 9 and 10 secondary students who meet academic and income thresholds."
+  },
+  "scraped_at": "2026-08-22T18:09:47.277651+00:00"
+}

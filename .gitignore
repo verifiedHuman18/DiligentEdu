@@ -249,7 +249,6 @@ faiss_index/
 
 # Large data files
 *.csv
-*.json
 *.parquet
 *.feather
 *.h5

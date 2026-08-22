@@ -1,0 +1,27 @@
+{
+  "id": "pm-yasasvi-top-class-schools",
+  "name": "PM-YASASVI Top Class Education in Schools",
+  "academic_year": "2026-27",
+  "provider": "Department of Social Justice and Empowerment",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pm-yasasvi-top-class-schools_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pm-yasasvi-top-class-schools_faq.html",
+  "raw": {
+    "catalogue_text": "PM-YASASVI Top Class Education in Schools | Provider: Department of Social Justice and Empowerment | Academic Year: 2026-27 | Type: OBC / EBC / DNT (Merit-based) | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: PM-YASASVI Top Class Education in Schools\nMinistry: Ministry of Social Justice & Empowerment\nDepartment: Department of Social Justice and Empowerment\nTarget Classes: Class 9, Class 10, Class 11, Class 12\nAcademic Requirement: Meritorious students who have secured admission in identified Top Class Schools (TCSs) across India.\nSchool Type Requirement: Shortlisted/notified Top Class Schools (including top private and specialized residential schools).\nAnnual Income Ceiling: Rs. 250000\nSelection Mode: Direct / Merit\nFinancial Assistance: Covers full tuition fees, hostel fees, and other non-refundable charges up to ₹75,000 per annum for Classes 9 and 10 (up to ₹1,25,000 for Classes 11-12). - Rs. 75000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for PM-YASASVI Top Class Education in Schools?\nA: Eligible students studying in Class 9, Class 10, Class 11, Class 12.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 250000,
+      "academic_requirement": "Meritorious students who have secured admission in identified Top Class Schools (TCSs) across India.",
+      "school_type_requirement": "Shortlisted/notified Top Class Schools (including top private and specialized residential schools).",
+      "social_category": "OBC, EBC, DNT/NT students."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 75000,
+      "details": "Covers full tuition fees, hostel fees, and other non-refundable charges up to ₹75,000 per annum for Classes 9 and 10 (up to ₹1,25,000 for Classes 11-12).",
+      "duration": "From Class 9 through Class 12"
+    },
+    "inclusion_rationale": "Flagship school-level scheme providing premium institutional support for high-performing secondary students in Classes 9 and 10."
+  },
+  "scraped_at": "2026-08-22T18:09:44.862529+00:00"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "nmmss",
+  "name": "National Means-cum-Merit Scholarship Scheme (NMMSS)",
+  "academic_year": "2026-27",
+  "provider": "Department of School Education & Literacy",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/nmmss_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/nmmss_faq.html",
+  "raw": {
+    "catalogue_text": "National Means-cum-Merit Scholarship Scheme (NMMSS) | Provider: Department of School Education & Literacy | Academic Year: 2026-27 | Type: Means-cum-Merit | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: National Means-cum-Merit Scholarship Scheme (NMMSS)\nMinistry: Ministry of Education\nDepartment: Department of School Education & Literacy\nTarget Classes: Class 9, Class 10, Class 11, Class 12\nAcademic Requirement: Minimum 55% marks or equivalent grade in Class 7 (50% for SC/ST) to appear in the selection test (MAT/SAT) conducted in Class 8; continued clear progression for renewal.\nSchool Type Requirement: Students studying as regular students in Government, Government-aided, or Local Body schools. (Students of Kendriya Vidyalayas, Jawahar Navodaya Vidyalayas, and private residential schools are not eligible).\nAnnual Income Ceiling: Rs. 350000\nSelection Mode: State-level competitive selection exam consisting of Mental Ability Test (MAT) and Scholastic Aptitude Test (SAT).\nFinancial Assistance:  - Rs. 12000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for National Means-cum-Merit Scholarship Scheme (NMMSS)?\nA: Eligible students studying in Class 9, Class 10, Class 11, Class 12.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 350000,
+      "academic_requirement": "Minimum 55% marks or equivalent grade in Class 7 (50% for SC/ST) to appear in the selection test (MAT/SAT) conducted in Class 8; continued clear progression for renewal.",
+      "school_type_requirement": "Students studying as regular students in Government, Government-aided, or Local Body schools. (Students of Kendriya Vidyalayas, Jawahar Navodaya Vidyalayas, and private residential schools are not eligible).",
+      "selection_mode": "State-level competitive selection exam consisting of Mental Ability Test (MAT) and Scholastic Aptitude Test (SAT)."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 12000,
+      "disbursement_frequency": "Monthly / Yearly (₹1,000 per month directly deposited via DBT)",
+      "duration": "4 years (From Class 9 to Class 12)"
+    },
+    "inclusion_rationale": "High-impact merit scholarship targeted directly at secondary school students entering Class 9 from economically weaker backgrounds studying science and general subjects."
+  },
+  "scraped_at": "2026-08-22T18:09:43.763203+00:00"
+}

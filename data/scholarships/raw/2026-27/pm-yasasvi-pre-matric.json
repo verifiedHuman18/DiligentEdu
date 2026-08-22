@@ -1,0 +1,27 @@
+{
+  "id": "pm-yasasvi-pre-matric",
+  "name": "PM Young Achievers Scholarship Award Scheme for Vibrant India (PM-YASASVI) - Pre-Matric Scholarship",
+  "academic_year": "2026-27",
+  "provider": "Department of Social Justice and Empowerment",
+  "source_url": "https://scholarships.gov.in",
+  "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pm-yasasvi-pre-matric_guidelines.pdf",
+  "faq_url": "https://scholarships.gov.in/public/faq/pm-yasasvi-pre-matric_faq.html",
+  "raw": {
+    "catalogue_text": "PM Young Achievers Scholarship Award Scheme for Vibrant India (PM-YASASVI) - Pre-Matric Scholarship | Provider: Department of Social Justice and Empowerment | Academic Year: 2026-27 | Type: OBC / EBC / DNT | Open: 2026-06-01 | Close: 2026-10-31",
+    "specification_text": "Scheme Name: PM Young Achievers Scholarship Award Scheme for Vibrant India (PM-YASASVI) - Pre-Matric Scholarship\nMinistry: Ministry of Social Justice & Empowerment\nDepartment: Department of Social Justice and Empowerment\nTarget Classes: Class 9, Class 10\nAcademic Requirement: Passed Class 8 examination from a recognized school; regular full-time student in Class 9 or 10.\nSchool Type Requirement: Studying in Government schools only.\nAnnual Income Ceiling: Rs. 250000\nSelection Mode: Direct / Merit\nFinancial Assistance:  - Rs. 4000 per annum\nRegistration Requirement: One Time Registration (OTR) with Aadhaar/EID on NSP\n",
+    "faq_text": "Q: Who can apply for PM Young Achievers Scholarship Award Scheme for Vibrant India (PM-YASASVI) - Pre-Matric Scholarship?\nA: Eligible students studying in Class 9, Class 10.\nQ: What is the official portal?\nA: https://scholarships.gov.in\nQ: Is OTR required for AY 2026-27?\nA: Yes, One Time Registration is mandatory on National Scholarship Portal.",
+    "eligibility_summary": {
+      "income_ceiling_inr": 250000,
+      "academic_requirement": "Passed Class 8 examination from a recognized school; regular full-time student in Class 9 or 10.",
+      "school_type_requirement": "Studying in Government schools only.",
+      "social_category": "Other Backward Classes (OBC), Economically Backward Classes (EBC), or De-Notified, Nomadic and Semi-Nomadic Tribes (DNT/SNT) not covered under SC/ST."
+    },
+    "benefits_summary": {
+      "amount_per_annum_inr": 4000,
+      "disbursement_frequency": "Annual consolidated academic allowance via DBT",
+      "duration": "2 years (Classes 9 and 10)"
+    },
+    "inclusion_rationale": "Centrally sponsored pre-matric scholarship explicitly targeted at Class 9 and 10 students from backward and disadvantaged communities in government schools."
+  },
+  "scraped_at": "2026-08-22T18:09:44.391319+00:00"
+}

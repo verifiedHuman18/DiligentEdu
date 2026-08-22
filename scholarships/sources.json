@@ -1,0 +1,242 @@
+{
+  "metadata": {
+    "source": "National Scholarship Portal (NSP)",
+    "portal_url": "https://scholarships.gov.in",
+    "academic_year": "2026-27",
+    "target_audience": "School Students (Classes 9 and 10 / Pre-Matric)",
+    "purpose": "Scholarship discovery only",
+    "version": "1.0.0",
+    "last_updated": "2026-08-22",
+    "scope_definition": {
+      "included_categories": [
+        "Pre-Matric Scholarships (Class 9-10)",
+        "National Means-cum-Merit School Scheme",
+        "Top Class School Education for Secondary Students",
+        "Pre-Matric Assistance for Special Categories (Persons with Disabilities, Labour/Mine Workers)"
+      ],
+      "excluded_categories": [
+        "Post-Matric Scholarships (Class 11-12, Undergraduates, Postgraduates)",
+        "University & College Higher Education Grants",
+        "Fellowships, Research & Ph.D. Grants",
+        "Professional & Technical Degree Scholarships (Engineering, Medical, Law, etc.)",
+        "Overseas / Study Abroad Scholarships"
+      ]
+    }
+  },
+  "schemes": [
+    {
+      "id": "nmmss",
+      "scheme_name": "National Means-cum-Merit Scholarship Scheme (NMMSS)",
+      "ministry": "Ministry of Education",
+      "department": "Department of School Education & Literacy",
+      "target_classes": ["Class 9", "Class 10", "Class 11", "Class 12"],
+      "entry_class": "Class 9",
+      "category": "Means-cum-Merit",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 350000,
+        "academic_requirement": "Minimum 55% marks or equivalent grade in Class 7 (50% for SC/ST) to appear in the selection test (MAT/SAT) conducted in Class 8; continued clear progression for renewal.",
+        "school_type_requirement": "Students studying as regular students in Government, Government-aided, or Local Body schools. (Students of Kendriya Vidyalayas, Jawahar Navodaya Vidyalayas, and private residential schools are not eligible).",
+        "selection_mode": "State-level competitive selection exam consisting of Mental Ability Test (MAT) and Scholastic Aptitude Test (SAT)."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 12000,
+        "disbursement_frequency": "Monthly / Yearly (₹1,000 per month directly deposited via DBT)",
+        "duration": "4 years (From Class 9 to Class 12)"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "High-impact merit scholarship targeted directly at secondary school students entering Class 9 from economically weaker backgrounds studying science and general subjects."
+    },
+    {
+      "id": "pm-yasasvi-pre-matric",
+      "scheme_name": "PM Young Achievers Scholarship Award Scheme for Vibrant India (PM-YASASVI) - Pre-Matric Scholarship",
+      "ministry": "Ministry of Social Justice & Empowerment",
+      "department": "Department of Social Justice and Empowerment",
+      "target_classes": ["Class 9", "Class 10"],
+      "entry_class": "Class 9",
+      "category": "OBC / EBC / DNT",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 250000,
+        "academic_requirement": "Passed Class 8 examination from a recognized school; regular full-time student in Class 9 or 10.",
+        "school_type_requirement": "Studying in Government schools only.",
+        "social_category": "Other Backward Classes (OBC), Economically Backward Classes (EBC), or De-Notified, Nomadic and Semi-Nomadic Tribes (DNT/SNT) not covered under SC/ST."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 4000,
+        "disbursement_frequency": "Annual consolidated academic allowance via DBT",
+        "duration": "2 years (Classes 9 and 10)"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Centrally sponsored pre-matric scholarship explicitly targeted at Class 9 and 10 students from backward and disadvantaged communities in government schools."
+    },
+    {
+      "id": "pm-yasasvi-top-class-schools",
+      "scheme_name": "PM-YASASVI Top Class Education in Schools",
+      "ministry": "Ministry of Social Justice & Empowerment",
+      "department": "Department of Social Justice and Empowerment",
+      "target_classes": ["Class 9", "Class 10", "Class 11", "Class 12"],
+      "entry_class": "Class 9",
+      "category": "OBC / EBC / DNT (Merit-based)",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 250000,
+        "academic_requirement": "Meritorious students who have secured admission in identified Top Class Schools (TCSs) across India.",
+        "school_type_requirement": "Shortlisted/notified Top Class Schools (including top private and specialized residential schools).",
+        "social_category": "OBC, EBC, DNT/NT students."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 75000,
+        "details": "Covers full tuition fees, hostel fees, and other non-refundable charges up to ₹75,000 per annum for Classes 9 and 10 (up to ₹1,25,000 for Classes 11-12).",
+        "duration": "From Class 9 through Class 12"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Flagship school-level scheme providing premium institutional support for high-performing secondary students in Classes 9 and 10."
+    },
+    {
+      "id": "pre-matric-disabilities",
+      "scheme_name": "Pre-Matric Scholarship for Students with Disabilities",
+      "ministry": "Ministry of Social Justice & Empowerment",
+      "department": "Department of Empowerment of Persons with Disabilities (DEPwD)",
+      "target_classes": ["Class 9", "Class 10"],
+      "entry_class": "Class 9",
+      "category": "Persons with Disabilities (PwD)",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 250000,
+        "disability_requirement": "Minimum 40% disability certified by competent medical authority with a valid UDID / Disability Certificate.",
+        "academic_requirement": "Studying as a regular, full-time student in Class 9 or Class 10 in a government or government-recognized school.",
+        "school_type_requirement": "Government or recognized private schools."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 10000,
+        "details": "Includes maintenance allowance (₹500/month for day scholars, ₹800/month for hostellers), annual book grant of ₹1,000, and disability allowances (braille/escort/reader allowances up to ₹4,000/yr).",
+        "duration": "Classes 9 and 10"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Critical accessibility and financial inclusion scheme for disabled students completing secondary education in Class 9 and 10."
+    },
+    {
+      "id": "pre-matric-sc",
+      "scheme_name": "Pre-Matric Scholarship Scheme for SC Students and Others (Component I - Class IX & X)",
+      "ministry": "Ministry of Social Justice & Empowerment",
+      "department": "Department of Social Justice and Empowerment",
+      "target_classes": ["Class 9", "Class 10"],
+      "entry_class": "Class 9",
+      "category": "Scheduled Castes (SC)",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 250000,
+        "academic_requirement": "Regular student studying in Class 9 or 10 in a recognized school.",
+        "school_type_requirement": "Government schools, schools run by local bodies, or recognized private schools.",
+        "social_category": "Students belonging to Scheduled Castes."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 4000,
+        "details": "Academic allowance of ₹3,500/year (Day Scholar) to ₹7,000/year (Hosteller) plus 10% disability allowance if applicable.",
+        "duration": "Classes 9 and 10"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Centrally sponsored scheme designed to curb dropout rates at the secondary level for SC students transitioning into Class 9 & 10."
+    },
+    {
+      "id": "pre-matric-st",
+      "scheme_name": "Pre-Matric Scholarship Scheme for ST Students (Class IX & X)",
+      "ministry": "Ministry of Tribal Affairs",
+      "department": "Education Section",
+      "target_classes": ["Class 9", "Class 10"],
+      "entry_class": "Class 9",
+      "category": "Scheduled Tribes (ST)",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 250000,
+        "academic_requirement": "Regular, full-time student enrolled in Class 9 or Class 10.",
+        "school_type_requirement": "Government or government-recognized secondary schools.",
+        "social_category": "Students belonging to Scheduled Tribes."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 3500,
+        "details": "Consolidated academic allowance and maintenance grant (₹3,000 - ₹6,250 depending on day scholar vs hosteller status).",
+        "duration": "Classes 9 and 10"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Core tribal education initiative addressing secondary school retention for Class 9 and 10 tribal students."
+    },
+    {
+      "id": "pre-matric-beedi-cine-workers",
+      "scheme_name": "Financial Assistance for Education of the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre-Matric)",
+      "ministry": "Ministry of Labour and Employment",
+      "department": "Labour Welfare Organisation",
+      "target_classes": ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8", "Class 9", "Class 10"],
+      "entry_class": "Class 1",
+      "category": "Labour Welfare / Industrial Wards",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 120000,
+        "occupational_requirement": "At least one parent must be an active worker in Beedi, Cine, Iron Ore/Manganese Ore/Chrome Ore (IOMC), or Limestone and Dolomite Mines (LSDM) with at least 6 months of continuous service.",
+        "academic_requirement": "Passed previous year examination on first attempt and enrolled in a recognized school."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 2000,
+        "details": "For Class 9 and 10 students: ₹2,000 per annum (Class 1-4: ₹1,000, Class 5-8: ₹1,500).",
+        "duration": "Annual renewal up to Class 10"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Direct financial aid scheme specifically for children of unorganized mine and factory workers attending secondary school (Classes 9 and 10)."
+    },
+    {
+      "id": "pre-matric-minorities",
+      "scheme_name": "Pre-Matric Scholarship Scheme for Minorities (Class IX & X)",
+      "ministry": "Ministry of Minority Affairs",
+      "department": "Scholarship Division",
+      "target_classes": ["Class 9", "Class 10"],
+      "entry_class": "Class 9",
+      "category": "Minority Communities",
+      "eligibility_criteria": {
+        "income_ceiling_inr": 100000,
+        "academic_requirement": "Secured not less than 50% marks or equivalent grade in previous final examination.",
+        "school_type_requirement": "Government or private recognized secondary schools.",
+        "social_category": "Notified minority communities (Muslims, Christians, Sikhs, Buddhists, Jains, and Parsis)."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 4000,
+        "details": "Tuition fee up to ₹4,000/year (or actual) plus maintenance allowance (₹500/month for hostellers, ₹100/month for day scholars).",
+        "duration": "Classes 9 and 10"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Key minority welfare scheme supporting Class 9 and 10 secondary students who meet academic and income thresholds."
+    },
+    {
+      "id": "pre-matric-hazardous-occupations",
+      "scheme_name": "Pre-Matric Scholarship for Children of Parents Engaged in Unclean and Hazardous Occupations",
+      "ministry": "Ministry of Social Justice & Empowerment",
+      "department": "Department of Social Justice and Empowerment",
+      "target_classes": ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8", "Class 9", "Class 10"],
+      "entry_class": "Class 1",
+      "category": "Special Social Vulnerability",
+      "eligibility_criteria": {
+        "income_ceiling_inr": null,
+        "occupational_requirement": "Children of parents engaged in manual scavenging, tanners, flayers, waste pickers, and hazardous cleaning as defined by MoSJE.",
+        "academic_requirement": "Enrolled in a recognized institution in Classes 1 through 10."
+      },
+      "financial_assistance": {
+        "amount_per_annum_inr": 8000,
+        "details": "Monthly scholarship of ₹700 (Day Scholars) / ₹1,100 (Hostellers) for Class 9-10 plus annual ad-hoc grant of ₹1,000.",
+        "duration": "Annual up to Class 10"
+      },
+      "application_portal": "https://scholarships.gov.in",
+      "registration_requirement": "One Time Registration (OTR) with Aadhaar/EID on NSP",
+      "is_prototype_target": true,
+      "inclusion_rationale": "Affirmative action scheme guaranteeing secondary education support for children of marginalized sanitation and leather workers with no restrictive income cap."
+    }
+  ]
+}

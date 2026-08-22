@@ -1,0 +1,450 @@
+{
+  "academic_year": "2026-27",
+  "total_count": 9,
+  "source": "National Scholarship Portal",
+  "scholarships": [
+    {
+      "id": "nmmss",
+      "name": "National Means-cum-Merit Scholarship Scheme (NMMSS)",
+      "academic_year": "2026-27",
+      "provider": "Department of School Education & Literacy",
+      "scheme_type": "merit_cum_means",
+      "eligibility": {
+        "classes": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [],
+        "income_max": 350000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": true,
+        "min_percentage": 55.0,
+        "exam_required": true,
+        "details": "Selection via merit/prescribed examination"
+      },
+      "institution_requirements": [
+        "Government",
+        "Government-aided",
+        "Local Body"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 12000,
+        "disbursement_frequency": "Monthly",
+        "details": "Financial assistance up to ₹12,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/nmmss_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/nmmss_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:51.569564+00:00",
+        "verified_at": "2026-08-22T17:28:51.571591+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pm-yasasvi-pre-matric",
+      "name": "PM Young Achievers Scholarship Award Scheme for Vibrant India (PM-YASASVI) - Pre-Matric Scholarship",
+      "academic_year": "2026-27",
+      "provider": "Department of Social Justice and Empowerment",
+      "scheme_type": "merit_cum_means",
+      "eligibility": {
+        "classes": [
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [
+          "DNT",
+          "EBC",
+          "OBC"
+        ],
+        "income_max": 250000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": true,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": "Selection via merit/prescribed examination"
+      },
+      "institution_requirements": [
+        "Government"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 4000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹4,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pm-yasasvi-pre-matric_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pm-yasasvi-pre-matric_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:52.369975+00:00",
+        "verified_at": "2026-08-22T17:28:52.371167+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pm-yasasvi-top-class-schools",
+      "name": "PM-YASASVI Top Class Education in Schools",
+      "academic_year": "2026-27",
+      "provider": "Department of Social Justice and Empowerment",
+      "scheme_type": "pre_matric_welfare",
+      "eligibility": {
+        "classes": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [
+          "DNT",
+          "EBC",
+          "OBC"
+        ],
+        "income_max": 250000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": false,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": null
+      },
+      "institution_requirements": [
+        "Top Class Schools"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 75000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹75,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pm-yasasvi-top-class-schools_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pm-yasasvi-top-class-schools_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:52.690013+00:00",
+        "verified_at": "2026-08-22T17:28:52.691945+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pre-matric-disabilities",
+      "name": "Pre-Matric Scholarship for Students with Disabilities",
+      "academic_year": "2026-27",
+      "provider": "Department of Empowerment of Persons with Disabilities (DEPwD)",
+      "scheme_type": "pre_matric_welfare",
+      "eligibility": {
+        "classes": [
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [],
+        "income_max": 250000,
+        "gender": "ANY",
+        "disability": "REQUIRED_MIN_40_PERCENT"
+      },
+      "merit_requirements": {
+        "required": false,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": null
+      },
+      "institution_requirements": [
+        "Government",
+        "Recognized Private"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 4000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹4,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-disabilities_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-disabilities_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:53.078630+00:00",
+        "verified_at": "2026-08-22T17:28:53.080555+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pre-matric-sc",
+      "name": "Pre-Matric Scholarship Scheme for SC Students and Others (Component I - Class IX & X)",
+      "academic_year": "2026-27",
+      "provider": "Department of Social Justice and Empowerment",
+      "scheme_type": "pre_matric_welfare",
+      "eligibility": {
+        "classes": [
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [
+          "SC",
+          "ST"
+        ],
+        "income_max": 250000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": false,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": null
+      },
+      "institution_requirements": [
+        "Government",
+        "Recognized Private"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 4000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹4,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-sc_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-sc_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:53.352935+00:00",
+        "verified_at": "2026-08-22T17:28:53.354582+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pre-matric-st",
+      "name": "Pre-Matric Scholarship Scheme for ST Students (Class IX & X)",
+      "academic_year": "2026-27",
+      "provider": "Education Section",
+      "scheme_type": "pre_matric_welfare",
+      "eligibility": {
+        "classes": [
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [
+          "ST"
+        ],
+        "income_max": 250000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": false,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": null
+      },
+      "institution_requirements": [
+        "Government"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 3000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹3,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-st_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-st_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:53.651588+00:00",
+        "verified_at": "2026-08-22T17:28:53.653634+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pre-matric-beedi-cine-workers",
+      "name": "Financial Assistance for Education of the Wards of Beedi/Cine/IOMC/LSDM Workers (Pre-Matric)",
+      "academic_year": "2026-27",
+      "provider": "Labour Welfare Organisation",
+      "scheme_type": "merit_cum_means",
+      "eligibility": {
+        "classes": [
+          1,
+          2,
+          3,
+          4,
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [],
+        "income_max": 120000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": true,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": "Selection via merit/prescribed examination"
+      },
+      "institution_requirements": [
+        "Government",
+        "Recognized Schools"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 12000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹12,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-beedi-cine-workers_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-beedi-cine-workers_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:53.965913+00:00",
+        "verified_at": "2026-08-22T17:28:53.967731+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pre-matric-minorities",
+      "name": "Pre-Matric Scholarship Scheme for Minorities (Class IX & X)",
+      "academic_year": "2026-27",
+      "provider": "Scholarship Division",
+      "scheme_type": "merit_cum_means",
+      "eligibility": {
+        "classes": [
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [
+          "Minorities"
+        ],
+        "income_max": 100000,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": true,
+        "min_percentage": 50.0,
+        "exam_required": false,
+        "details": "Selection via merit/prescribed examination"
+      },
+      "institution_requirements": [
+        "Government"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 4000,
+        "disbursement_frequency": "Annual",
+        "details": "Financial assistance up to ₹4,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-minorities_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-minorities_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:54.278263+00:00",
+        "verified_at": "2026-08-22T17:28:54.281181+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "pre-matric-hazardous-occupations",
+      "name": "Pre-Matric Scholarship for Children of Parents Engaged in Unclean and Hazardous Occupations",
+      "academic_year": "2026-27",
+      "provider": "Department of Social Justice and Empowerment",
+      "scheme_type": "pre_matric_welfare",
+      "eligibility": {
+        "classes": [
+          9,
+          10
+        ],
+        "states": [
+          "ALL"
+        ],
+        "categories": [],
+        "income_max": null,
+        "gender": "ANY",
+        "disability": "ANY"
+      },
+      "merit_requirements": {
+        "required": false,
+        "min_percentage": null,
+        "exam_required": false,
+        "details": null
+      },
+      "institution_requirements": [
+        "Government",
+        "Recognized Schools"
+      ],
+      "financial_assistance": {
+        "amount_per_annum": 8000,
+        "disbursement_frequency": "Monthly",
+        "details": "Financial assistance up to ₹8,000 per annum"
+      },
+      "official": {
+        "source_url": "https://scholarships.gov.in",
+        "specification_url": "https://scholarships.gov.in/public/schemeGuidelines/pre-matric-hazardous-occupations_guidelines.pdf",
+        "faq_url": "https://scholarships.gov.in/public/faq/pre-matric-hazardous-occupations_faq.html",
+        "guidelines_url": null
+      },
+      "metadata": {
+        "scraped_at": "2026-08-22T17:28:54.607391+00:00",
+        "verified_at": "2026-08-22T17:28:54.609005+00:00",
+        "source": "National Scholarship Portal",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}
