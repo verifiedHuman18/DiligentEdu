@@ -81,49 +81,53 @@ def render_settings_screen() -> None:
             else:
                 st.info("Please enter your Gemini API key to enable AI features.")
 
-        # Tab 2: Student Profile
+        # Tab 2: Student Profile (Phase 3 & Phase 4)
         elif active_tab == "Student Profile":
-            st.markdown("#### Student Profile & Grade Focus")
-            st.caption("Customize your student ID and default textbook retrieval filters.")
+            from frontend.state import get_student_class_level, set_student_class_level
+
+            st.markdown("#### Student Profile & Standard Settings")
+            st.caption("This is the master configuration for your student identity and NCERT textbook grade level.")
             st.write("")
 
             student_id = st.text_input(
-                "Student ID",
+                "Student Name / ID",
                 value=st.session_state.get("student_id", "student_001"),
                 help="Unique identifier for tracking your analytics and quiz attempts.",
+                key="settings_student_id_input",
             )
-            st.session_state.student_id = student_id
 
             st.write("")
-            grade_options = ["All Classes", "Class 9", "Class 10"]
-            current_grade = st.session_state.get("selected_class", "All Classes")
-            current_grade_idx = (
-                grade_options.index(current_grade) if current_grade in grade_options else 0
+            curr_cls = get_student_class_level()
+            selected_cls_label = st.radio(
+                "Class / Standard",
+                options=["Class 9", "Class 10"],
+                index=0 if curr_cls == 9 else 1,
+                help="Master standard setting (Class 9 or Class 10). Only one standard is active at a time.",
+                key="settings_class_radio",
             )
-            selected_class = st.selectbox(
-                "Target Grade",
-                grade_options,
-                index=current_grade_idx,
-                help="Filters NCERT textbook retrieval to Class 9 or Class 10.",
-            )
-            st.session_state.selected_class = selected_class
+            new_cls_int = 9 if selected_cls_label == "Class 9" else 10
 
             st.write("")
             chapter_options = ["All Chapters"]
-            if selected_class in ("Class 9", "Class 10"):
-                cls_int = 9 if selected_class == "Class 9" else 10
-                chs = curriculum_service.get_chapters_for_grade(cls_int)
-                for ch in chs:
-                    chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
+            chs = curriculum_service.get_chapters_for_grade(new_cls_int)
+            for ch in chs:
+                chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
 
             curr_chapter = st.session_state.get("selected_chapter", "All Chapters")
             curr_ch_idx = (
                 chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
             )
             selected_chapter = st.selectbox(
-                "Focus Chapter (Optional)", chapter_options, index=curr_ch_idx
+                "Default Focus Chapter (Optional)", chapter_options, index=curr_ch_idx
             )
-            st.session_state.selected_chapter = selected_chapter
+
+            st.write("")
+            if st.button("Save Changes", type="primary", key="save_profile_settings_btn", icon=":material/save:"):
+                set_student_class_level(new_cls_int)
+                st.session_state.student_id = student_id.strip() or "student_001"
+                st.session_state.selected_chapter = selected_chapter
+                st.success(f"Profile saved successfully! Master Standard set to Class {new_cls_int}.")
+                st.rerun()
 
         # Tab 3: AI & Model
         elif active_tab == "AI & Model":

@@ -42,20 +42,39 @@ def record_quiz_attempt(
 
 def get_student_history(
     student_id: str,
+    class_level: Optional[int] = None,
     include_questions: bool = False,
     db_path: str = DEFAULT_DB_PATH,
 ) -> List[Dict[str, Any]]:
-    """Retrieves the complete chronological quiz history for a student."""
+    """Retrieves the complete chronological quiz history for a student, optionally filtered by class_level."""
     repo = quiz_repository if db_path == DEFAULT_DB_PATH else QuizRepository(db_path=db_path)
-    return repo.get_student_history(student_id=student_id, include_questions=include_questions)
+    return repo.get_student_history(
+        student_id=student_id, class_level=class_level, include_questions=include_questions
+    )
+
+
+def get_student_class_history(
+    student_id: str,
+    class_level: int,
+    include_questions: bool = False,
+    db_path: str = DEFAULT_DB_PATH,
+) -> List[Dict[str, Any]]:
+    """Retrieves chronological quiz history for a student strictly isolated to a specific class."""
+    repo = quiz_repository if db_path == DEFAULT_DB_PATH else QuizRepository(db_path=db_path)
+    return repo.get_student_class_history(
+        student_id=student_id, class_level=class_level, include_questions=include_questions
+    )
 
 
 def get_student_chapter_summary(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: str = DEFAULT_DB_PATH,
 ) -> Dict[str, List[Dict[str, Any]]]:
     """Groups a student's quiz history by chapter to show progression over time."""
-    history = get_student_history(student_id, include_questions=False, db_path=db_path)
+    history = get_student_history(
+        student_id, class_level=class_level, include_questions=False, db_path=db_path
+    )
     summary: Dict[str, List[Dict[str, Any]]] = {}
 
     for attempt in history:
@@ -68,6 +87,7 @@ def get_student_chapter_summary(
             {
                 "quiz_num": quiz_idx,
                 "quiz_id": attempt["quiz_id"],
+                "class_level": attempt["class_level"],
                 "difficulty": attempt["difficulty"],
                 "score": attempt["score"],
                 "total_questions": attempt["total_questions"],
@@ -81,10 +101,13 @@ def get_student_chapter_summary(
 
 def get_student_swat_metrics(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: str = DEFAULT_DB_PATH,
 ) -> Dict[str, Any]:
-    """Calculates aggregated SWAT metrics for a student across all quiz attempts."""
-    history = get_student_history(student_id, include_questions=True, db_path=db_path)
+    """Calculates aggregated SWAT metrics for a student across all quiz attempts (or for a specific class)."""
+    history = get_student_history(
+        student_id, class_level=class_level, include_questions=True, db_path=db_path
+    )
     if not history:
         return {"total_quizzes": 0, "overall_accuracy": 0.0, "chapters": {}}
 
@@ -134,6 +157,7 @@ def get_student_swat_metrics(
 
     return {
         "student_id": student_id,
+        "class_level": class_level,
         "total_quizzes_taken": total_attempts,
         "total_questions_answered": total_q_answered,
         "overall_accuracy": overall_acc,
@@ -154,6 +178,7 @@ __all__ = [
     "init_db",
     "record_quiz_attempt",
     "get_student_history",
+    "get_student_class_history",
     "get_student_chapter_summary",
     "get_student_swat_metrics",
     "clear_student_history",
@@ -161,3 +186,4 @@ __all__ = [
     "DEFAULT_DB_PATH",
     "STORAGE_DIR",
 ]
+

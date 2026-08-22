@@ -10,6 +10,7 @@ from frontend.components import (
     render_theme_switcher,
 )
 from frontend.screens import (
+    render_chapter_screen,
     render_home_screen,
     render_quiz_screen,
     render_settings_screen,
@@ -35,6 +36,7 @@ __all__ = [
     "render_metric_card",
     "render_citation_box",
     "get_status_badge_html",
+    "render_chapter_screen",
     "render_home_screen",
     "render_tutor_screen",
     "render_quiz_screen",

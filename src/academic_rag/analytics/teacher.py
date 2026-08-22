@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from src.academic_rag.analytics.swat import get_student_swat
+from src.academic_rag.curriculum.service import curriculum_service
 from src.academic_rag.storage.repository import quiz_repository
 
 logger = logging.getLogger(__name__)
@@ -21,28 +22,43 @@ def _format_date(iso_timestamp: str) -> str:
 
 def get_teacher_student_overview(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """13.1 Overall Student Lifetime Statistics."""
+    """13.1 Overall Student Statistics (Class-Isolated)."""
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, include_questions=False)
+    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
+
+    resolved_class = (
+        int(class_level)
+        if class_level is not None
+        else (history[-1].get("class_level", 10) if history else 10)
+    )
+    total_chapters_count = (
+        len(curriculum_service.get_chapters_for_grade(resolved_class))
+        if resolved_class in [9, 10]
+        else 13
+    )
 
     if not history:
         return {
             "student_id": student_id,
             "has_data": False,
-            "class": 10,
+            "class": resolved_class,
+            "class_level": resolved_class,
             "overall_average": 0,
             "total_quizzes": 0,
             "questions_attempted": 0,
             "questions_correct": 0,
             "accuracy": 0,
+            "attempted_chapters": 0,
+            "total_chapters": total_chapters_count,
         }
 
-    class_level = history[-1].get("class_level", 10)
     total_quizzes = len(history)
     total_questions = sum(att["total_questions"] for att in history)
     total_correct = sum(att["score"] for att in history)
+    attempted_chapters_count = len(set(att["chapter"] for att in history))
 
     overall_avg = (
         int(round(sum(att["percentage"] for att in history) / total_quizzes))
@@ -58,21 +74,25 @@ def get_teacher_student_overview(
     return {
         "student_id": student_id,
         "has_data": True,
-        "class": class_level,
+        "class": resolved_class,
+        "class_level": resolved_class,
         "overall_average": overall_avg,
         "total_quizzes": total_quizzes,
         "questions_attempted": total_questions,
         "questions_correct": total_correct,
         "accuracy": accuracy,
+        "attempted_chapters": attempted_chapters_count,
+        "total_chapters": total_chapters_count,
     }
 
 
 def get_teacher_chapter_statistics(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """13.2 Chapter Statistics for Teacher View."""
-    swat = get_student_swat(student_id, db_path=db_path)
+    """13.2 Chapter Statistics for Teacher View (Class-Isolated)."""
+    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
     if not swat.get("has_data"):
         return []
 
@@ -80,6 +100,9 @@ def get_teacher_chapter_statistics(
     chapter_stats = []
 
     for ch_name, data in breakdown.items():
+        if data.get("category") == "unattempted" or data.get("attempts", 0) == 0:
+            continue
+        acc_val = int(round(data["accuracy"])) if data.get("accuracy") is not None else 0
         chapter_stats.append(
             {
                 "chapter": ch_name,
@@ -87,22 +110,23 @@ def get_teacher_chapter_statistics(
                 "attempts": data["attempts"],
                 "questions_attempted": data["questions"],
                 "questions_correct": data["correct"],
-                "accuracy": int(round(data["accuracy"])),
+                "accuracy": acc_val,
                 "status": data["category"],
             }
         )
 
-    chapter_stats.sort(key=lambda x: x["average"], reverse=True)
+    chapter_stats.sort(key=lambda x: (x["average"] is not None, x["average"]), reverse=True)
     return chapter_stats
 
 
 def get_teacher_quiz_history(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """13.3 Chronological Quiz History formatted for tables and plots."""
+    """13.3 Chronological Quiz History formatted for tables and plots (Class-Isolated)."""
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, include_questions=False)
+    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
     if not history:
         return []
 
@@ -128,37 +152,43 @@ def get_teacher_quiz_history(
 
 def get_teacher_swat_summary(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """13.4 Categorized SWAT Summary for Teacher View."""
-    swat = get_student_swat(student_id, db_path=db_path)
+    """13.4 Categorized SWAT Summary for Teacher View (Class-Isolated)."""
+    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
     return {
         "student_id": student_id,
+        "class_level": class_level,
         "has_data": swat.get("has_data", False),
         "strengths": swat.get("strengths", []),
         "average_topics": swat.get("average_topics", []),
         "weak_topics": swat.get("weak_topics", []),
+        "unattempted_topics": swat.get("unattempted_topics", []),
+        "unattempted": swat.get("unattempted_topics", []),
     }
 
 
 def get_student_status(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Early-Warning Status Engine.
+    Early-Warning Status Engine (Class-Isolated).
     Evaluates transparent pedagogical rules to diagnose student standing:
     - Overall Standing (Performing Well 🟢, Monitor 🟡, Needs Attention 🔴)
     - Weak-Topic Alerts (< 50%)
     - Trend Diagnosis (Declining alert vs. Improving recognition)
     """
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, include_questions=False)
-    swat = get_student_swat(student_id, db_path=db_path)
+    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
+    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
 
     if not history or not swat.get("has_data"):
         return {
             "student_id": student_id,
+            "class_level": class_level,
             "has_data": False,
             "overall_status": "No Data",
             "status_code": "no_data",
@@ -258,6 +288,7 @@ def get_student_status(
 
     return {
         "student_id": student_id,
+        "class_level": class_level,
         "has_data": True,
         "overall_status": overall_status,
         "status_code": status_code,
@@ -279,21 +310,28 @@ def get_student_status(
 
 def get_teacher_student_profile(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Unified Master Profile for Teacher View."""
-    overview = get_teacher_student_overview(student_id, db_path=db_path)
-    chapters = get_teacher_chapter_statistics(student_id, db_path=db_path)
-    history = get_teacher_quiz_history(student_id, db_path=db_path)
-    swat = get_teacher_swat_summary(student_id, db_path=db_path)
-    status = get_student_status(student_id, db_path=db_path)
+    """Unified Master Profile for Teacher View (Class-Isolated)."""
+    from src.academic_rag.analytics.action_plan import generate_action_plan
+
+    overview = get_teacher_student_overview(student_id, class_level=class_level, db_path=db_path)
+    chapters = get_teacher_chapter_statistics(student_id, class_level=class_level, db_path=db_path)
+    history = get_teacher_quiz_history(student_id, class_level=class_level, db_path=db_path)
+    swat = get_teacher_swat_summary(student_id, class_level=class_level, db_path=db_path)
+    status = get_student_status(student_id, class_level=class_level, db_path=db_path)
+    action_plan = generate_action_plan(student_id, class_level=class_level, db_path=db_path)
 
     return {
         "student_id": student_id,
+        "class_level": class_level,
         "has_data": overview["has_data"],
         "overview": overview,
         "chapter_statistics": chapters,
         "quiz_history": history,
         "swat_summary": swat,
         "status": status,
+        "action_plan": action_plan,
     }
+

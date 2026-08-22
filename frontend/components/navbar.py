@@ -4,20 +4,21 @@ import textwrap
 
 import streamlit as st
 
-from frontend.state import navigate_to
+from frontend.state import get_student_class_level, navigate_to
 
 
-def render_navbar(selected_class: str = "All Classes", student_id: str = "student_001") -> str:
+def render_navbar(selected_class: str = "Class 10", student_id: str = "student_001") -> str:
     """
-    Renders the ultra-minimal top bar with DiligentEdu brand in the corner and a sleek settings icon.
+    Renders the ultra-minimal top bar with DiligentEdu brand on the left, and a non-editable student profile chip + settings icon on the right (Phase 16).
 
     Returns:
         The active screen identifier ('home', 'tutor', 'quiz', 'swat', 'teacher', 'settings').
     """
     current_screen = st.session_state.get("current_screen", "home")
+    class_level = get_student_class_level()
 
-    # Top Bar: Brand on Left, Sleek Settings Icon on Right
-    left_col, right_col = st.columns([5, 1])
+    # Top Bar: Brand on Left, Student Chip + Sleek Settings Icon on Right
+    left_col, right_col = st.columns([3.5, 2.5])
 
     with left_col:
         st.markdown(
@@ -31,12 +32,25 @@ def render_navbar(selected_class: str = "All Classes", student_id: str = "studen
         )
 
     with right_col:
-        is_settings = current_screen == "settings"
-        if st.button(
-            "", icon=":material/settings:", key="top_btn_settings", help="Settings & Configuration"
-        ):
-            navigate_to("settings" if not is_settings else "home")
-            st.rerun()
+        r_c1, r_c2 = st.columns([4, 1])
+        with r_c1:
+            st.markdown(
+                f"""
+                <div style="display: flex; justify-content: flex-end; align-items: center; height: 100%; gap: 6px; padding-top: 4px;">
+                    <span style="background: var(--surface-container-high); color: var(--on-surface); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--outline-variant);">
+                        👤 {student_id} · Class {class_level}
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with r_c2:
+            is_settings = current_screen == "settings"
+            if st.button(
+                "", icon=":material/settings:", key="top_btn_settings", help="Settings & Profile Configuration"
+            ):
+                navigate_to("settings" if not is_settings else "home")
+                st.rerun()
 
     st.write("")
 

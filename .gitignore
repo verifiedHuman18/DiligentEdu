@@ -325,3 +325,5 @@ coverage.xml
 # Configuration files that might contain secrets
 config.json
 settings.json
+
+*.rar

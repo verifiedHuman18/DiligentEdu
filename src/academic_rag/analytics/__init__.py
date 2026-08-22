@@ -1,10 +1,13 @@
 """Analytics package."""
 
+from src.academic_rag.analytics.action_plan import generate_action_plan
 from src.academic_rag.analytics.swat import (
     calculate_student_swat,
     format_swat_report,
+    get_attempted_chapters,
     get_available_chapters,
     get_student_swat,
+    get_unattempted_chapters,
 )
 from src.academic_rag.analytics.teacher import (
     get_student_status,
@@ -18,6 +21,9 @@ from src.academic_rag.analytics.teacher import (
 __all__ = [
     "get_student_swat",
     "get_available_chapters",
+    "get_attempted_chapters",
+    "get_unattempted_chapters",
+    "generate_action_plan",
     "format_swat_report",
     "calculate_student_swat",
     "get_teacher_student_overview",
@@ -27,3 +33,5 @@ __all__ = [
     "get_student_status",
     "get_teacher_student_profile",
 ]
+
+

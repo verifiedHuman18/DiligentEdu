@@ -10,38 +10,153 @@ from src.academic_rag.storage.repository import quiz_repository
 logger = logging.getLogger(__name__)
 
 
+def get_attempted_chapters(
+    student_id: str,
+    class_level: int,
+    db_path: Optional[str] = None,
+) -> List[str]:
+    """Returns list of distinct chapter titles attempted by a student for a specific class."""
+    repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
+    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
+    attempted = []
+    seen = set()
+    for att in history:
+        ch = att["chapter"]
+        if ch not in seen:
+            seen.add(ch)
+            attempted.append(ch)
+    return attempted
+
+
+def get_unattempted_chapters(
+    student_id: str,
+    class_level: int,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Returns ordered list of unattempted curriculum chapters for a student in a specific class.
+    Guarantees score=None, accuracy=None, attempts=0 (never an artificial 0%).
+    """
+    try:
+        class_int = int(class_level)
+    except (ValueError, TypeError):
+        raise ValueError(f"Invalid class_level: {class_level}. Must be 9 or 10.")
+
+    if class_int not in [9, 10]:
+        raise ValueError(f"Invalid class_level: {class_int}. Supported grades are 9 and 10.")
+
+    all_chapters = curriculum_service.get_chapters_for_grade(class_int)
+    attempted = set(get_attempted_chapters(student_id, class_int, db_path=db_path))
+
+    unattempted = []
+    for ch in all_chapters:
+        if ch.chapter_title not in attempted:
+            unattempted.append(
+                {
+                    "chapter_number": ch.chapter_number,
+                    "chapter": ch.chapter_title,
+                    "category": "unattempted",
+                    "score": None,
+                    "accuracy": None,
+                    "attempts": 0,
+                    "questions": 0,
+                    "correct": 0,
+                    "filename": ch.filename,
+                }
+            )
+    unattempted.sort(key=lambda x: x["chapter_number"])
+    return unattempted
+
+
 def get_student_swat(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
     strong_threshold: float = STRONG_THRESHOLD,
     average_threshold: float = AVERAGE_THRESHOLD,
 ) -> Dict[str, Any]:
     """
-    Computes a descriptive SWAT performance profile from stored quiz history.
-    Categorizes chapters:
-      - Strong: >= 70%
-      - Average: 50%–69%
-      - Weak: < 50%
-    Calculates overall average, accuracy, and chronological earlier vs recent trend.
+    Computes a comprehensive, unified 4-category SWAT performance profile from stored quiz history.
+    Single source of truth for Student SWAT, Teacher SWAT, Action Plans, and Progress UI.
+
+    Categorizes curriculum chapters:
+      - 🟢 strong (>= strong_threshold, default 70%)
+      - 🟡 average (average_threshold to strong_threshold - 1, default 50%-69%)
+      - 🔴 weak (< average_threshold, default < 50%)
+      - ⚪ unattempted (score=None, attempts=0; 0% != Not Attempted)
+
+    Computes for every attempted chapter:
+      - average score (mean of attempt percentages)
+      - attempts count
+      - accuracy (questions_correct / questions_attempted)
+      - recent performance trajectory (e.g. [40, 60, 80] / "40% → 60% → 80%")
+      - chapter trend (improving, stable, declining)
     """
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, include_questions=True)
+    history = repo.get_student_history(student_id, class_level=class_level, include_questions=True)
+
+    target_class = (
+        int(class_level)
+        if class_level is not None
+        else (history[0].get("class_level", 10) if history else 10)
+    )
+
+    all_curriculum = []
+    if target_class in [9, 10]:
+        try:
+            all_curriculum = curriculum_service.get_chapters_for_grade(target_class)
+        except Exception as e:
+            logger.warning(f"Could not load curriculum chapters for class {target_class}: {e}")
+
+    total_chapters_count = len(all_curriculum) if all_curriculum else 13
 
     if not history:
+        unattempted_topics = []
+        chapter_breakdown: Dict[str, Dict[str, Any]] = {}
+        for ch in all_curriculum:
+            u_item = {
+                "chapter_number": ch.chapter_number,
+                "chapter": ch.chapter_title,
+                "category": "unattempted",
+                "status": "unattempted",
+                "score": None,
+                "accuracy": None,
+                "attempts": 0,
+                "questions": 0,
+                "correct": 0,
+                "scores": [],
+                "recent_performance": "Not Attempted",
+                "trend": "no_data",
+                "filename": ch.filename,
+            }
+            unattempted_topics.append(u_item)
+            chapter_breakdown[ch.chapter_title] = u_item
+        unattempted_topics.sort(key=lambda x: x["chapter_number"])
+
+        empty_overall = {
+            "average": 0,
+            "accuracy": 0,
+            "attempted_chapters": 0,
+            "total_chapters": total_chapters_count,
+            "quizzes_attempted": 0,
+            "total_questions": 0,
+            "total_correct": 0,
+        }
+
         return {
             "student_id": student_id,
+            "class_level": target_class,
             "has_data": False,
-            "overall": {
-                "average": 0,
-                "accuracy": 0,
-                "quizzes_attempted": 0,
-                "total_questions": 0,
-                "total_correct": 0,
-            },
+            "overall": empty_overall,
+            "strong": [],
             "strengths": [],
+            "average": [],
             "average_topics": [],
+            "weak": [],
             "weak_topics": [],
-            "chapter_breakdown": {},
+            "unattempted": unattempted_topics,
+            "unattempted_topics": unattempted_topics,
+            "chapter_breakdown": chapter_breakdown,
             "trend": {
                 "direction": "no_data",
                 "recent_average": 0,
@@ -66,6 +181,7 @@ def get_student_swat(
             chapter_map[ch] = {
                 "chapter": ch,
                 "class_level": attempt["class_level"],
+                "chapter_number": attempt.get("chapter_number"),
                 "attempts": 0,
                 "scores": [],
                 "questions_attempted": 0,
@@ -81,37 +197,84 @@ def get_student_swat(
     strengths: List[Dict[str, Any]] = []
     average_topics: List[Dict[str, Any]] = []
     weak_topics: List[Dict[str, Any]] = []
-    chapter_breakdown: Dict[str, Dict[str, Any]] = {}
+    chapter_breakdown = {}
 
     for ch, data in chapter_map.items():
-        avg_score = round(sum(data["scores"]) / len(data["scores"]), 1)
+        attempts_count = data["attempts"]
+        avg_score = round(sum(data["scores"]) / attempts_count, 1)
         int_score = int(round(avg_score))
         acc = (
             round(float(data["questions_correct"]) / float(data["questions_attempted"]) * 100.0, 1)
             if data["questions_attempted"] > 0
             else 0.0
         )
+        scores_int = [int(round(s)) for s in data["scores"]]
+        recent_perf = " → ".join(f"{s}%" for s in scores_int)
+
+        if attempts_count == 1:
+            ch_trend = "stable"
+        else:
+            mid = max(1, attempts_count // 2)
+            earlier_mean = sum(data["scores"][:mid]) / len(data["scores"][:mid])
+            recent_mean = sum(data["scores"][mid:]) / len(data["scores"][mid:])
+            diff = recent_mean - earlier_mean
+            if diff >= 4.0:
+                ch_trend = "improving"
+            elif diff <= -4.0:
+                ch_trend = "declining"
+            else:
+                ch_trend = "stable"
 
         item = {
+            "chapter_number": data.get("chapter_number"),
             "chapter": ch,
             "score": int_score,
             "accuracy": acc,
-            "attempts": data["attempts"],
+            "attempts": attempts_count,
             "questions": data["questions_attempted"],
             "correct": data["questions_correct"],
+            "scores": scores_int,
+            "recent_performance": recent_perf,
+            "trend": ch_trend,
         }
 
         if avg_score >= strong_threshold:
             item["category"] = "strong"
+            item["status"] = "strong"
             strengths.append(item)
         elif avg_score >= average_threshold:
             item["category"] = "average"
+            item["status"] = "average"
             average_topics.append(item)
         else:
             item["category"] = "weak"
+            item["status"] = "weak"
             weak_topics.append(item)
 
         chapter_breakdown[ch] = item
+
+    # Unattempted chapters calculation: all_chapters - attempted_chapters
+    unattempted_topics = []
+    for ch in all_curriculum:
+        if ch.chapter_title not in chapter_map:
+            u_item = {
+                "chapter_number": ch.chapter_number,
+                "chapter": ch.chapter_title,
+                "category": "unattempted",
+                "status": "unattempted",
+                "score": None,
+                "accuracy": None,
+                "attempts": 0,
+                "questions": 0,
+                "correct": 0,
+                "scores": [],
+                "recent_performance": "Not Attempted",
+                "trend": "no_data",
+                "filename": ch.filename,
+            }
+            unattempted_topics.append(u_item)
+            chapter_breakdown[ch.chapter_title] = u_item
+    unattempted_topics.sort(key=lambda x: x["chapter_number"])
 
     strengths.sort(key=lambda x: x["score"], reverse=True)
     average_topics.sort(key=lambda x: x["score"], reverse=True)
@@ -152,19 +315,29 @@ def get_student_swat(
             direction = "stable"
             trend_summary = f"Performance is steady (earlier average: {earlier_avg}%, recent average: {recent_avg}%)."
 
+    overall_metrics = {
+        "average": overall_avg,
+        "accuracy": overall_acc,
+        "attempted_chapters": len(chapter_map),
+        "total_chapters": total_chapters_count,
+        "quizzes_attempted": total_quizzes,
+        "total_questions": total_questions,
+        "total_correct": total_correct,
+    }
+
     return {
         "student_id": student_id,
+        "class_level": target_class,
         "has_data": True,
-        "overall": {
-            "average": overall_avg,
-            "accuracy": overall_acc,
-            "quizzes_attempted": total_quizzes,
-            "total_questions": total_questions,
-            "total_correct": total_correct,
-        },
+        "overall": overall_metrics,
+        "strong": strengths,
         "strengths": strengths,
+        "average": average_topics,
         "average_topics": average_topics,
+        "weak": weak_topics,
         "weak_topics": weak_topics,
+        "unattempted": unattempted_topics,
+        "unattempted_topics": unattempted_topics,
         "chapter_breakdown": chapter_breakdown,
         "trend": {
             "direction": direction,
@@ -173,6 +346,7 @@ def get_student_swat(
             "summary": trend_summary,
         },
     }
+
 
 
 def get_available_chapters(
@@ -198,7 +372,9 @@ def get_available_chapters(
     swat_profile: Dict[str, Any] = {}
     if student_id:
         try:
-            swat_profile = get_student_swat(student_id, db_path=db_path)
+            swat_profile = get_student_swat(
+                student_id, class_level=class_level_int, db_path=db_path
+            )
         except Exception as e:
             logger.warning(f"Could not load SWAT profile for {student_id}: {e}")
 
@@ -238,9 +414,10 @@ def format_swat_report(swat: Dict[str, Any]) -> str:
 
     if "overall" in swat:
         student_id = swat["student_id"]
+        class_info = f" (Class {swat['class_level']})" if swat.get("class_level") else ""
         lines = [
             "=" * 50,
-            f"               STUDENT SWAT ({student_id})",
+            f"               STUDENT SWAT ({student_id}{class_info})",
             "=" * 50,
             "",
             "🟢 STRONG (≥ 70%)",
@@ -265,6 +442,14 @@ def format_swat_report(swat: Dict[str, Any]) -> str:
         else:
             lines.append("  (None)")
 
+        lines.append("\n⚪ NOT ATTEMPTED")
+        unatt = swat.get("unattempted_topics") or swat.get("unattempted", [])
+        if unatt:
+            for item in unatt:
+                lines.append(f"  {item['chapter']}")
+        else:
+            lines.append("  (None)")
+
         lines.extend(
             [
                 "\n" + "─" * 50,
@@ -278,20 +463,30 @@ def format_swat_report(swat: Dict[str, Any]) -> str:
         )
         return "\n".join(lines)
 
-    return format_swat_report(get_student_swat(swat["student_id"]))
+    return format_swat_report(
+        get_student_swat(swat["student_id"], class_level=swat.get("class_level"))
+    )
 
 
 def calculate_student_swat(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
     strong_threshold: float = STRONG_THRESHOLD,
     average_threshold: float = AVERAGE_THRESHOLD,
 ) -> Dict[str, Any]:
     """Compatibility helper returning legacy format with categories dictionary."""
-    swat = get_student_swat(student_id, db_path, strong_threshold, average_threshold)
+    swat = get_student_swat(
+        student_id,
+        class_level=class_level,
+        db_path=db_path,
+        strong_threshold=strong_threshold,
+        average_threshold=average_threshold,
+    )
     if not swat["has_data"]:
         return {
             "student_id": student_id,
+            "class_level": class_level,
             "has_data": False,
             "total_quizzes": 0,
             "questions_attempted": 0,
@@ -305,9 +500,14 @@ def calculate_student_swat(
                 "recent_scores": [],
                 "summary": "No data",
             },
-            "categories": {"strong": [], "average": [], "weak": []},
+            "categories": {
+                "strong": [],
+                "average": [],
+                "weak": [],
+                "unattempted": swat.get("unattempted_topics", []),
+            },
             "chapter_wise_accuracy": {},
-            "chapters": {},
+            "chapters": swat.get("chapter_breakdown", {}),
         }
 
     all_chapters = swat["strengths"] + swat["average_topics"] + swat["weak_topics"]
@@ -326,6 +526,7 @@ def calculate_student_swat(
 
     return {
         "student_id": student_id,
+        "class_level": class_level,
         "has_data": True,
         "total_quizzes": swat["overall"]["quizzes_attempted"],
         "questions_attempted": swat["overall"]["total_questions"],
@@ -371,6 +572,7 @@ def calculate_student_swat(
                 }
                 for s in swat["weak_topics"]
             ],
+            "unattempted": swat.get("unattempted_topics", []),
         },
         "chapter_wise_accuracy": {c["chapter"]: float(c["score"]) for c in all_chapters},
         "chapters": swat["chapter_breakdown"],

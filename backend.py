@@ -18,28 +18,30 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from src.academic_rag.analytics.action_plan import (
+    generate_action_plan as _internal_generate_action_plan,
+)
 from src.academic_rag.analytics.swat import (
     format_swat_report,
-)
-from src.academic_rag.analytics.swat import (
+    get_attempted_chapters as _internal_get_attempted_chapters,
     get_available_chapters as _internal_get_available_chapters,
-)
-from src.academic_rag.analytics.swat import (
     get_student_swat as _internal_get_student_swat,
+    get_unattempted_chapters as _internal_get_unattempted_chapters,
 )
 from src.academic_rag.analytics.teacher import (
     get_student_status as _internal_get_student_status,
-)
-from src.academic_rag.analytics.teacher import (
     get_teacher_chapter_statistics as _internal_get_student_chapter_stats,
-)
-from src.academic_rag.analytics.teacher import (
+    get_teacher_quiz_history as _internal_get_teacher_quiz_history,
     get_teacher_student_overview as _internal_get_student_overview,
-)
-from src.academic_rag.analytics.teacher import (
     get_teacher_student_profile as _internal_get_teacher_student_profile,
+    get_teacher_swat_summary as _internal_get_teacher_swat_summary,
 )
 from src.academic_rag.config import DEFAULT_DB_PATH
+from src.academic_rag.curriculum.service import (
+    curriculum_service,
+    get_chapter_pdf,
+    get_ncert_curriculum,
+)
 from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
 from src.academic_rag.quiz.generator import create_student_quiz
 from src.academic_rag.storage.repository import quiz_repository
@@ -48,49 +50,85 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================================
-# 🎓 STUDENT SIDE BACKEND API
+# 🎓 STUDENT SIDE BACKEND API CONTRACTS (Phase 21)
 # =====================================================================
 
 
-def get_student_swat(student_id: str, db_path: Optional[str] = None) -> Dict[str, Any]:
+def get_student_swat(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Retrieves the complete, descriptive SWAT performance profile for a student.
 
     Args:
         student_id: Unique student ID (e.g. "student_001")
+        class_level: Optional grade level (9 or 10) to isolate metrics
         db_path: Optional custom DB path
 
     Returns:
-        Structured Dict with overall KPIs, strengths (≥70%), average_topics (50-69%),
-        weak_topics (<50%), and chronological performance trend.
+        Structured Dict with overall KPIs, strong (≥70%), average (50-69%),
+        weak (<50%), unattempted chapters, and chronological performance trend.
     """
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
-    return _internal_get_student_swat(str(student_id).strip(), db_path=db_path)
-
-
-def get_available_chapters(
-    class_level: int,
-    student_id: Optional[str] = None,
-    db_path: Optional[str] = None,
-) -> List[Dict[str, Any]]:
-    """
-    Retrieves the list of NCERT chapters for the given grade, annotated with student's current SWAT status.
-
-    Args:
-        class_level: Grade level (9 or 10)
-        student_id: Optional student ID to overlay SWAT status
-        db_path: Optional custom DB path
-
-    Returns:
-        List of chapter objects with chapter_number, chapter, status, score, attempts.
-    """
-    return _internal_get_available_chapters(
-        class_level=class_level, student_id=student_id, db_path=db_path
+    return _internal_get_student_swat(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
     )
 
 
-def generate_student_quiz(
+def get_student_action_plan(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Generates a prioritized, explainable, and actionable study recommendation plan for a student.
+
+    Args:
+        student_id: Unique student ID
+        class_level: Optional grade level (9 or 10)
+        db_path: Optional custom DB path
+
+    Returns:
+        Dict with overall urgency priority and ordered actionable recommendations.
+    """
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_generate_action_plan(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
+def get_chapters_with_status(
+    student_id: Optional[Union[str, int]] = None,
+    class_level: Optional[Union[str, int]] = None,
+    db_path: Optional[str] = None,
+    **kwargs: Any,
+) -> List[Dict[str, Any]]:
+    """
+    Retrieves the complete list of NCERT chapters for a grade, annotated with student mastery status.
+
+    Accepts either:
+      - (student_id: str, class_level: int)
+      - (class_level: int, student_id: Optional[str])
+      - Keyword args: get_chapters_with_status(student_id="...", class_level=10)
+
+    Returns:
+        List of chapter dicts with chapter_number, chapter, status, score, attempts.
+    """
+    if isinstance(student_id, int) and (class_level is None or isinstance(class_level, str)):
+        cls = student_id
+        sid = str(class_level) if isinstance(class_level, str) else kwargs.get("student_id")
+    else:
+        sid = str(student_id) if student_id is not None else kwargs.get("student_id")
+        cls = int(class_level) if class_level is not None else kwargs.get("class_level", 10)
+
+    return _internal_get_available_chapters(class_level=cls, student_id=sid, db_path=db_path)
+
+
+def generate_quiz(
     student_id: str,
     class_level: int,
     chapter: Union[str, int],
@@ -112,10 +150,9 @@ def generate_student_quiz(
         num_questions: Number of questions to generate (default: 5)
         api_key: Optional Gemini API key
         model: Model identifier (default: "gemini-3.5-flash-lite")
-        model_name: Alternative model identifier keyword
 
     Returns:
-        Structured Quiz dictionary with questions, 4 options, correct answer key, and NCERT page citations.
+        Structured Quiz dictionary with questions, 4 options, answer key, and NCERT citations.
     """
     return create_student_quiz(
         student_id=student_id,
@@ -169,72 +206,167 @@ def submit_quiz(
 
 def get_student_quiz_history(
     student_id: str,
+    class_level: Optional[int] = None,
     include_questions: bool = True,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Retrieves chronological attempt history for a student.
-
-    Args:
-        student_id: Student ID
-        include_questions: Whether to include individual question records
-        db_path: Optional custom DB path
-
-    Returns:
-        List of chronological quiz attempt dictionaries.
+    Retrieves chronological attempt history for a student, optionally isolated by class level.
     """
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
     return repo.get_student_history(
         student_id=str(student_id).strip(),
+        class_level=class_level,
         include_questions=include_questions,
     )
 
 
-# =====================================================================
-# 👨‍🏫 TEACHER SIDE BACKEND API
-# =====================================================================
-
-
-def get_student_overview(
+def get_student_class_history(
     student_id: str,
+    class_level: int,
+    include_questions: bool = False,
     db_path: Optional[str] = None,
-) -> Dict[str, Any]:
-    """13.1 Overall Student Statistics for Teacher View."""
+) -> List[Dict[str, Any]]:
+    """
+    Retrieves chronological attempt history for a student strictly isolated to a specific class.
+    """
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
-    return _internal_get_student_overview(str(student_id).strip(), db_path=db_path)
+    repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
+    return repo.get_student_class_history(
+        student_id=str(student_id).strip(),
+        class_level=class_level,
+        include_questions=include_questions,
+    )
+
+
+def get_attempted_chapters(
+    student_id: str,
+    class_level: int,
+    db_path: Optional[str] = None,
+) -> List[str]:
+    """Retrieves list of attempted chapter names for a student in a specific class."""
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_get_attempted_chapters(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
+def get_unattempted_chapters(
+    student_id: str,
+    class_level: int,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieves list of unattempted chapter dicts with score=None for a student in a specific class."""
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_get_unattempted_chapters(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
+# =====================================================================
+# 👨‍🏫 TEACHER SIDE BACKEND API CONTRACTS (Phase 21)
+# =====================================================================
+
+
+def get_teacher_student_overview(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Retrieves overall student statistics and KPIs for Teacher View."""
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_get_student_overview(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
+def get_teacher_swat(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Retrieves SWAT summary for Teacher View powered by the SAME shared SWAT engine
+    without duplicating calculations.
+    """
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_get_student_swat(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
+def get_teacher_action_plan(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Retrieves prioritized action plan with supporting diagnostic statistics for Teacher View.
+    """
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_generate_action_plan(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
+def get_teacher_quiz_history(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieves class-scoped chronological quiz history for Teacher View."""
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_get_teacher_quiz_history(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
 
 
 def get_student_chapter_stats(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """13.2 Chapter Statistics for Teacher View."""
+    """Chapter Statistics for Teacher View."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
-    return _internal_get_student_chapter_stats(str(student_id).strip(), db_path=db_path)
+    return _internal_get_student_chapter_stats(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
 
 
 def get_student_status(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """14.1–14.4 Early-Warning Status Engine for Teacher View."""
+    """Early-Warning Status Engine for Teacher View."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
-    return _internal_get_student_status(str(student_id).strip(), db_path=db_path)
+    return _internal_get_student_status(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
 
 
 def get_teacher_student_profile(
     student_id: str,
+    class_level: Optional[int] = None,
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Unified Teacher Master Profile."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
-    return _internal_get_teacher_student_profile(str(student_id).strip(), db_path=db_path)
+    return _internal_get_teacher_student_profile(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
 
 
 def clear_student_data(
@@ -248,20 +380,37 @@ def clear_student_data(
     repo.clear_student_data(str(student_id).strip())
 
 
+# Backward compatibility aliases
+generate_student_quiz = generate_quiz
+generate_action_plan = get_student_action_plan
+get_available_chapters = get_chapters_with_status
+get_student_overview = get_teacher_student_overview
+
 # Exported Public API
 __all__ = [
-    # Student Side
+    # Phase 21 Student Contracts
     "get_student_swat",
-    "get_available_chapters",
-    "generate_student_quiz",
+    "get_student_action_plan",
+    "get_chapters_with_status",
+    "generate_quiz",
     "submit_quiz",
+    # Phase 21 Teacher Contracts
+    "get_teacher_student_overview",
+    "get_teacher_swat",
+    "get_teacher_action_plan",
+    "get_teacher_quiz_history",
+    # Additional Facades & Helpers
     "get_student_quiz_history",
-    # Teacher Side
-    "get_student_overview",
+    "get_student_class_history",
+    "get_attempted_chapters",
+    "get_unattempted_chapters",
     "get_student_chapter_stats",
     "get_student_status",
     "get_teacher_student_profile",
-    # Utilities
+    "generate_student_quiz",
+    "generate_action_plan",
+    "get_available_chapters",
+    "get_student_overview",
     "clear_student_data",
     "format_swat_report",
 ]

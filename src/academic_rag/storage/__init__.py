@@ -6,6 +6,7 @@ from src.academic_rag.storage.database import (
 )
 from src.academic_rag.storage.repository import (
     QuizRepository,
+    get_student_class_history,
     quiz_repository,
 )
 
@@ -14,4 +15,6 @@ __all__ = [
     "get_db_connection",
     "QuizRepository",
     "quiz_repository",
+    "get_student_class_history",
 ]
+

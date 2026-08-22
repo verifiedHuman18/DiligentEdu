@@ -23,6 +23,7 @@ if hasattr(sys.stdout, "reconfigure"):
 from frontend import (
     init_session_state,
     inject_custom_css,
+    render_chapter_screen,
     render_home_screen,
     render_navbar,
     render_quiz_screen,
@@ -76,7 +77,9 @@ async def main():
     init_session_state()
     inject_custom_css()
 
-    selected_class = st.session_state.get("selected_class", "All Classes")
+    from frontend.state import get_student_class_level
+    cls_int = get_student_class_level()
+    selected_class = f"Class {cls_int}"
     student_id = st.session_state.get("student_id", "student_001")
     selected_model = st.session_state.get("model", "gemini-3.5-flash-lite")
     user_api_key = st.session_state.get("api_key", "")
@@ -92,9 +95,11 @@ async def main():
     elif active_screen == "quiz":
         render_quiz_screen(student_id, user_api_key, selected_model)
     elif active_screen == "swat":
-        render_swat_screen(student_id)
+        render_swat_screen(student_id, selected_class=selected_class)
     elif active_screen == "teacher":
-        render_teacher_screen(student_id)
+        render_teacher_screen(student_id, selected_class=selected_class)
+    elif active_screen == "chapter":
+        render_chapter_screen(student_id, user_api_key, selected_model)
     elif active_screen == "settings":
         render_settings_screen()
     else:

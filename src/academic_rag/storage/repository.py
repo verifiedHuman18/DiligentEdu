@@ -154,21 +154,41 @@ class QuizRepository:
         }
 
     def get_student_history(
-        self, student_id: str, include_questions: bool = False
+        self,
+        student_id: str,
+        class_level: Optional[int] = None,
+        include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
-        """Retrieves chronological quiz attempts for a student."""
+        """
+        Retrieves chronological quiz attempts for a student, optionally filtered by class_level.
+        Directly filters by class_level at the query level when specified.
+        """
         clean_id = str(student_id).strip()
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    SELECT * FROM quiz_attempts
-                    WHERE student_id = ?
-                    ORDER BY timestamp ASC
-                """,
-                    (clean_id,),
-                )
+                if class_level is not None:
+                    try:
+                        class_int = int(class_level)
+                    except (ValueError, TypeError):
+                        raise ValueError(f"Invalid class_level: {class_level}")
+                    cursor.execute(
+                        """
+                        SELECT * FROM quiz_attempts
+                        WHERE student_id = ? AND class_level = ?
+                        ORDER BY timestamp ASC
+                    """,
+                        (clean_id, class_int),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        SELECT * FROM quiz_attempts
+                        WHERE student_id = ?
+                        ORDER BY timestamp ASC
+                    """,
+                        (clean_id,),
+                    )
 
                 rows = cursor.fetchall()
                 history = [dict(row) for row in rows]
@@ -204,6 +224,24 @@ class QuizRepository:
             logger.error(f"Failed to fetch student history for {student_id}: {e}")
             raise StorageError(f"Database query failed: {e}")
 
+    def get_student_class_history(
+        self,
+        student_id: str,
+        class_level: int,
+        include_questions: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """
+        Dedicated class-scoped retrieval function.
+        Guarantees that attempts outside the requested class_level are never fetched.
+        """
+        if class_level is None:
+            raise ValueError("class_level is required for get_student_class_history")
+        return self.get_student_history(
+            student_id=student_id,
+            class_level=int(class_level),
+            include_questions=include_questions,
+        )
+
     def clear_student_data(self, student_id: str) -> None:
         """Deletes all attempts and question responses for a student."""
         clean_id = str(student_id).strip()
@@ -226,3 +264,19 @@ class QuizRepository:
 
 # Default repository instance
 quiz_repository = QuizRepository()
+
+
+def get_student_class_history(
+    student_id: str,
+    class_level: int,
+    include_questions: bool = False,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Standalone helper for class-scoped student history retrieval."""
+    repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
+    return repo.get_student_class_history(
+        student_id=student_id,
+        class_level=class_level,
+        include_questions=include_questions,
+    )
+

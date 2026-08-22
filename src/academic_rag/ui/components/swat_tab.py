@@ -6,16 +6,19 @@ from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.storage.repository import quiz_repository
 
 
-def render_swat_tab(student_id: str):
+def render_swat_tab(student_id: str, class_level: Optional[int] = None):
     """Renders the descriptive Student SWAT Analysis dashboard and attempt history."""
-    st.markdown(f"### 📊 Student SWAT Analysis (`{student_id}`)")
+    class_label = f" — Class {class_level}" if class_level else ""
+    st.markdown(f"### 📊 Student SWAT Analysis (`{student_id}`{class_label})")
     st.caption(
         "Descriptive chapter-wise performance analysis. Identifies your strengths, average areas, "
         "and weaknesses so you can decide your own study focus."
     )
 
-    swat = get_student_swat(student_id)
-    history = quiz_repository.get_student_history(student_id, include_questions=True)
+    swat = get_student_swat(student_id, class_level=class_level)
+    history = quiz_repository.get_student_history(
+        student_id, class_level=class_level, include_questions=True
+    )
 
     if not swat.get("has_data"):
         st.info(
@@ -54,9 +57,9 @@ def render_swat_tab(student_id: str):
 
     # SWAT Categorization
     st.markdown("#### 🎯 Chapter-Wise SWAT Breakdown")
-    st.caption("🟢 **STRONG** (≥ 70%) | 🟡 **AVERAGE** (50%–69%) | 🔴 **WEAK** (< 50%)")
+    st.caption("🟢 **STRONG** (≥ 70%) | 🟡 **AVERAGE** (50%–69%) | 🔴 **WEAK** (< 50%) | ⚪ **NOT ATTEMPTED**")
 
-    c_col1, c_col2, c_col3 = st.columns(3)
+    c_col1, c_col2, c_col3, c_col4 = st.columns(4)
 
     with c_col1:
         st.markdown("##### 🟢 STRONG")
@@ -69,7 +72,7 @@ def render_swat_tab(student_id: str):
                     f"{item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})"
                 )
         else:
-            st.caption("No chapters currently in Strong.")
+            st.caption("No chapters in Strong.")
 
     with c_col2:
         st.markdown("##### 🟡 AVERAGE")
@@ -82,7 +85,7 @@ def render_swat_tab(student_id: str):
                     f"{item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})"
                 )
         else:
-            st.caption("No chapters currently in Average.")
+            st.caption("No chapters in Average.")
 
     with c_col3:
         st.markdown("##### 🔴 WEAK")
@@ -95,7 +98,16 @@ def render_swat_tab(student_id: str):
                     f"{item['attempts']} quiz{'zes' if item['attempts'] > 1 else ''})"
                 )
         else:
-            st.caption("No weak chapters identified!")
+            st.caption("No weak topics.")
+
+    with c_col4:
+        st.markdown("##### ⚪ NOT ATTEMPTED")
+        unatt_items = swat.get("unattempted_topics", [])
+        if unatt_items:
+            for item in unatt_items:
+                st.markdown(f"- **{item['chapter']}**")
+        else:
+            st.caption("All chapters attempted.")
 
     st.divider()
 

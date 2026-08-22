@@ -5,7 +5,7 @@ import logging
 import streamlit as st
 
 from frontend.components.cards import render_citation_box
-from frontend.state import navigate_to
+from frontend.state import get_student_class_level, navigate_to
 from src.academic_rag.analytics.swat import get_available_chapters
 from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
 from src.academic_rag.quiz.generator import create_student_quiz
@@ -14,28 +14,41 @@ logger = logging.getLogger(__name__)
 
 
 def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) -> None:
-    """Renders the Practice Quiz screen."""
+    """Renders the Practice Quiz screen with single master profile standard."""
     if st.button(
         "Back to Home", icon=":material/arrow_back:", type="secondary", key="quiz_top_back_btn"
     ):
         navigate_to("home")
         st.rerun()
 
+    class_level = get_student_class_level()
+
     st.write("")
-    st.markdown("### NCERT Practice Quiz")
+    st.markdown(f"### NCERT Practice Quiz — Class {class_level}")
     st.caption(
-        "Generate grounded multiple-choice quizzes with instant grading, textbook explanations, and exact page citations."
+        f"Generate curriculum-aligned practice quizzes for **Class {class_level} Science** *(based on your student profile)*."
     )
 
-    # Controls Grid
-    c1, c2, c3, c4 = st.columns([1.2, 2.4, 1.1, 1.1])
+    # Informational Standard Badge
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            <span style="background: var(--md-primary); color: var(--on-primary); font-weight: 700; font-size: 0.82rem; padding: 4px 10px; border-radius: 6px;">
+                Class {class_level} · Science
+            </span>
+            <span style="font-size: 0.8rem; color: var(--on-surface-variant);">
+                (Standard set via Student Profile Settings)
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Controls Grid (Phase 6: Chapter, Difficulty, Question Count)
+    c1, c2, c3 = st.columns([3.0, 1.2, 1.2])
 
     with c1:
-        quiz_grade = st.selectbox("Grade", ["Class 10", "Class 9"], key="screen_quiz_grade")
-        quiz_cls_int = 10 if quiz_grade == "Class 10" else 9
-
-    with c2:
-        available_chs = get_available_chapters(quiz_cls_int, student_id=student_id)
+        available_chs = get_available_chapters(class_level, student_id=student_id)
         ch_display_map = {}
         ch_labels = []
         for ch in available_chs:
@@ -45,15 +58,27 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
             ch_display_map[label] = ch["chapter"]
             ch_labels.append(label)
 
-        selected_ch_label = st.selectbox("Chapter", ch_labels, key="screen_quiz_ch")
+        # Pre-selection if student clicked an action plan recommendation
+        default_ch = st.session_state.get("selected_chapter")
+        default_idx = 0
+        if default_ch:
+            for idx, lbl in enumerate(ch_labels):
+                if default_ch in lbl:
+                    default_idx = idx
+                    break
+
+        selected_ch_label = st.selectbox("Select Chapter", ch_labels, index=default_idx, key="screen_quiz_ch")
         selected_ch_title = ch_display_map.get(
-            selected_ch_label, available_chs[0]["chapter"] if available_chs else "Electricity"
+            selected_ch_label, available_chs[0]["chapter"] if available_chs else "Chemical Reactions and Equations"
         )
 
-    with c3:
-        quiz_diff = st.selectbox("Difficulty", ["medium", "easy", "hard"], key="screen_quiz_diff")
+    with c2:
+        default_diff = st.session_state.get("quiz_difficulty", "medium").lower()
+        diff_opts = ["medium", "easy", "hard"]
+        diff_idx = diff_opts.index(default_diff) if default_diff in diff_opts else 0
+        quiz_diff = st.selectbox("Difficulty", diff_opts, index=diff_idx, key="screen_quiz_diff")
 
-    with c4:
+    with c3:
         quiz_count = st.selectbox("Questions", [5, 3, 7, 10], index=0, key="screen_quiz_count")
 
     if st.button(
@@ -68,13 +93,13 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
             )
         else:
             with st.spinner(
-                f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title}..."
+                f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level})..."
             ):
                 try:
                     generated = create_student_quiz(
                         student_id=student_id,
                         chapter=selected_ch_title,
-                        class_level=quiz_cls_int,
+                        class_level=class_level,
                         num_questions=quiz_count,
                         difficulty=quiz_diff,
                         api_key=user_api_key,

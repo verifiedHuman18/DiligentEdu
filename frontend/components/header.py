@@ -5,14 +5,16 @@ import textwrap
 import streamlit as st
 
 
-def render_header(selected_class: str = "All Classes", student_id: str = "student_001") -> None:
+def render_header(selected_class: str = "Class 10", student_id: str = "student_001") -> None:
     """Renders the clean, modern top header with student details."""
-    class_label = selected_class if selected_class != "All Classes" else "Class 9 & 10"
+    from frontend.state import get_student_class_level
+    cls_int = get_student_class_level()
+    class_label = f"Class {cls_int}"
 
     html = textwrap.dedent(f"""\
 <div class="hero-header-container">
 <div class="hero-title">NCERT Academic Science Assistant</div>
-<div class="hero-subtitle">Student: <b>{student_id}</b> | Grade: <b>{class_label}</b></div>
+<div class="hero-subtitle">Student: <b>{student_id}</b> | Class: <b>{class_label}</b></div>
 </div>\
 """)
     st.markdown(html, unsafe_allow_html=True)

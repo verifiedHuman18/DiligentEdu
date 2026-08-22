@@ -59,6 +59,9 @@ def init_database(db_path: str = None) -> None:
             "CREATE INDEX IF NOT EXISTS idx_attempts_student ON quiz_attempts(student_id)"
         )
         cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_attempts_student_class ON quiz_attempts(student_id, class_level)"
+        )
+        cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_attempts_chapter ON quiz_attempts(student_id, chapter)"
         )
         cursor.execute(

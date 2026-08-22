@@ -189,3 +189,118 @@ class CurriculumService:
 
 # Singleton instance
 curriculum_service = CurriculumService()
+
+
+def get_ncert_curriculum(class_level: int) -> List[Dict[str, Any]]:
+    """
+    Phase 4: Retrieves the authoritative NCERT Science curriculum for a specific class (9 or 10).
+    Guarantees strict class scoping with zero cross-contamination.
+
+    Args:
+        class_level: 9 or 10 (int)
+
+    Returns:
+        List of chapter dictionaries containing chapter_number, chapter, chapter_id, filename, and pdf_path.
+    """
+    try:
+        cls_int = int(class_level)
+    except (TypeError, ValueError):
+        raise ValueError(f"Invalid class_level {class_level!r}. Must be an integer 9 or 10.")
+
+    if cls_int not in (9, 10):
+        raise ValueError(f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported.")
+
+    chapters = curriculum_service.get_chapters_for_grade(cls_int)
+    results = []
+    for ch in chapters:
+        slug = ch.chapter_title.lower().replace(" ", "_").replace("–", "-").replace(":", "")
+        chapter_id = f"class{cls_int}_science_{slug}"
+        pdf_path = f"data/class{cls_int}/{ch.filename}"
+        static_url = f"app/static/class{cls_int}/{ch.filename}"
+        results.append(
+            {
+                "class_level": cls_int,
+                "chapter_id": chapter_id,
+                "chapter_number": ch.chapter_number,
+                "chapter": ch.chapter_title,
+                "filename": ch.filename,
+                "pdf_path": pdf_path,
+                "static_url": static_url,
+            }
+        )
+    return results
+
+
+def ensure_static_assets() -> None:
+    """Ensures that the static/ directory contains PDF assets for Streamlit static serving."""
+    import shutil
+
+    for cls_int in (9, 10):
+        src_dir = os.path.join("data", f"class{cls_int}")
+        dst_dir = os.path.join("static", f"class{cls_int}")
+        if os.path.isdir(src_dir):
+            os.makedirs(dst_dir, exist_ok=True)
+            for fname in os.listdir(src_dir):
+                if fname.endswith(".pdf"):
+                    dst_path = os.path.join(dst_dir, fname)
+                    if not os.path.exists(dst_path):
+                        shutil.copy2(os.path.join(src_dir, fname), dst_path)
+
+
+def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Dict[str, Any]:
+    """
+    Resolves the authoritative NCERT textbook PDF for a specific class and chapter.
+    Guarantees class isolation via composite key (class_level, chapter_identifier).
+
+    Args:
+        class_level: 9 or 10 (int)
+        chapter_identifier: Chapter number (int) or Chapter title (str)
+
+    Returns:
+        Dict with class_level, chapter_id, chapter_number, chapter_name, filename, pdf_path, static_url, exists.
+    """
+    try:
+        cls_int = int(class_level)
+    except (TypeError, ValueError):
+        raise ValueError(f"Invalid class_level {class_level!r}. Must be an integer 9 or 10.")
+
+    if cls_int not in (9, 10):
+        raise ValueError(f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported.")
+
+    ch_num, ch_title = curriculum_service.resolve_chapter(cls_int, chapter_identifier)
+
+    # Lookup authoritative filename
+    class_map = curriculum_service.get_mapping().get(f"class{cls_int}", {})
+    filename = None
+    for fname, info in class_map.items():
+        if info.get("chapter_number") == ch_num or info.get("chapter") == ch_title:
+            filename = fname
+            break
+
+    if not filename:
+        prefix = "iesc1" if cls_int == 9 else "jesc1"
+        filename = f"{prefix}{ch_num:02d}.pdf"
+
+    pdf_path = os.path.join("data", f"class{cls_int}", filename)
+    clean_pdf_path = pdf_path.replace("\\", "/")
+    slug = ch_title.lower().replace(" ", "_").replace("–", "-").replace(":", "")
+    chapter_id = f"class{cls_int}_science_{slug}"
+    static_url = f"app/static/class{cls_int}/{filename}"
+
+    return {
+        "class_level": cls_int,
+        "chapter_id": chapter_id,
+        "chapter_number": ch_num,
+        "chapter_name": ch_title,
+        "filename": filename,
+        "pdf_path": clean_pdf_path,
+        "static_url": static_url,
+        "exists": os.path.isfile(pdf_path),
+    }
+
+
+# Automatically ensure static PDF directory is ready for Streamlit static serving
+try:
+    ensure_static_assets()
+except Exception as _e:
+    logger.warning(f"Static assets initialization warning: {_e}")

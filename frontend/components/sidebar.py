@@ -48,34 +48,35 @@ def render_sidebar() -> Tuple[str, str, str, str]:
                 "Student ID",
                 value=st.session_state.get("student_id", "student_001"),
                 help="Tracks your personal SWAT analysis and quiz metrics.",
+                key="sidebar_student_id_input",
             )
-            st.session_state.student_id = student_id
+            st.session_state.student_id = student_id.strip() or "student_001"
 
-            # 3. Grade & Focus Chapter
-            st.markdown("#### Grade and Focus")
-            grade_options = ["All Classes", "Class 9", "Class 10"]
-            current_grade_idx = (
-                grade_options.index(st.session_state.selected_class)
-                if st.session_state.get("selected_class") in grade_options
-                else 0
+            # 3. Class & Focus Chapter
+            st.markdown("#### Class & Focus")
+            from frontend.state import get_student_class_level, set_student_class_level
+            curr_cls = get_student_class_level()
+            class_options = ["Class 10", "Class 9"]
+            curr_cls_idx = 0 if curr_cls == 10 else 1
+            selected_class_label = st.radio(
+                "Class",
+                class_options,
+                index=curr_cls_idx,
+                key="sidebar_class_radio",
+                help="Filters NCERT textbook retrieval to Class 10 or Class 9.",
             )
-            selected_class = st.selectbox(
-                "Target Grade",
-                grade_options,
-                index=current_grade_idx,
-                help="Filters NCERT textbook retrieval to Class 9 or Class 10.",
-            )
-            st.session_state.selected_class = selected_class
+            target_cls_int = 10 if selected_class_label == "Class 10" else 9
+            if target_cls_int != curr_cls:
+                set_student_class_level(target_cls_int)
+                st.rerun()
 
             # Focus Chapter
             chapter_options = ["All Chapters"]
-            if selected_class in ("Class 9", "Class 10"):
-                cls_int = 9 if selected_class == "Class 9" else 10
-                chs = curriculum_service.get_chapters_for_grade(cls_int)
-                for ch in chs:
-                    chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
+            chs = curriculum_service.get_chapters_for_grade(target_cls_int)
+            for ch in chs:
+                chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
 
-            selected_chapter = st.selectbox("Focus Chapter (Optional)", chapter_options)
+            selected_chapter = st.selectbox("Focus Chapter (Optional)", chapter_options, key="sidebar_ch_select")
             st.session_state.selected_chapter = selected_chapter
 
             st.divider()

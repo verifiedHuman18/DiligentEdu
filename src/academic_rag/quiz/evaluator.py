@@ -25,12 +25,13 @@ def submit_and_grade_quiz(
     clean_student_id = str(student_id).strip()
 
     chapter = str(quiz_data.get("chapter", "Science"))
+    class_level = int(quiz_data.get("class_level", 10))
 
     # Step 1: Pre-submission SWAT snapshot
     prev_chapter_score = None
     prev_status = "not_attempted"
     try:
-        prev_swat = get_student_swat(clean_student_id, db_path=db_path)
+        prev_swat = get_student_swat(clean_student_id, class_level=class_level, db_path=db_path)
         ch_info = prev_swat.get("chapter_breakdown", {}).get(chapter)
         if ch_info:
             prev_chapter_score = ch_info.get("score")
@@ -90,7 +91,7 @@ def submit_and_grade_quiz(
     new_status = "average"
     new_swat = {}
     try:
-        new_swat = get_student_swat(clean_student_id, db_path=db_path)
+        new_swat = get_student_swat(clean_student_id, class_level=class_level, db_path=db_path)
         new_ch_info = new_swat.get("chapter_breakdown", {}).get(chapter)
         if new_ch_info:
             new_chapter_score = new_ch_info.get("score", int(round(percentage)))

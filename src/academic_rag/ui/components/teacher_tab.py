@@ -5,14 +5,15 @@ import streamlit as st
 from src.academic_rag.analytics.teacher import get_teacher_student_profile
 
 
-def render_teacher_tab(student_id: str):
-    """Renders Teacher Master Analytics and Early-Warning Diagnostics Dashboard."""
+def render_teacher_tab(student_id: str, class_level: Optional[int] = None):
+    """Renders Teacher Master Analytics and Early-Warning Diagnostics Dashboard with class isolation."""
+    class_label = f" [Class {class_level}]" if class_level else ""
     st.markdown("### 👨‍🏫 Teacher Analytics & Early-Warning Dashboard")
     st.caption(
-        f"Detailed pedagogical analysis and transparent early-warning diagnostic indicators for **`{student_id}`**."
+        f"Detailed pedagogical analysis and transparent early-warning diagnostic indicators for **`{student_id}`**{class_label}."
     )
 
-    prof = get_teacher_student_profile(student_id)
+    prof = get_teacher_student_profile(student_id, class_level=class_level)
 
     if not prof.get("has_data"):
         st.info(
@@ -94,9 +95,9 @@ def render_teacher_tab(student_id: str):
 
     st.divider()
 
-    # 4. Strength / Weakness Summary
-    st.markdown("#### 🎯 Teacher SWAT Diagnostic")
-    ts_col1, ts_col2, ts_col3 = st.columns(3)
+    # 4. Strength / Weakness Summary (4-Category SWAT)
+    st.markdown("#### 🎯 Chapter Mastery (4-Category SWAT)")
+    ts_col1, ts_col2, ts_col3, ts_col4 = st.columns(4)
     with ts_col1:
         st.markdown("##### 🟢 Strengths (≥ 70%)")
         if st_swat.get("strengths"):
@@ -106,7 +107,7 @@ def render_teacher_tab(student_id: str):
             st.caption("None yet.")
 
     with ts_col2:
-        st.markdown("##### 🟡 Average Topics (50%–69%)")
+        st.markdown("##### 🟡 Average (50%–69%)")
         if st_swat.get("average_topics"):
             for a in st_swat["average_topics"]:
                 st.info(f"**{a['chapter']}** ({a['score']}%)")
@@ -114,28 +115,49 @@ def render_teacher_tab(student_id: str):
             st.caption("None.")
 
     with ts_col3:
-        st.markdown("##### 🔴 Weak Topics (< 50%)")
+        st.markdown("##### 🔴 Weak (< 50%)")
         if st_swat.get("weak_topics"):
             for w in st_swat["weak_topics"]:
-                st.error(f"**{w['chapter']}** ({w['score']}%)")
+                st.warning(f"**{w['chapter']}** ({w['score']}%)")
+        else:
+            st.caption("None.")
+
+    with ts_col4:
+        st.markdown("##### ⚪ Unattempted")
+        if st_swat.get("unattempted_topics"):
+            for u in st_swat["unattempted_topics"]:
+                st.markdown(f"- {u['chapter']}")
         else:
             st.caption("None.")
 
     st.divider()
 
-    # 5. Chronological Quiz Log
-    st.markdown("#### 🕒 Chronological Quiz History Log")
-    if st_history:
-        hist_display = []
-        for row in reversed(st_history):
-            hist_display.append(
-                {
-                    "Date": row["date"],
-                    "Chapter": row["chapter"],
-                    "Difficulty": row["difficulty"],
-                    "Score": row["score_display"],
-                    "Questions": f"{row['score']}/{row['total_questions']}",
-                    "Timestamp (UTC)": row["timestamp"][:19].replace("T", " "),
-                }
+    # 5. Recommended Focus & Action-Plan Statistics
+    st.markdown("#### 📋 Recommended Focus & Action-Plan Statistics")
+    st_plan = prof.get("action_plan", {})
+    if st_plan.get("actions"):
+        for act in st_plan["actions"][:4]:
+            p_badge = act.get("priority_icon", "⚪")
+            p_label = act.get("priority_label", "RECOMMENDATION")
+            score_str = f"{act['score']}%" if act["score"] is not None else "Not attempted"
+            attempts_str = f"{act.get('attempts', 0)} attempt{'s' if act.get('attempts', 0) != 1 else ''}"
+            recent_str = f" | Trajectory: {act.get('recent_performance')}" if act.get("attempts", 0) > 1 else ""
+            st.info(
+                f"**{p_badge} {p_label} (Priority {act['priority_rank']}): {act['chapter']}**  \n"
+                f"Score: **{score_str}** | Attempts: **{attempts_str}**{recent_str}  \n"
+                f"*{act['reason']}*"
             )
-        st.dataframe(hist_display, use_container_width=True)
+
+    st.divider()
+
+    # 6. Chronological Quiz Log
+    st.markdown("#### 📝 Chronological Quiz Log")
+    if st_history:
+        for q in reversed(st_history):
+            st.markdown(
+                f"- **{q['date']}** | Chapter: **{q['chapter']}** | "
+                f"Score: **{q['score']}/{q['total_questions']}** ({q['score_display']}) | "
+                f"Difficulty: `{q['difficulty']}`"
+            )
+    else:
+        st.caption("No quiz attempts recorded.")

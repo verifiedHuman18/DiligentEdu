@@ -14,7 +14,9 @@ if PROJECT_ROOT not in sys.path:
 from src.academic_rag.analytics.swat import (
     calculate_student_swat,
     format_swat_report,
+    get_attempted_chapters,
     get_student_swat,
+    get_unattempted_chapters,
 )
 from src.academic_rag.config import AVERAGE_THRESHOLD, DEFAULT_DB_PATH, STRONG_THRESHOLD
 
@@ -22,6 +24,8 @@ __all__ = [
     "get_student_swat",
     "calculate_student_swat",
     "format_swat_report",
+    "get_attempted_chapters",
+    "get_unattempted_chapters",
     "STRONG_THRESHOLD",
     "AVERAGE_THRESHOLD",
     "DEFAULT_DB_PATH",
