@@ -2,7 +2,7 @@
 
 import unittest
 
-from src.academic_rag.scholarships.eligibility import evaluate_scholarship, match_scholarships
+from src.academic_rag.scholarships.eligibility import match_scholarships
 from src.academic_rag.scholarships.models import EligibilityStatus, StudentScholarshipProfile
 from src.academic_rag.scholarships.service import (
     get_available_scholarships,
@@ -21,17 +21,26 @@ class TestScholarshipSourceIntegrity(unittest.TestCase):
         """Phase 18: Guarantee every single scholarship has an authentic official source URL."""
         self.assertGreater(len(self.scholarships), 0)
         for s in self.scholarships:
-            self.assertIsNotNone(s.official.source_url, f"Scholarship {s.id} is missing official source URL")
+            self.assertIsNotNone(
+                s.official.source_url, f"Scholarship {s.id} is missing official source URL"
+            )
             self.assertTrue(
-                s.official.source_url.startswith("https://") or s.official.source_url.startswith("http://"),
+                s.official.source_url.startswith("https://")
+                or s.official.source_url.startswith("http://"),
                 f"Scholarship {s.id} source_url '{s.official.source_url}' is not a valid HTTP URL",
             )
 
     def test_every_scholarship_has_academic_year_and_timestamp(self):
         """Phase 18: Guarantee academic year and scraped timestamp integrity."""
         for s in self.scholarships:
-            self.assertEqual(s.academic_year, self.academic_year, f"Scheme {s.id} does not match active academic year")
-            self.assertIsNotNone(s.metadata.scraped_at, f"Scheme {s.id} missing scraped_at timestamp")
+            self.assertEqual(
+                s.academic_year,
+                self.academic_year,
+                f"Scheme {s.id} does not match active academic year",
+            )
+            self.assertIsNotNone(
+                s.metadata.scraped_at, f"Scheme {s.id} missing scraped_at timestamp"
+            )
             self.assertTrue(len(s.metadata.scraped_at) > 0)
 
     def test_detail_view_never_omits_official_source(self):
@@ -57,7 +66,12 @@ class TestScholarshipSourceIntegrity(unittest.TestCase):
         matches = match_scholarships(failing_profile, academic_year=self.academic_year)
         for m in matches:
             # If the scheme has an income limit <= 350000, it MUST NOT be likely_match
-            if m.scholarship_id in ("nmmss", "pm-yasasvi-pre-matric", "pre-matric-sc", "pre-matric-st"):
+            if m.scholarship_id in (
+                "nmmss",
+                "pm-yasasvi-pre-matric",
+                "pre-matric-sc",
+                "pre-matric-st",
+            ):
                 self.assertEqual(
                     m.status,
                     EligibilityStatus.DOES_NOT_MATCH,

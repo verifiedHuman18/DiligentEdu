@@ -10,21 +10,20 @@ from typing import Any, Dict, List, Optional, Union
 
 from src.academic_rag.scholarships.eligibility import (
     evaluate_scholarship,
+)
+from src.academic_rag.scholarships.eligibility import (
     match_scholarships as run_match_scholarships,
 )
 from src.academic_rag.scholarships.models import (
-    EligibilityStatus,
     MatchExplanation,
     MatchResult,
     StructuredScholarship,
     StudentScholarshipProfile,
-    get_scholarship_primary_url,
 )
-from src.academic_rag.scholarships.scraper import NSPCatalogueScraper
-from src.academic_rag.scholarships.storage import ScholarshipStorage
-
 from src.academic_rag.scholarships.qa import ask_scholarship_question as run_ask_question
+from src.academic_rag.scholarships.scraper import NSPCatalogueScraper
 from src.academic_rag.scholarships.search import search_scholarships as run_search_scholarships
+from src.academic_rag.scholarships.storage import ScholarshipStorage
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +41,7 @@ def search_scholarships(
     """Search scholarships across fields."""
     store = storage or _default_storage
     from src.academic_rag.scholarships.search import ScholarshipSearchEngine
+
     engine = ScholarshipSearchEngine(storage=store)
     return run_search_scholarships(
         query=query,
@@ -62,6 +62,7 @@ def ask_question(
     """Ask a question about scholarships."""
     store = storage or _default_storage
     from src.academic_rag.scholarships.qa import ScholarshipQAEngine
+
     engine = ScholarshipQAEngine(storage=store)
     return run_ask_question(
         question=question,
@@ -172,13 +173,21 @@ def get_scholarship_detail_view(
     # If no profile was provided or matched list is empty, construct general criteria bullets
     if not why_it_matches:
         if scheme.eligibility.classes:
-            why_it_matches.append(f"✓ Target Classes: {', '.join([f'Class {c}' for c in scheme.eligibility.classes])}")
+            why_it_matches.append(
+                f"✓ Target Classes: {', '.join([f'Class {c}' for c in scheme.eligibility.classes])}"
+            )
         if scheme.eligibility.income_max:
-            why_it_matches.append(f"✓ Income Ceiling: Annual family income ≤ ₹{scheme.eligibility.income_max:,}")
+            why_it_matches.append(
+                f"✓ Income Ceiling: Annual family income ≤ ₹{scheme.eligibility.income_max:,}"
+            )
         if scheme.eligibility.categories:
-            why_it_matches.append(f"✓ Eligible Categories: {', '.join(scheme.eligibility.categories)}")
+            why_it_matches.append(
+                f"✓ Eligible Categories: {', '.join(scheme.eligibility.categories)}"
+            )
         else:
-            why_it_matches.append("✓ Open to students of all categories (General, OBC, SC, ST, Minorities)")
+            why_it_matches.append(
+                "✓ Open to students of all categories (General, OBC, SC, ST, Minorities)"
+            )
 
     if not potentially_required:
         if scheme.merit_requirements.required:
@@ -189,15 +198,22 @@ def get_scholarship_detail_view(
             potentially_required.append(
                 f"⚠ Institution requirement: Must study in a recognized {', '.join(scheme.institution_requirements)} school"
             )
-        potentially_required.append("⚠ Valid One Time Registration (OTR) on National Scholarship Portal")
+        potentially_required.append(
+            "⚠ Valid One Time Registration (OTR) on National Scholarship Portal"
+        )
 
     # Application window definition for AY 2026-27
     application_window = "01 Jun 2026 – 31 Aug 2026"
 
     # Source Integrity check: Guarantee official source URL exists
     source_url = scheme.official.source_url or "https://scholarships.gov.in"
-    spec_url = scheme.official.specification_url or f"https://scholarships.gov.in/public/schemeGuidelines/{scheme.id}_guidelines.pdf"
-    faq_url = scheme.official.faq_url or f"https://scholarships.gov.in/public/faq/{scheme.id}_faq.html"
+    spec_url = (
+        scheme.official.specification_url
+        or f"https://scholarships.gov.in/public/schemeGuidelines/{scheme.id}_guidelines.pdf"
+    )
+    faq_url = (
+        scheme.official.faq_url or f"https://scholarships.gov.in/public/faq/{scheme.id}_faq.html"
+    )
 
     return {
         "id": scheme.id,
@@ -206,8 +222,12 @@ def get_scholarship_detail_view(
         "academic_year": scheme.academic_year,
         "status": match_status,
         "status_icon": status_icon,
-        "amount_per_annum": scheme.financial_assistance.amount_per_annum if scheme.financial_assistance else None,
-        "disbursement_frequency": scheme.financial_assistance.disbursement_frequency if scheme.financial_assistance else "Annual",
+        "amount_per_annum": scheme.financial_assistance.amount_per_annum
+        if scheme.financial_assistance
+        else None,
+        "disbursement_frequency": scheme.financial_assistance.disbursement_frequency
+        if scheme.financial_assistance
+        else "Annual",
         "why_it_matches": why_it_matches,
         "potentially_required": potentially_required,
         "application_window": application_window,

@@ -131,7 +131,12 @@ def build_rules_for_scholarship(scholarship: StructuredScholarship) -> List[Elig
             EligibilityRule(
                 field="occupational_background",
                 operator="in",
-                value=["Sanitation Worker", "Waste Picker", "Tanner / Flayer", "Hazardous Occupations"],
+                value=[
+                    "Sanitation Worker",
+                    "Waste Picker",
+                    "Tanner / Flayer",
+                    "Hazardous Occupations",
+                ],
                 mandatory=True,
                 description="Ward of parents engaged in sanitation, waste-picking, or hazardous occupations",
             )
@@ -153,7 +158,10 @@ def evaluate_rule(
 
     # If student profile hasn't provided this field yet
     if student_val is None:
-        return "unknown", f"{rule.field.replace('_', ' ').title()} is not specified in profile ({rule.description})"
+        return (
+            "unknown",
+            f"{rule.field.replace('_', ' ').title()} is not specified in profile ({rule.description})",
+        )
 
     # Class level evaluation
     if rule.operator == "in":
@@ -167,12 +175,24 @@ def evaluate_rule(
                     for allowed in rule.value
                 )
                 if matched:
-                    return "matched", f"Your {rule.field.replace('_', ' ')} ({student_val}) matches eligible types ({', '.join(rule.value)})."
-                return "unmatched", f"Your {rule.field.replace('_', ' ')} ({student_val}) is not among eligible types ({', '.join(rule.value)})."
+                    return (
+                        "matched",
+                        f"Your {rule.field.replace('_', ' ')} ({student_val}) matches eligible types ({', '.join(rule.value)}).",
+                    )
+                return (
+                    "unmatched",
+                    f"Your {rule.field.replace('_', ' ')} ({student_val}) is not among eligible types ({', '.join(rule.value)}).",
+                )
 
             if student_val in rule.value:
-                return "matched", f"Your {rule.field.replace('_', ' ')} ({student_val}) is eligible for this scheme."
-            return "unmatched", f"Your {rule.field.replace('_', ' ')} ({student_val}) does not meet the required classes ({', '.join(map(str, rule.value))})."
+                return (
+                    "matched",
+                    f"Your {rule.field.replace('_', ' ')} ({student_val}) is eligible for this scheme.",
+                )
+            return (
+                "unmatched",
+                f"Your {rule.field.replace('_', ' ')} ({student_val}) does not meet the required classes ({', '.join(map(str, rule.value))}).",
+            )
         return "unknown", "Invalid rule definition"
 
     # Numeric inequality (Income <= ceiling)
@@ -181,8 +201,14 @@ def evaluate_rule(
             val_num = float(student_val)
             limit_num = float(rule.value)
             if val_num <= limit_num:
-                return "matched", f"Your annual family income (₹{int(val_num):,}) is within the ceiling of ₹{int(limit_num):,}."
-            return "unmatched", f"Your annual family income (₹{int(val_num):,}) exceeds the maximum limit of ₹{int(limit_num):,}."
+                return (
+                    "matched",
+                    f"Your annual family income (₹{int(val_num):,}) is within the ceiling of ₹{int(limit_num):,}.",
+                )
+            return (
+                "unmatched",
+                f"Your annual family income (₹{int(val_num):,}) exceeds the maximum limit of ₹{int(limit_num):,}.",
+            )
         except (ValueError, TypeError):
             return "unknown", "Could not parse income value"
 
@@ -192,8 +218,14 @@ def evaluate_rule(
             val_num = float(student_val)
             limit_num = float(rule.value)
             if val_num >= limit_num:
-                return "matched", f"Your academic score ({val_num:.1f}%) meets the required threshold of {limit_num:.1f}%."
-            return "unmatched", f"Your academic score ({val_num:.1f}%) is below the required {limit_num:.1f}%."
+                return (
+                    "matched",
+                    f"Your academic score ({val_num:.1f}%) meets the required threshold of {limit_num:.1f}%.",
+                )
+            return (
+                "unmatched",
+                f"Your academic score ({val_num:.1f}%) is below the required {limit_num:.1f}%.",
+            )
         except (ValueError, TypeError):
             return "unknown", "Could not parse academic score"
 
@@ -208,12 +240,27 @@ def evaluate_rule(
                 return "matched", f"Your category ({student_val}) is eligible for this scheme."
 
             # Check for Minorities sub-identities
-            minority_groups = ["MUSLIM", "CHRISTIAN", "SIKH", "BUDDHIST", "JAIN", "PARSI", "MINORITY", "MINORITIES"]
+            minority_groups = [
+                "MUSLIM",
+                "CHRISTIAN",
+                "SIKH",
+                "BUDDHIST",
+                "JAIN",
+                "PARSI",
+                "MINORITY",
+                "MINORITIES",
+            ]
             if "MINORITY" in cand_cats or "MINORITIES" in cand_cats:
                 if student_cat in minority_groups:
-                    return "matched", f"Your community ({student_val}) is eligible under the Minority scheme."
+                    return (
+                        "matched",
+                        f"Your community ({student_val}) is eligible under the Minority scheme.",
+                    )
 
-            return "unmatched", f"Your category ({student_val}) is not covered by this scheme (Requires: {', '.join(rule.value)})."
+            return (
+                "unmatched",
+                f"Your category ({student_val}) is not covered by this scheme (Requires: {', '.join(rule.value)}).",
+            )
         return "unknown", "Invalid category rule"
 
     # Gender equality
@@ -226,7 +273,10 @@ def evaluate_rule(
     elif rule.operator == "boolean_eq":
         if bool(student_val) == bool(rule.value):
             return "matched", "Disability eligibility requirement satisfied."
-        return "unmatched", "This scheme is exclusively for students with certified disabilities (≥40%)."
+        return (
+            "unmatched",
+            "This scheme is exclusively for students with certified disabilities (≥40%).",
+        )
 
     return "unknown", f"Unhandled operator {rule.operator}"
 
@@ -250,7 +300,9 @@ def generate_template_explanation(
 
     # Add special merit/exam warnings if applicable
     if scholarship.merit_requirements.exam_required:
-        verification_needed.append("⚠ Selection requires qualifying the State-level examination (e.g. MAT / SAT).")
+        verification_needed.append(
+            "⚠ Selection requires qualifying the State-level examination (e.g. MAT / SAT)."
+        )
 
     if scholarship.institution_requirements:
         verification_needed.append(
@@ -323,7 +375,9 @@ def evaluate_scholarship(
         score = 90.0 + (len(matched_reasons) / total_rules) * 10.0
 
     # Boost score slightly if financial assistance is high
-    amount = scholarship.financial_assistance.amount_per_annum if scholarship.financial_assistance else 0
+    amount = (
+        scholarship.financial_assistance.amount_per_annum if scholarship.financial_assistance else 0
+    )
     if amount and eligibility_state != EligibilityStatus.DOES_NOT_MATCH:
         score += min(amount / 5000.0, 5.0)
 
@@ -342,14 +396,18 @@ def evaluate_scholarship(
         status=eligibility_state,
         status_icon=status_icon,
         provider=scholarship.provider,
-        amount_per_annum=scholarship.financial_assistance.amount_per_annum if scholarship.financial_assistance else None,
+        amount_per_annum=scholarship.financial_assistance.amount_per_annum
+        if scholarship.financial_assistance
+        else None,
         matched_rules=matched_reasons,
         unmatched_rules=unmatched_reasons,
         unknown_rules=unknown_reasons,
         score=round(score, 2),
         explanation=explanation,
         official_source_url=scholarship.official.source_url,
-        primary_url=scholarship.official.primary_url or scholarship.official.specification_url or scholarship.official.source_url,
+        primary_url=scholarship.official.primary_url
+        or scholarship.official.specification_url
+        or scholarship.official.source_url,
         specification_url=scholarship.official.specification_url,
         faq_url=scholarship.official.faq_url,
     )
@@ -412,7 +470,15 @@ def get_dynamic_questionnaire(
                 field_name="category",
                 label="What is your social / reservation category?",
                 question_type="select",
-                options=["General", "OBC", "SC", "ST", "EBC", "DNT", "Minority (Muslim/Sikh/Christian/Jain/Buddhist/Parsi)"],
+                options=[
+                    "General",
+                    "OBC",
+                    "SC",
+                    "ST",
+                    "EBC",
+                    "DNT",
+                    "Minority (Muslim/Sikh/Christian/Jain/Buddhist/Parsi)",
+                ],
                 help_text="Several NSP schemes are targeted to specific categories to promote equity.",
                 priority=1,
             )
@@ -438,7 +504,13 @@ def get_dynamic_questionnaire(
                 field_name="school_type",
                 label="What type of school do you attend?",
                 question_type="select",
-                options=["Government School", "Government-aided School", "Local Body / Municipal School", "Recognized Private School", "Top Class School"],
+                options=[
+                    "Government School",
+                    "Government-aided School",
+                    "Local Body / Municipal School",
+                    "Recognized Private School",
+                    "Top Class School",
+                ],
                 help_text="Schemes like NMMSS and PM-YASASVI specify government or aided institutions.",
                 priority=2,
             )
@@ -477,8 +549,11 @@ def match_scholarships(
         all_schemes = db_storage.load_structured_catalogue(academic_year=academic_year)
 
         if not all_schemes:
-            logger.warning(f"No structured scholarships found for AY {academic_year}. Attempting to run scraper pipeline...")
+            logger.warning(
+                f"No structured scholarships found for AY {academic_year}. Attempting to run scraper pipeline..."
+            )
             from src.academic_rag.scholarships.scraper import NSPCatalogueScraper
+
             scraper = NSPCatalogueScraper(storage=db_storage)
             scraper.run(academic_year=academic_year)
             all_schemes = db_storage.load_structured_catalogue(academic_year=academic_year)

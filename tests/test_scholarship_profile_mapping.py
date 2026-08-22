@@ -3,7 +3,6 @@
 import unittest
 
 from src.academic_rag.scholarships.models import (
-    StudentScholarshipProfile,
     compute_profile_signature,
     normalize_student_profile,
 )
@@ -46,7 +45,9 @@ class TestScholarshipProfileMapping(unittest.TestCase):
 
     def test_category_normalization(self):
         """Phase 4: Test category cleanup from dropdown display text."""
-        p1 = normalize_student_profile({"category": "Minorities (Muslim/Christian/Sikh/Jain/Buddhist/Parsi)"})
+        p1 = normalize_student_profile(
+            {"category": "Minorities (Muslim/Christian/Sikh/Jain/Buddhist/Parsi)"}
+        )
         self.assertEqual(p1.category, "Minorities")
 
         p2 = normalize_student_profile({"category": "OBC"})
@@ -69,9 +70,15 @@ class TestScholarshipProfileMapping(unittest.TestCase):
 
     def test_profile_signature_determinism(self):
         """Phase 10: Verify profile signature hashing and sensitivity."""
-        p_a = normalize_student_profile({"class_level": 10, "family_income": 180000, "category": "OBC"})
-        p_b = normalize_student_profile({"class_level": 10, "family_income": 180000, "category": "OBC"})
-        p_c = normalize_student_profile({"class_level": 10, "family_income": 500000, "category": "OBC"})
+        p_a = normalize_student_profile(
+            {"class_level": 10, "family_income": 180000, "category": "OBC"}
+        )
+        p_b = normalize_student_profile(
+            {"class_level": 10, "family_income": 180000, "category": "OBC"}
+        )
+        p_c = normalize_student_profile(
+            {"class_level": 10, "family_income": 500000, "category": "OBC"}
+        )
 
         sig_a = compute_profile_signature(p_a)
         sig_b = compute_profile_signature(p_b)

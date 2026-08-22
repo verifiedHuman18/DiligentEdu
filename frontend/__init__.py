@@ -13,6 +13,7 @@ from frontend.components import (
 from frontend.screens import (
     render_chapter_screen,
     render_home_screen,
+    render_login_screen,
     render_quiz_screen,
     render_scholarships_screen,
     render_settings_screen,
@@ -20,7 +21,15 @@ from frontend.screens import (
     render_teacher_screen,
     render_tutor_screen,
 )
-from frontend.state import get_state, init_session_state, navigate_to, set_state
+from frontend.state import (
+    get_state,
+    get_user_role,
+    init_session_state,
+    logout,
+    navigate_to,
+    set_state,
+    set_user_role,
+)
 from frontend.styles import THEMES, get_current_theme, inject_custom_css
 
 __all__ = [
@@ -31,6 +40,9 @@ __all__ = [
     "get_state",
     "set_state",
     "navigate_to",
+    "get_user_role",
+    "set_user_role",
+    "logout",
     "render_navbar",
     "render_back_to_home",
     "render_header",
@@ -39,6 +51,7 @@ __all__ = [
     "render_metric_card",
     "render_citation_box",
     "get_status_badge_html",
+    "render_login_screen",
     "render_chapter_screen",
     "render_home_screen",
     "render_tutor_screen",

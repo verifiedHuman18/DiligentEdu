@@ -8,7 +8,7 @@ Provides a single, cohesive scholarship experience on one page:
 """
 
 import textwrap
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import streamlit as st
 
@@ -17,13 +17,10 @@ from frontend.components.scholarship_official_info import render_official_schola
 from frontend.state import get_student_class_level
 from src.academic_rag.scholarships.models import (
     EligibilityStatus,
-    StudentScholarshipProfile,
-    compute_profile_signature,
     normalize_student_profile,
 )
 from src.academic_rag.scholarships.service import (
     ask_question,
-    get_available_scholarships,
     match_scholarships,
 )
 
@@ -34,7 +31,6 @@ def render_scholarships_screen() -> None:
     render_back_to_home("scholarships")
 
     class_level = get_student_class_level()
-    student_id = st.session_state.get("student_id", "student_001")
 
     # Header section
     st.markdown(
@@ -129,10 +125,13 @@ def _render_profile_section(class_level: int) -> None:
                     "Minorities (Muslim/Christian/Sikh/Jain/Buddhist/Parsi)",
                     "EBC / DNT (Economically Backward / De-Notified Tribes)",
                 ]
+                cat_idx = next(
+                    (i for i, c in enumerate(cat_opts) if saved_cat.lower() in c.lower()), 1
+                )
                 sel_cat = st.selectbox(
                     "Social / Reservation Category:",
                     options=cat_opts,
-                    index=1,
+                    index=cat_idx,
                     key="p_input_cat",
                 )
 
@@ -144,10 +143,13 @@ def _render_profile_section(class_level: int) -> None:
                     "Recognized Private School",
                     "Top Class School (TCS)",
                 ]
+                school_idx = next(
+                    (i for i, s in enumerate(school_opts) if saved_school.lower() in s.lower()), 0
+                )
                 sel_school = st.selectbox(
                     "School Management Type:",
                     options=school_opts,
-                    index=0,
+                    index=school_idx,
                     key="p_input_school",
                 )
 
@@ -155,10 +157,11 @@ def _render_profile_section(class_level: int) -> None:
                     "No (General Ability)",
                     "Yes (Certified ≥40% Disability with UDID)",
                 ]
+                pwd_idx = 1 if "yes" in str(saved_pwd).lower() else 0
                 sel_pwd = st.selectbox(
                     "Person with Benchmark Disability (PwD):",
                     options=pwd_opts,
-                    index=0,
+                    index=pwd_idx,
                     key="p_input_pwd",
                 )
 
@@ -240,18 +243,36 @@ def _render_matches_section(class_level: int) -> None:
 
     # Optional expandable section for non-matching schemes
     if does_not:
-        with st.expander(f"🔴 Show {len(does_not)} Non-matching Schemes (Click to inspect criteria)"):
+        with st.expander(
+            f"🔴 Show {len(does_not)} Non-matching Schemes (Click to inspect criteria)"
+        ):
             for m in does_not:
                 _render_scholarship_card(m)
 
 
 def _render_scholarship_card(match: Any) -> None:
     """Phases 1, 3, 6: Render a focused, purely informational scholarship result card without per-card buttons."""
-    amt_str = f"₹{match.amount_per_annum:,} / year" if match.amount_per_annum else "Tuition Waiver / Allowances"
+    amt_str = (
+        f"₹{match.amount_per_annum:,} / year"
+        if match.amount_per_annum
+        else "Tuition Waiver / Allowances"
+    )
     status_label = match.status.replace("_", " ").title()
 
-    badge_color = "#2e7d32" if match.status == EligibilityStatus.LIKELY_MATCH else ("#f57c00" if match.status == EligibilityStatus.POSSIBLE_MATCH else "#d32f2f")
-    badge_bg = "rgba(46, 125, 50, 0.15)" if match.status == EligibilityStatus.LIKELY_MATCH else ("rgba(245, 124, 0, 0.15)" if match.status == EligibilityStatus.POSSIBLE_MATCH else "rgba(211, 47, 47, 0.15)")
+    badge_color = (
+        "#2e7d32"
+        if match.status == EligibilityStatus.LIKELY_MATCH
+        else ("#f57c00" if match.status == EligibilityStatus.POSSIBLE_MATCH else "#d32f2f")
+    )
+    badge_bg = (
+        "rgba(46, 125, 50, 0.15)"
+        if match.status == EligibilityStatus.LIKELY_MATCH
+        else (
+            "rgba(245, 124, 0, 0.15)"
+            if match.status == EligibilityStatus.POSSIBLE_MATCH
+            else "rgba(211, 47, 47, 0.15)"
+        )
+    )
 
     with st.container():
         st.markdown(
@@ -324,7 +345,9 @@ def _render_qa_section(class_level: int) -> None:
 
     col_btn, _ = st.columns([1, 4])
     with col_btn:
-        ask_clicked = st.button("Ask", type="primary", icon=":material/search:", key="btn_unified_ask")
+        ask_clicked = st.button(
+            "Ask", type="primary", icon=":material/search:", key="btn_unified_ask"
+        )
 
     # Inline response rendering (Phases 10 & 11)
     if (ask_clicked or selected_suggestion) and query_text.strip():
@@ -351,7 +374,7 @@ def _render_qa_section(class_level: int) -> None:
         )
 
         st.markdown(
-            f"""
+            """
             <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 1.4rem; margin-top: 0.5rem; line-height: 1.6;">
             """,
             unsafe_allow_html=True,

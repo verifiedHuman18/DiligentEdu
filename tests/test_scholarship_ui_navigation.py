@@ -7,12 +7,10 @@ from frontend.components.scholarship_official_info import (
 )
 from src.academic_rag.scholarships.models import (
     EligibilityStatus,
-    StudentScholarshipProfile,
     normalize_student_profile,
 )
 from src.academic_rag.scholarships.service import (
     ask_question,
-    get_available_scholarships,
     match_scholarships,
 )
 
@@ -29,20 +27,29 @@ class TestScholarshipUINavigation(unittest.TestCase):
 
     def test_match_card_is_informational_without_per_card_buttons(self):
         """Phases 1 & 3: Ensure match results produce structured rules without requiring per-card navigation actions."""
-        profile = normalize_student_profile({
-            "class_level": 10,
-            "family_income": 150000,
-            "category": "OBC",
-            "school_type": "Government School",
-            "academic_score": 75.0,
-        })
+        profile = normalize_student_profile(
+            {
+                "class_level": 10,
+                "family_income": 150000,
+                "category": "OBC",
+                "school_type": "Government School",
+                "academic_score": 75.0,
+            }
+        )
         matches = match_scholarships(profile)
         self.assertTrue(len(matches) > 0)
 
         for match in matches:
             # Card contains essential discovery intelligence
             self.assertIsNotNone(match.scholarship_name)
-            self.assertIn(match.status, [EligibilityStatus.LIKELY_MATCH, EligibilityStatus.POSSIBLE_MATCH, EligibilityStatus.DOES_NOT_MATCH])
+            self.assertIn(
+                match.status,
+                [
+                    EligibilityStatus.LIKELY_MATCH,
+                    EligibilityStatus.POSSIBLE_MATCH,
+                    EligibilityStatus.DOES_NOT_MATCH,
+                ],
+            )
             self.assertIsInstance(match.matched_rules, list)
             self.assertIsInstance(match.unmatched_rules, list)
             self.assertIsInstance(match.unknown_rules, list)
@@ -51,12 +58,16 @@ class TestScholarshipUINavigation(unittest.TestCase):
     def test_global_portal_link_presence_on_all_states(self):
         """Phases 9 & 10: The global authoritative portal section is decoupled from match count."""
         # Case A: Profile with multiple matches
-        matched_profile = normalize_student_profile({"class_level": 9, "family_income": 100000, "category": "OBC"})
+        matched_profile = normalize_student_profile(
+            {"class_level": 9, "family_income": 100000, "category": "OBC"}
+        )
         matches_a = match_scholarships(matched_profile)
         self.assertTrue(len(matches_a) > 0)
 
         # Case B: Profile with no likely matches (e.g., extremely high income)
-        high_income_profile = normalize_student_profile({"class_level": 9, "family_income": 9000000, "category": "General"})
+        high_income_profile = normalize_student_profile(
+            {"class_level": 9, "family_income": 9000000, "category": "General"}
+        )
         matches_b = match_scholarships(high_income_profile)
         likely_b = [m for m in matches_b if m.status == EligibilityStatus.LIKELY_MATCH]
         self.assertEqual(len(likely_b), 0)
@@ -81,8 +92,12 @@ class TestScholarshipUINavigation(unittest.TestCase):
 
     def test_unified_page_class_reactivity(self):
         """Phase 13 & 18 (Test 2): Switching Class 9 ↔ Class 10 re-runs matcher with new class level."""
-        profile_cls9 = normalize_student_profile({"class_level": 9, "family_income": 150000, "category": "OBC"})
-        profile_cls10 = normalize_student_profile({"class_level": 10, "family_income": 150000, "category": "OBC"})
+        profile_cls9 = normalize_student_profile(
+            {"class_level": 9, "family_income": 150000, "category": "OBC"}
+        )
+        profile_cls10 = normalize_student_profile(
+            {"class_level": 10, "family_income": 150000, "category": "OBC"}
+        )
 
         matches_9 = match_scholarships(profile_cls9)
         matches_10 = match_scholarships(profile_cls10)

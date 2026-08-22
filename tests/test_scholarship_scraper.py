@@ -1,6 +1,5 @@
 """Tests for NSP Scholarship Scraper and Ingestion Engine (Phase 17)."""
 
-import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory

@@ -37,7 +37,9 @@ def main() -> None:
     loaded = storage.load_structured_catalogue("2026-27")
     print(f"\nSuccessfully verified {len(loaded)} structured scholarships in local cache:")
     for s in loaded:
-        inc = f"<= Rs. {s.eligibility.income_max:,}" if s.eligibility.income_max else "No income cap"
+        inc = (
+            f"<= Rs. {s.eligibility.income_max:,}" if s.eligibility.income_max else "No income cap"
+        )
         print(f" - [{s.id}] {s.name} | Classes: {s.eligibility.classes} | Income: {inc}")
 
 

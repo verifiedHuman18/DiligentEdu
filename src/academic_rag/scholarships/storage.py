@@ -72,7 +72,9 @@ class ScholarshipStorage:
         logger.debug(f"Saved raw scholarship to {file_path}")
         return file_path
 
-    def load_raw(self, scheme_id: str, academic_year: str = "2026-27") -> Optional[RawScholarshipData]:
+    def load_raw(
+        self, scheme_id: str, academic_year: str = "2026-27"
+    ) -> Optional[RawScholarshipData]:
         """Load a single raw scholarship record by ID."""
         year_dir = self._get_raw_year_dir(academic_year)
         file_path = year_dir / f"{scheme_id}.json"
@@ -124,7 +126,9 @@ class ScholarshipStorage:
         logger.info(f"Saved {len(scholarships)} structured scholarships to {file_path}")
         return file_path
 
-    def load_structured_catalogue(self, academic_year: str = "2026-27") -> List[StructuredScholarship]:
+    def load_structured_catalogue(
+        self, academic_year: str = "2026-27"
+    ) -> List[StructuredScholarship]:
         """Load structured scholarships from local database without making any external requests."""
         file_path = self._get_structured_file_path(academic_year)
 
@@ -182,11 +186,18 @@ class ScholarshipStorage:
             if category and s.eligibility.categories:
                 cat_upper = category.strip().upper()
                 scheme_cats = [c.upper() for c in s.eligibility.categories]
-                if cat_upper not in scheme_cats and "ALL" not in scheme_cats and "GENERAL" not in scheme_cats:
+                if (
+                    cat_upper not in scheme_cats
+                    and "ALL" not in scheme_cats
+                    and "GENERAL" not in scheme_cats
+                ):
                     continue
 
             # Filter by disability
-            if is_disabled is False and s.eligibility.disability in ("REQUIRED", "REQUIRED_MIN_40_PERCENT"):
+            if is_disabled is False and s.eligibility.disability in (
+                "REQUIRED",
+                "REQUIRED_MIN_40_PERCENT",
+            ):
                 continue
 
             # Text query matching
@@ -196,7 +207,11 @@ class ScholarshipStorage:
                     q in s.name.lower()
                     or q in s.provider.lower()
                     or q in s.scheme_type.lower()
-                    or (s.financial_assistance and s.financial_assistance.details and q in s.financial_assistance.details.lower())
+                    or (
+                        s.financial_assistance
+                        and s.financial_assistance.details
+                        and q in s.financial_assistance.details.lower()
+                    )
                 )
                 if not matched:
                     continue

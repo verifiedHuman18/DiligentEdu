@@ -21,10 +21,12 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 from frontend import (
+    get_user_role,
     init_session_state,
     inject_custom_css,
     render_chapter_screen,
     render_home_screen,
+    render_login_screen,
     render_navbar,
     render_quiz_screen,
     render_scholarships_screen,
@@ -74,9 +76,16 @@ st.set_page_config(
 
 
 async def main():
-    """Main application orchestrator with screen-based routing and no sidebar."""
+    """Main application orchestrator with role selection portal and segregated routing."""
     init_session_state()
     inject_custom_css()
+
+    user_role = get_user_role()
+
+    # If no role is selected or current screen is login, render the Login / Role Selection Screen
+    if not user_role or st.session_state.get("current_screen") == "login":
+        render_login_screen()
+        return
 
     from frontend.state import get_student_class_level
 
@@ -89,25 +98,30 @@ async def main():
     # Top Navbar & Screen Selector
     active_screen = render_navbar(selected_class=selected_class, student_id=student_id)
 
-    # Route to dedicated screen
-    if active_screen == "home":
-        render_home_screen(selected_class=selected_class, student_id=student_id)
-    elif active_screen == "tutor":
-        await render_tutor_screen(selected_model, user_api_key, selected_class)
-    elif active_screen == "quiz":
-        render_quiz_screen(student_id, user_api_key, selected_model)
-    elif active_screen == "swat":
-        render_swat_screen(student_id, selected_class=selected_class)
-    elif active_screen == "teacher":
-        render_teacher_screen(student_id, selected_class=selected_class)
-    elif active_screen == "scholarships":
-        render_scholarships_screen()
-    elif active_screen == "chapter":
-        render_chapter_screen(student_id, user_api_key, selected_model)
-    elif active_screen == "settings":
-        render_settings_screen()
+    # Route based on User Role
+    if user_role == "teacher":
+        if active_screen == "settings":
+            render_settings_screen()
+        else:
+            render_teacher_screen(student_id, selected_class=selected_class)
     else:
-        render_home_screen(selected_class=selected_class, student_id=student_id)
+        # Student Persona Routing
+        if active_screen == "home":
+            render_home_screen(selected_class=selected_class, student_id=student_id)
+        elif active_screen == "tutor":
+            await render_tutor_screen(selected_model, user_api_key, selected_class)
+        elif active_screen == "quiz":
+            render_quiz_screen(student_id, user_api_key, selected_model)
+        elif active_screen == "swat":
+            render_swat_screen(student_id, selected_class=selected_class)
+        elif active_screen == "scholarships":
+            render_scholarships_screen()
+        elif active_screen == "chapter":
+            render_chapter_screen(student_id, user_api_key, selected_model)
+        elif active_screen == "settings":
+            render_settings_screen()
+        else:
+            render_home_screen(selected_class=selected_class, student_id=student_id)
 
 
 if __name__ == "__main__":

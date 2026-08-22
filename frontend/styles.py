@@ -960,6 +960,113 @@ hr {{
     padding: 20px 10px;
 }}
 
+/* Role Selection / Login Screen Styles */
+.login-hero {{
+    text-align: center;
+    max-width: 760px;
+    margin: 1.5rem auto 2.2rem auto;
+    padding: 0 1rem;
+}}
+
+.login-brand {{
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+}}
+
+.login-brand-accent {{
+    color: var(--md-primary);
+}}
+
+.login-tagline {{
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-bottom: 0.35rem;
+}}
+
+.login-subtagline {{
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}}
+
+.role-card-box {{
+    background: var(--surface-container-low);
+    border: 1.5px solid var(--border-outline-variant);
+    border-radius: 16px;
+    padding: 1.6rem 1.6rem 1.2rem 1.6rem;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}}
+
+.role-card-box:hover {{
+    border-color: var(--md-primary);
+    box-shadow: 0 8px 24px var(--card-shadow);
+}}
+
+.role-header {{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.85rem;
+}}
+
+.role-icon-circle {{
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}}
+
+.role-icon-student {{
+    background: var(--surface-container-highest);
+    color: var(--md-primary);
+}}
+
+.role-icon-teacher {{
+    background: var(--surface-container-highest);
+    color: var(--md-tertiary);
+}}
+
+.role-title {{
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}}
+
+.role-desc {{
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 1.2rem;
+    min-height: 48px;
+}}
+
+.login-form-card {{
+    background: var(--surface-container-low);
+    border: 1.5px solid var(--border-outline-variant);
+    border-radius: 16px;
+    padding: 2rem 2.2rem;
+    margin: 1rem auto 2rem auto;
+    box-shadow: 0 10px 30px var(--card-shadow);
+}}
+
+.login-form-header {{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-outline-variant);
+}}
+
 /* Hide unnecessary default Streamlit decoration and sidebar */
 #MainMenu, footer {{
     visibility: hidden;

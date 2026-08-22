@@ -13,7 +13,7 @@ Enables deterministic, zero-LLM keyword and field-level searching across:
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from src.academic_rag.scholarships.models import StructuredScholarship
 from src.academic_rag.scholarships.storage import ScholarshipStorage
@@ -31,13 +31,30 @@ class ScholarshipSearchEngine:
         """Construct field-specific text representations for a scholarship."""
         classes_str = " ".join([f"class {c} grade {c} {c}th" for c in s.eligibility.classes])
         cats_str = " ".join(s.eligibility.categories)
-        income_str = f"income ceiling ₹{s.eligibility.income_max:,} limit {s.eligibility.income_max}" if s.eligibility.income_max else "no income limit"
-        benefit_str = f"financial assistance ₹{s.financial_assistance.amount_per_annum:,} {s.financial_assistance.disbursement_frequency} {s.financial_assistance.details}" if s.financial_assistance else ""
-        merit_str = f"merit {s.merit_requirements.min_percentage}% exam {s.merit_requirements.details}" if s.merit_requirements.required else "direct admission"
+        income_str = (
+            f"income ceiling ₹{s.eligibility.income_max:,} limit {s.eligibility.income_max}"
+            if s.eligibility.income_max
+            else "no income limit"
+        )
+        benefit_str = (
+            f"financial assistance ₹{s.financial_assistance.amount_per_annum:,} {s.financial_assistance.disbursement_frequency} {s.financial_assistance.details}"
+            if s.financial_assistance
+            else ""
+        )
+        merit_str = (
+            f"merit {s.merit_requirements.min_percentage}% exam {s.merit_requirements.details}"
+            if s.merit_requirements.required
+            else "direct admission"
+        )
         inst_str = " ".join(s.institution_requirements)
 
         # Standard document requirements based on scheme type
-        docs = ["Aadhaar", "One Time Registration (OTR)", "Previous Year Marksheet", "Bank Account Details (Aadhaar linked)"]
+        docs = [
+            "Aadhaar",
+            "One Time Registration (OTR)",
+            "Previous Year Marksheet",
+            "Bank Account Details (Aadhaar linked)",
+        ]
         if s.eligibility.income_max:
             docs.append("Income Certificate (Tehsildar/Revenue Authority)")
         if s.eligibility.categories:
@@ -92,7 +109,9 @@ class ScholarshipSearchEngine:
                 continue
 
             doc_fields = self._get_scheme_search_document(s)
-            target_text = doc_fields.get(field.lower(), doc_fields["all"]) if field else doc_fields["all"]
+            target_text = (
+                doc_fields.get(field.lower(), doc_fields["all"]) if field else doc_fields["all"]
+            )
 
             # Match tokens
             score = 0

@@ -6,7 +6,7 @@ import streamlit as st
 
 from frontend.components.cards import render_metric_card, render_swat_columns
 from frontend.components.navigation import render_back_to_home
-from frontend.state import get_student_class_level, navigate_to
+from frontend.state import get_student_class_level
 from src.academic_rag.analytics.swat import get_student_swat
 from src.academic_rag.storage.repository import quiz_repository
 

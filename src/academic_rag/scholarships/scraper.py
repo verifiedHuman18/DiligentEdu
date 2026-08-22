@@ -101,7 +101,9 @@ class NSPCatalogueScraper:
                 )
                 discovered.append(cat_item)
 
-            logger.info(f"Discovered {len(discovered)} targeted school schemes for AY {academic_year}")
+            logger.info(
+                f"Discovered {len(discovered)} targeted school schemes for AY {academic_year}"
+            )
             return discovered
         except Exception as e:
             logger.error(f"Failed to discover schemes: {e}")
@@ -164,9 +166,15 @@ class NSPCatalogueScraper:
             "catalogue_text": catalogue_text,
             "specification_text": spec_text,
             "faq_text": faq_text,
-            "eligibility_summary": scheme_source_data.get("eligibility_criteria") if scheme_source_data else {},
-            "benefits_summary": scheme_source_data.get("financial_assistance") if scheme_source_data else {},
-            "inclusion_rationale": scheme_source_data.get("inclusion_rationale", "") if scheme_source_data else "",
+            "eligibility_summary": scheme_source_data.get("eligibility_criteria")
+            if scheme_source_data
+            else {},
+            "benefits_summary": scheme_source_data.get("financial_assistance")
+            if scheme_source_data
+            else {},
+            "inclusion_rationale": scheme_source_data.get("inclusion_rationale", "")
+            if scheme_source_data
+            else "",
         }
 
         return RawScholarshipData(
@@ -187,7 +195,9 @@ class NSPCatalogueScraper:
         force_refresh: bool = False,
     ) -> Dict[str, Any]:
         """Execute the full ingestion pipeline: Discovery -> Raw Storage -> Structured Synthesis."""
-        logger.info(f"Starting NSP scholarship refresh for AY {academic_year} (force={force_refresh})")
+        logger.info(
+            f"Starting NSP scholarship refresh for AY {academic_year} (force={force_refresh})"
+        )
 
         # Step 1: Discover schemes
         catalogue_items = self.discover_schemes()

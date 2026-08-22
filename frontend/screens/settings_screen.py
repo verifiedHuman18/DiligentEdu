@@ -15,13 +15,27 @@ from src.academic_rag.storage.repository import quiz_repository
 
 def render_settings_screen() -> None:
     """Renders the dedicated application configuration screen with compact sidebar navigation buttons and icons."""
-    # Top Navigation Back to Home (Phases 1-19)
-    render_back_to_home("settings")
+    from frontend.state import get_user_role, logout
+
+    role = get_user_role() or "student"
+
+    # Top Navigation Back button based on role
+    if role == "teacher":
+        if st.button(
+            "Back to Teacher Dashboard",
+            icon=":material/arrow_back:",
+            type="secondary",
+            key="btn_back_to_teacher_dashboard",
+            help="Return to Teacher Portal",
+        ):
+            navigate_to("teacher")
+            st.rerun()
+        st.write("")
+    else:
+        render_back_to_home("settings")
 
     st.markdown("### Settings")
-    st.caption(
-        "Manage API keys, student profile, AI model selection, theme, and local session data."
-    )
+    st.caption("Manage API keys, profile identity, AI model selection, theme, and session data.")
     st.write("")
 
     if "settings_tab" not in st.session_state:
@@ -29,20 +43,25 @@ def render_settings_screen() -> None:
 
     active_tab = st.session_state.settings_tab
 
+    profile_tab_label = "Teacher Profile" if role == "teacher" else "Student Profile"
+
     # 2-Column Layout: Left Compact Sidebar Navigation, Right Dedicated Panel
-    nav_col, content_col = st.columns([0.85, 3.15])
+    nav_col, content_col = st.columns([0.95, 3.05])
 
     with nav_col:
         tabs = [
             ("Authentication", "Authentication", ":material/key:"),
-            ("Student Profile", "Student Profile", ":material/person:"),
+            (profile_tab_label, "Profile", ":material/person:"),
             ("AI & Model", "AI & Model", ":material/smart_toy:"),
             ("Appearance", "Appearance", ":material/palette:"),
             ("Data & Storage", "Data & Storage", ":material/database:"),
         ]
 
         for label, tab_id, icon_name in tabs:
-            is_active = active_tab == tab_id
+            is_active = (active_tab == tab_id) or (
+                tab_id == "Profile"
+                and active_tab in ("Student Profile", "Teacher Profile", "Profile")
+            )
             btn_type = "primary" if is_active else "secondary"
             if st.button(
                 label,
@@ -53,6 +72,19 @@ def render_settings_screen() -> None:
             ):
                 st.session_state.settings_tab = tab_id
                 st.rerun()
+
+        st.write("")
+        st.divider()
+        if st.button(
+            "Switch Role",
+            icon=":material/logout:",
+            key="btn_settings_logout",
+            type="secondary",
+            use_container_width=True,
+            help="Sign out and return to the Role Selection portal.",
+        ):
+            logout()
+            st.rerun()
 
     with content_col:
         # Tab 1: Authentication
@@ -77,62 +109,98 @@ def render_settings_screen() -> None:
             else:
                 st.info("Please enter your Gemini API key to enable AI features.")
 
-        # Tab 2: Student Profile (Phase 3 & Phase 4)
-        elif active_tab == "Student Profile":
+        # Tab 2: Profile (Student or Teacher)
+        elif active_tab in ("Profile", "Student Profile", "Teacher Profile"):
             from frontend.state import get_student_class_level, set_student_class_level
 
-            st.markdown("#### Student Profile & Standard Settings")
-            st.caption(
-                "This is the master configuration for your student identity and NCERT textbook grade level."
-            )
-            st.write("")
-
-            student_id = st.text_input(
-                "Student Name / ID",
-                value=st.session_state.get("student_id", "student_001"),
-                help="Unique identifier for tracking your analytics and quiz attempts.",
-                key="settings_student_id_input",
-            )
-
-            st.write("")
-            curr_cls = get_student_class_level()
-            selected_cls_label = st.radio(
-                "Class / Standard",
-                options=["Class 9", "Class 10"],
-                index=0 if curr_cls == 9 else 1,
-                help="Master standard setting (Class 9 or Class 10). Only one standard is active at a time.",
-                key="settings_class_radio",
-            )
-            new_cls_int = 9 if selected_cls_label == "Class 9" else 10
-
-            st.write("")
-            chapter_options = ["All Chapters"]
-            chs = curriculum_service.get_chapters_for_grade(new_cls_int)
-            for ch in chs:
-                chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
-
-            curr_chapter = st.session_state.get("selected_chapter", "All Chapters")
-            curr_ch_idx = (
-                chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
-            )
-            selected_chapter = st.selectbox(
-                "Default Focus Chapter (Optional)", chapter_options, index=curr_ch_idx
-            )
-
-            st.write("")
-            if st.button(
-                "Save Changes",
-                type="primary",
-                key="save_profile_settings_btn",
-                icon=":material/save:",
-            ):
-                set_student_class_level(new_cls_int)
-                st.session_state.student_id = student_id.strip() or "student_001"
-                st.session_state.selected_chapter = selected_chapter
-                st.success(
-                    f"Profile saved successfully! Master Standard set to Class {new_cls_int}."
+            if role == "teacher":
+                st.markdown("#### Teacher Profile & Diagnostic Settings")
+                st.caption(
+                    "Manage your educator identity and default class level for telemetry inspection."
                 )
-                st.rerun()
+                st.write("")
+
+                teacher_id = st.text_input(
+                    "Teacher Name / ID",
+                    value=st.session_state.get("teacher_id", "teacher_001"),
+                    help="Unique identifier for educator diagnostic session.",
+                    key="settings_teacher_id_input",
+                )
+
+                st.write("")
+                curr_cls = get_student_class_level()
+                selected_cls_label = st.radio(
+                    "Default Inspection Class",
+                    options=["Class 10", "Class 9"],
+                    index=0 if curr_cls == 10 else 1,
+                    key="settings_teacher_class_radio",
+                )
+                new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+
+                st.write("")
+                if st.button(
+                    "Save Changes",
+                    type="primary",
+                    key="save_teacher_profile_btn",
+                    icon=":material/save:",
+                ):
+                    set_student_class_level(new_cls_int)
+                    st.session_state.teacher_id = teacher_id.strip() or "teacher_001"
+                    st.success("Teacher profile saved successfully!")
+                    st.rerun()
+            else:
+                st.markdown("#### Student Profile & Standard Settings")
+                st.caption(
+                    "This is the master configuration for your student identity and NCERT textbook grade level."
+                )
+                st.write("")
+
+                student_id = st.text_input(
+                    "Student Name / ID",
+                    value=st.session_state.get("student_id", "student_001"),
+                    help="Unique identifier for tracking your analytics and quiz attempts.",
+                    key="settings_student_id_input",
+                )
+
+                st.write("")
+                curr_cls = get_student_class_level()
+                selected_cls_label = st.radio(
+                    "Class / Standard",
+                    options=["Class 10", "Class 9"],
+                    index=0 if curr_cls == 10 else 1,
+                    help="Master standard setting (Class 10 or Class 9). Only one standard is active at a time.",
+                    key="settings_class_radio",
+                )
+                new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+
+                st.write("")
+                chapter_options = ["All Chapters"]
+                chs = curriculum_service.get_chapters_for_grade(new_cls_int)
+                for ch in chs:
+                    chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
+
+                curr_chapter = st.session_state.get("selected_chapter", "All Chapters")
+                curr_ch_idx = (
+                    chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
+                )
+                selected_chapter = st.selectbox(
+                    "Default Focus Chapter (Optional)", chapter_options, index=curr_ch_idx
+                )
+
+                st.write("")
+                if st.button(
+                    "Save Changes",
+                    type="primary",
+                    key="save_profile_settings_btn",
+                    icon=":material/save:",
+                ):
+                    set_student_class_level(new_cls_int)
+                    st.session_state.student_id = student_id.strip() or "student_001"
+                    st.session_state.selected_chapter = selected_chapter
+                    st.success(
+                        f"Profile saved successfully! Master Standard set to Class {new_cls_int}."
+                    )
+                    st.rerun()
 
         # Tab 3: AI & Model
         elif active_tab == "AI & Model":

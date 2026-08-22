@@ -16,13 +16,23 @@ class TestScholarshipQA(unittest.TestCase):
         """Phase 5 & 6: Test intent detection."""
         self.assertEqual(self.qa_engine.detect_intent("What is NMMSS?"), "WHAT_IS")
         self.assertEqual(self.qa_engine.detect_intent("What is the income limit?"), "INCOME")
-        self.assertEqual(self.qa_engine.detect_intent("Who can apply for PM-YASASVI?"), "ELIGIBILITY")
+        self.assertEqual(
+            self.qa_engine.detect_intent("Who can apply for PM-YASASVI?"), "ELIGIBILITY"
+        )
         self.assertEqual(self.qa_engine.detect_intent("What benefits are provided?"), "BENEFIT")
         self.assertEqual(self.qa_engine.detect_intent("What documents are required?"), "DOCUMENTS")
-        self.assertEqual(self.qa_engine.detect_intent("When is the application deadline?"), "DEADLINE")
-        self.assertEqual(self.qa_engine.detect_intent("What is the selection process?"), "SELECTION")
-        self.assertEqual(self.qa_engine.detect_intent("What scholarships are available for Class 10?"), "CLASS")
-        self.assertEqual(self.qa_engine.detect_intent("Why does PM-YASASVI match for me?"), "WHY_MATCH")
+        self.assertEqual(
+            self.qa_engine.detect_intent("When is the application deadline?"), "DEADLINE"
+        )
+        self.assertEqual(
+            self.qa_engine.detect_intent("What is the selection process?"), "SELECTION"
+        )
+        self.assertEqual(
+            self.qa_engine.detect_intent("What scholarships are available for Class 10?"), "CLASS"
+        )
+        self.assertEqual(
+            self.qa_engine.detect_intent("Why does PM-YASASVI match for me?"), "WHY_MATCH"
+        )
 
     def test_what_is_nmmss(self):
         """Phase 19: Test 'What is NMMSS?'."""

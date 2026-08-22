@@ -1,39 +1,61 @@
 """Teacher Diagnostics and Master Analytics Screen with Material Icons (No Emojis)."""
 
+import textwrap
+from typing import Optional
+
 import streamlit as st
 
 from frontend.components.cards import render_metric_card, render_swat_columns
 from frontend.components.navigation import render_back_to_home
-from frontend.state import navigate_to
+from frontend.state import get_user_role
 from src.academic_rag.analytics.teacher import get_teacher_student_profile
+from src.academic_rag.storage.repository import quiz_repository
 
 
-def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> None:
-    """Renders the Teacher Master Analytics, 4-Category SWAT, and Action-Plan Diagnostics with dedicated Class toggle (Phase 17)."""
-    # Top Navigation Back to Home (Phases 1-19)
-    render_back_to_home("teacher")
+def render_teacher_screen(
+    student_id: Optional[str] = None, selected_class: str = "Class 10"
+) -> None:
+    """Renders the Teacher Master Analytics, 4-Category SWAT, and Action-Plan Diagnostics with dedicated Class & Student selectors."""
+    # If a student navigated here in legacy/test mode, provide Back to Home
+    if get_user_role() == "student":
+        render_back_to_home("teacher")
 
-    st.write("")
-    t_c1, t_c2 = st.columns([3.2, 1.8])
+    # Fetch available student IDs from quiz database
+    all_students = quiz_repository.get_all_student_ids()
+    default_student = student_id or st.session_state.get("student_id", "student_001")
+    if default_student not in all_students:
+        all_students = [default_student] + [s for s in all_students if s != default_student]
+
+    t_c1, t_c2, t_c3 = st.columns([2.2, 1.4, 1.4])
     with t_c1:
-        st.markdown(f"### Teacher Diagnostics — `{student_id}`")
+        st.markdown("### Teacher Diagnostics & Analytics")
         st.caption(
-            f"Pedagogical insights, 4-category SWAT breakdown, and action-plan supporting statistics for student **`{student_id}`**."
+            "Pedagogical insights, 4-category SWAT breakdown, and action-plan supporting statistics."
         )
     with t_c2:
+        curr_inspect_student = st.selectbox(
+            "Select Student to Inspect",
+            options=all_students,
+            index=0,
+            key="teacher_inspect_student_select",
+            help="Select a student from database records to inspect diagnostic telemetry.",
+        )
+    with t_c3:
         teacher_class = st.radio(
-            "Select Class to Inspect",
+            "Class to Inspect",
             options=["Class 10", "Class 9"],
             horizontal=True,
             key="teacher_screen_class_toggle",
             help="Inspect student performance strictly for Class 10 or Class 9.",
         )
+
+    target_student_id = curr_inspect_student or default_student
     cls_int = 10 if teacher_class == "Class 10" else 9
 
-    prof = get_teacher_student_profile(student_id, class_level=cls_int)
+    prof = get_teacher_student_profile(target_student_id, class_level=cls_int)
 
     if not prof.get("has_data"):
-        st.info(f"No quiz data found for student `{student_id}` in {teacher_class}.")
+        st.info(f"No quiz data found for student `{target_student_id}` in {teacher_class}.")
         return
 
     st_overview = prof["overview"]
@@ -116,19 +138,17 @@ def render_teacher_screen(student_id: str, selected_class: str = "Class 10") -> 
                 else ""
             )
 
-            st.markdown(
-                f"""
-                <div style="background: var(--surface-container); border-left: 4px solid var(--md-primary); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;">
-                    <div style="font-weight: 700; font-size: 0.85rem; color: var(--md-primary);">{p_label} — Priority {act["priority_rank"]}</div>
-                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin: 4px 0;">{ch_name}</div>
-                    <div style="font-size: 0.88rem; color: var(--on-surface-variant); margin-bottom: 4px;">
-                        <strong>Score:</strong> {score_str} &nbsp;|&nbsp; <strong>Attempts:</strong> {attempts_str} {("&nbsp;|&nbsp; <strong>" + recent_str + "</strong>") if recent_str else ""}
-                    </div>
-                    <div style="font-size: 0.85rem; color: var(--on-surface);"><strong>Reason:</strong> {act["reason"]}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            action_card_html = textwrap.dedent(f"""\
+<div style="background: var(--surface-container); border-left: 4px solid var(--md-primary); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;">
+<div style="font-weight: 700; font-size: 0.85rem; color: var(--md-primary);">{p_label} — Priority {act["priority_rank"]}</div>
+<div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin: 4px 0;">{ch_name}</div>
+<div style="font-size: 0.88rem; color: var(--on-surface-variant); margin-bottom: 4px;">
+<strong>Score:</strong> {score_str} &nbsp;|&nbsp; <strong>Attempts:</strong> {attempts_str} {("&nbsp;|&nbsp; <strong>" + recent_str + "</strong>") if recent_str else ""}
+</div>
+<div style="font-size: 0.85rem; color: var(--on-surface);"><strong>Reason:</strong> {act["reason"]}</div>
+</div>\
+""")
+            st.markdown(action_card_html, unsafe_allow_html=True)
     else:
         st.caption("No specific action items identified.")
 

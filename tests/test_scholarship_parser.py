@@ -10,7 +10,6 @@ from src.academic_rag.scholarships.parser import (
     parse_disability_requirement,
     parse_gender,
     parse_income_ceiling,
-    parse_institution_types,
     parse_scholarship_amount,
     raw_to_structured,
 )
@@ -36,10 +35,14 @@ class TestScholarshipParser(unittest.TestCase):
 
     def test_income_ceiling_extraction(self):
         """Test extraction of income limits in various currency notations."""
-        self.assertEqual(parse_income_ceiling("Annual family income must not exceed Rs. 3.5 Lakh"), 350000)
+        self.assertEqual(
+            parse_income_ceiling("Annual family income must not exceed Rs. 3.5 Lakh"), 350000
+        )
         self.assertEqual(parse_income_ceiling("Income ceiling: ₹2.50 lakh per annum"), 250000)
         self.assertEqual(parse_income_ceiling("Parental income up to Rs 1,00,000 / year"), 100000)
-        self.assertEqual(parse_income_ceiling("Monthly income limit of Rs. 10000 per month"), 120000)
+        self.assertEqual(
+            parse_income_ceiling("Monthly income limit of Rs. 10000 per month"), 120000
+        )
 
     def test_missing_income_null_safety(self):
         """Test that schemes without income cap return None rather than inventing a number."""
@@ -54,19 +57,26 @@ class TestScholarshipParser(unittest.TestCase):
         self.assertIn("OBC", cats)
 
         # Open scheme returns empty list (all categories allowed)
-        open_cats = parse_categories("Means cum merit for all meritorious students", scheme_id="nmmss")
+        open_cats = parse_categories(
+            "Means cum merit for all meritorious students", scheme_id="nmmss"
+        )
         self.assertEqual(open_cats, [])
 
     def test_disability_and_gender_parsing(self):
         """Test disability threshold and gender detection."""
-        self.assertEqual(parse_disability_requirement("Requires minimum 40% disability certificate with UDID"), "REQUIRED_MIN_40_PERCENT")
+        self.assertEqual(
+            parse_disability_requirement("Requires minimum 40% disability certificate with UDID"),
+            "REQUIRED_MIN_40_PERCENT",
+        )
         self.assertEqual(parse_disability_requirement("Open for all eligible students"), "ANY")
         self.assertEqual(parse_gender("Applicable for girl student only"), "FEMALE")
         self.assertEqual(parse_gender("Open for all genders"), "ANY")
 
     def test_amount_extraction(self):
         """Test extraction of annual scholarship amounts."""
-        self.assertEqual(parse_scholarship_amount("Students receive ₹12,000 per annum (₹1,000 per month)"), 12000)
+        self.assertEqual(
+            parse_scholarship_amount("Students receive ₹12,000 per annum (₹1,000 per month)"), 12000
+        )
         self.assertEqual(parse_scholarship_amount("Assistance up to Rs. 75,000 per year"), 75000)
         self.assertEqual(parse_scholarship_amount("Allowance of Rs 4000"), 4000)
 

@@ -1,11 +1,15 @@
 """Regression tests for standardized 'Back to Home' navigation architecture (Phases 1-19)."""
 
-import inspect
 import unittest
 from pathlib import Path
 
 from frontend.components.navigation import render_back_to_home
-from frontend.state import get_student_class_level, init_session_state, navigate_to, set_student_class_level
+from frontend.state import (
+    get_student_class_level,
+    init_session_state,
+    navigate_to,
+    set_student_class_level,
+)
 
 
 class TestBackToHomeNavigation(unittest.TestCase):

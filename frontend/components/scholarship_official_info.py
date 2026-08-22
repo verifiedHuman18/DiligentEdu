@@ -7,7 +7,7 @@ Provides the canonical authoritative footer and disclaimer for all scholarship s
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import streamlit as st
 
@@ -87,7 +87,7 @@ def render_official_scholarship_info(
                         Visit {name} ↗
                     </a>
                     <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-top: 6px;">
-                        {info['domain']} (New tab)
+                        {info["domain"]} (New tab)
                     </div>
                 </div>
             </div>

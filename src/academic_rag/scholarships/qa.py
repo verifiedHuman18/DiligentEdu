@@ -10,7 +10,7 @@ Features:
 
 import logging
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from src.academic_rag.scholarships.eligibility import evaluate_scholarship
 from src.academic_rag.scholarships.models import (
@@ -38,7 +38,9 @@ class ScholarshipQAEngine:
         """Phase 5 & 6: Detect the core intent of a scholarship question."""
         q = question.lower().strip()
 
-        if re.search(r"(why|why does|why did|how come|reason for)", q) and ("match" in q or "appear" in q or "recommend" in q or "for me" in q):
+        if re.search(r"(why|why does|why did|how come|reason for)", q) and (
+            "match" in q or "appear" in q or "recommend" in q or "for me" in q
+        ):
             return "WHY_MATCH"
 
         if re.search(r"(income|salary|earning|annual income|family income|lakh|ceiling|limit)", q):
@@ -47,25 +49,41 @@ class ScholarshipQAEngine:
         if re.search(r"(document|certificate|proof|paper|udid|marksheet|passbook|doc)", q):
             return "DOCUMENTS"
 
-        if re.search(r"(benefit|amount|money|stipend|how much|allowance|financial assistance|grant|fund)", q):
+        if re.search(
+            r"(benefit|amount|money|stipend|how much|allowance|financial assistance|grant|fund)", q
+        ):
             return "BENEFIT"
 
-        if re.search(r"(deadline|last date|due date|closing date|open date|timeline|when to apply|window)", q):
+        if re.search(
+            r"(deadline|last date|due date|closing date|open date|timeline|when to apply|window)", q
+        ):
             return "DEADLINE"
 
-        if re.search(r"(selection|exam|test|mat|sat|merit test|interview|how are students selected)", q):
+        if re.search(
+            r"(selection|exam|test|mat|sat|merit test|interview|how are students selected)", q
+        ):
             return "SELECTION"
 
-        if re.search(r"(class|grade|standard|9th|10th|class 9|class 10)", q) and ("available" in q or "eligible" in q or "cover" in q or "for" in q):
+        if re.search(r"(class|grade|standard|9th|10th|class 9|class 10)", q) and (
+            "available" in q or "eligible" in q or "cover" in q or "for" in q
+        ):
             return "CLASS"
 
-        if re.search(r"(what scholarships|which scholarships|available scholarships|list scholarships|find scholarships)", q):
+        if re.search(
+            r"(what scholarships|which scholarships|available scholarships|list scholarships|find scholarships)",
+            q,
+        ):
             return "AVAILABLE_SCHOLARSHIPS"
 
-        if re.search(r"(who can apply|who is eligible|eligibility|qualify|criteria|can i apply)", q):
+        if re.search(
+            r"(who can apply|who is eligible|eligibility|qualify|criteria|can i apply)", q
+        ):
             return "ELIGIBILITY"
 
-        if re.search(r"(easiest|guarantee|definitely|career|which scholarship should i choose|easiest selection)", q):
+        if re.search(
+            r"(easiest|guarantee|definitely|career|which scholarship should i choose|easiest selection)",
+            q,
+        ):
             return "OUT_OF_SCOPE"
 
         if re.search(r"(what is|tell me about|explain|overview|details of|about)", q):
@@ -81,7 +99,9 @@ class ScholarshipQAEngine:
     ) -> Optional[StructuredScholarship]:
         """Phase 7: Resolve the target scholarship from context or question text."""
         if current_scheme_id:
-            scheme = self.storage.get_scholarship_by_id(current_scheme_id, academic_year=academic_year)
+            scheme = self.storage.get_scholarship_by_id(
+                current_scheme_id, academic_year=academic_year
+            )
             if scheme:
                 return scheme
 
@@ -135,8 +155,14 @@ class ScholarshipQAEngine:
         academic_year: str,
     ) -> Dict[str, Any]:
         """Phase 8 & 9: Generate template-based structured answers with official attribution."""
-        spec_url = scheme.official.specification_url or f"https://scholarships.gov.in/public/schemeGuidelines/{scheme.id}_guidelines.pdf"
-        faq_url = scheme.official.faq_url or f"https://scholarships.gov.in/public/faq/{scheme.id}_faq.html"
+        spec_url = (
+            scheme.official.specification_url
+            or f"https://scholarships.gov.in/public/schemeGuidelines/{scheme.id}_guidelines.pdf"
+        )
+        faq_url = (
+            scheme.official.faq_url
+            or f"https://scholarships.gov.in/public/faq/{scheme.id}_faq.html"
+        )
         source_url = scheme.official.source_url or "https://scholarships.gov.in"
 
         sources = {
@@ -147,7 +173,15 @@ class ScholarshipQAEngine:
         }
 
         # Check for unanswerable/speculative questions (Phase 10)
-        unsupported_keywords = ["abroad", "foreign", "easiest", "guaranteed", "future career", "bribe", "bypass"]
+        unsupported_keywords = [
+            "abroad",
+            "foreign",
+            "easiest",
+            "guaranteed",
+            "future career",
+            "bribe",
+            "bypass",
+        ]
         if any(kw in question.lower() for kw in unsupported_keywords):
             answer_md = (
                 f"I couldn't find verified information about this condition for **{scheme.name}** "
@@ -186,8 +220,16 @@ class ScholarshipQAEngine:
 
         # 2. Benefit Intent
         elif intent == "BENEFIT":
-            amt = scheme.financial_assistance.amount_per_annum if scheme.financial_assistance else None
-            freq = scheme.financial_assistance.disbursement_frequency if scheme.financial_assistance else "Annual"
+            amt = (
+                scheme.financial_assistance.amount_per_annum
+                if scheme.financial_assistance
+                else None
+            )
+            freq = (
+                scheme.financial_assistance.disbursement_frequency
+                if scheme.financial_assistance
+                else "Annual"
+            )
             amt_str = f"₹{amt:,} per year" if amt else "Tuition fee reimbursement + allowances"
             answer_md = (
                 f"### Scholarship Benefits\n\n"
@@ -200,10 +242,26 @@ class ScholarshipQAEngine:
 
         # 3. Eligibility Intent
         elif intent == "ELIGIBILITY":
-            classes_str = ", ".join([f"Class {c}" for c in scheme.eligibility.classes]) if scheme.eligibility.classes else "Classes 9 & 10"
-            cats_str = ", ".join(scheme.eligibility.categories) if scheme.eligibility.categories else "All Categories (General, OBC, SC, ST, Minorities)"
-            inc_str = f"≤ ₹{scheme.eligibility.income_max:,} / year" if scheme.eligibility.income_max else "No income ceiling"
-            inst_str = ", ".join(scheme.institution_requirements) if scheme.institution_requirements else "Recognized Schools"
+            classes_str = (
+                ", ".join([f"Class {c}" for c in scheme.eligibility.classes])
+                if scheme.eligibility.classes
+                else "Classes 9 & 10"
+            )
+            cats_str = (
+                ", ".join(scheme.eligibility.categories)
+                if scheme.eligibility.categories
+                else "All Categories (General, OBC, SC, ST, Minorities)"
+            )
+            inc_str = (
+                f"≤ ₹{scheme.eligibility.income_max:,} / year"
+                if scheme.eligibility.income_max
+                else "No income ceiling"
+            )
+            inst_str = (
+                ", ".join(scheme.institution_requirements)
+                if scheme.institution_requirements
+                else "Recognized Schools"
+            )
 
             answer_md = (
                 f"### Who Can Apply for {scheme.name}?\n\n"
@@ -226,9 +284,13 @@ class ScholarshipQAEngine:
                 "Aadhaar-Seeded Active Bank Account Passbook",
             ]
             if scheme.eligibility.income_max:
-                docs.append(f"Valid Income Certificate (Annual income ≤ ₹{scheme.eligibility.income_max:,})")
+                docs.append(
+                    f"Valid Income Certificate (Annual income ≤ ₹{scheme.eligibility.income_max:,})"
+                )
             if scheme.eligibility.categories:
-                docs.append(f"Caste / Community Certificate ({', '.join(scheme.eligibility.categories)})")
+                docs.append(
+                    f"Caste / Community Certificate ({', '.join(scheme.eligibility.categories)})"
+                )
             if scheme.eligibility.disability != "ANY":
                 docs.append("Disability Certificate / UDID Card (minimum 40% certified disability)")
             if "beedi" in scheme.id or "mine" in scheme.id:
@@ -258,7 +320,10 @@ class ScholarshipQAEngine:
 
         # 6. Selection Intent
         elif intent == "SELECTION":
-            details = scheme.merit_requirements.details or "Direct eligibility verification based on submitted certificates"
+            details = (
+                scheme.merit_requirements.details
+                or "Direct eligibility verification based on submitted certificates"
+            )
             answer_md = (
                 f"### Selection Process for {scheme.name}\n\n"
                 f"• **Selection Mode:** {details}\n"
@@ -356,11 +421,13 @@ class ScholarshipQAEngine:
 
         if intent in ("CLASS", "AVAILABLE_SCHOLARSHIPS") or not question:
             class_label = f"Class {class_target}" if class_target else "Class 9 & 10"
-            bullet_list = "\n".join([
-                f"• **{s.name}** — ₹{s.financial_assistance.amount_per_annum:,}/yr "
-                f"({f'Income ≤ ₹{s.eligibility.income_max:,}' if s.eligibility.income_max else 'No income cap'})"
-                for s in schemes[:6]
-            ])
+            bullet_list = "\n".join(
+                [
+                    f"• **{s.name}** — ₹{s.financial_assistance.amount_per_annum:,}/yr "
+                    f"({f'Income ≤ ₹{s.eligibility.income_max:,}' if s.eligibility.income_max else 'No income cap'})"
+                    for s in schemes[:6]
+                ]
+            )
             answer_md = (
                 f"### Available Scholarships for {class_label}\n\n"
                 f"The following {len(schemes)} scholarship opportunities are catalogued for AY {academic_year}:\n\n"
@@ -370,30 +437,35 @@ class ScholarshipQAEngine:
             )
         elif intent == "DOCUMENTS":
             answer_md = (
-                f"### Commonly Required Documents across School Scholarships\n\n"
-                f"1. **Aadhaar Number** (or Aadhaar Enrolment Slip)\n"
-                f"2. **14-digit OTR ID** (One Time Registration on scholarships.gov.in)\n"
-                f"3. **Previous Academic Marksheet** (Class 7/8/9 Report Card)\n"
-                f"4. **Income Certificate** issued by Tehsildar/Revenue Officer\n"
-                f"5. **Caste / Community Certificate** (for SC, ST, OBC, Minorities)\n"
-                f"6. **Aadhaar-Linked Bank Account Passbook**\n\n"
-                f"📌 **Source:** National Scholarship Portal Guidelines"
+                "### Commonly Required Documents across School Scholarships\n\n"
+                "1. **Aadhaar Number** (or Aadhaar Enrolment Slip)\n"
+                "2. **14-digit OTR ID** (One Time Registration on scholarships.gov.in)\n"
+                "3. **Previous Academic Marksheet** (Class 7/8/9 Report Card)\n"
+                "4. **Income Certificate** issued by Tehsildar/Revenue Officer\n"
+                "5. **Caste / Community Certificate** (for SC, ST, OBC, Minorities)\n"
+                "6. **Aadhaar-Linked Bank Account Passbook**\n\n"
+                "📌 **Source:** National Scholarship Portal Guidelines"
             )
         elif intent == "INCOME":
-            bullet_list = "\n".join([
-                f"• **{s.name}:** {f'₹{s.eligibility.income_max:,}/year' if s.eligibility.income_max else 'No income cap'}"
-                for s in schemes[:6]
-            ])
+            bullet_list = "\n".join(
+                [
+                    f"• **{s.name}:** {f'₹{s.eligibility.income_max:,}/year' if s.eligibility.income_max else 'No income cap'}"
+                    for s in schemes[:6]
+                ]
+            )
             answer_md = (
                 f"### Income Limits across School Schemes\n\n"
                 f"{bullet_list}\n\n"
                 f"📌 **Source:** National Scholarship Portal (AY {academic_year})"
             )
         elif intent == "BENEFIT":
-            bullet_list = "\n".join([
-                f"• **{s.name}:** ₹{s.financial_assistance.amount_per_annum:,}/year ({s.financial_assistance.disbursement_frequency})"
-                for s in schemes[:6] if s.financial_assistance and s.financial_assistance.amount_per_annum
-            ])
+            bullet_list = "\n".join(
+                [
+                    f"• **{s.name}:** ₹{s.financial_assistance.amount_per_annum:,}/year ({s.financial_assistance.disbursement_frequency})"
+                    for s in schemes[:6]
+                    if s.financial_assistance and s.financial_assistance.amount_per_annum
+                ]
+            )
             answer_md = (
                 f"### Major Scholarship Benefits\n\n"
                 f"{bullet_list}\n\n"

@@ -62,9 +62,7 @@ class RawScholarshipData:
     academic_year: str = "2026-27"
     provider: Optional[str] = None
     raw: Dict[str, Any] = field(default_factory=dict)
-    scraped_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    scraped_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -278,7 +276,12 @@ def get_scholarship_primary_url(item: Any) -> Optional[str]:
         if candidate and isinstance(candidate, str):
             clean = candidate.strip()
             # Phase 9: Validate URL format (avoid empty, hash, javascript, about:blank)
-            if clean and not clean.startswith("#") and not clean.startswith("javascript:") and not clean.startswith("about:"):
+            if (
+                clean
+                and not clean.startswith("#")
+                and not clean.startswith("javascript:")
+                and not clean.startswith("about:")
+            ):
                 if clean.startswith("http://") or clean.startswith("https://"):
                     return clean
 
@@ -289,9 +292,7 @@ def get_scholarship_primary_url(item: Any) -> Optional[str]:
 class ScholarshipMetadata:
     """Provenance and verification timestamps."""
 
-    scraped_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    scraped_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     verified_at: Optional[str] = None
     source: str = "National Scholarship Portal"
     version: str = "1.0.0"
@@ -340,7 +341,9 @@ class StructuredScholarship:
             "eligibility": self.eligibility.to_dict(),
             "merit_requirements": self.merit_requirements.to_dict(),
             "institution_requirements": self.institution_requirements,
-            "financial_assistance": self.financial_assistance.to_dict() if self.financial_assistance else None,
+            "financial_assistance": self.financial_assistance.to_dict()
+            if self.financial_assistance
+            else None,
             "official": self.official.to_dict(),
             "metadata": self.metadata.to_dict(),
         }
@@ -365,9 +368,11 @@ class StructuredScholarship:
 class EligibilityStatus:
     """Three discrete eligibility states."""
 
-    LIKELY_MATCH = "likely_match"       # 🟢 All known required conditions match
-    POSSIBLE_MATCH = "possible_match"   # 🟡 Some conditions match, but some are unknown or need verification
-    DOES_NOT_MATCH = "does_not_match"   # 🔴 A known mandatory condition clearly fails
+    LIKELY_MATCH = "likely_match"  # 🟢 All known required conditions match
+    POSSIBLE_MATCH = (
+        "possible_match"  # 🟡 Some conditions match, but some are unknown or need verification
+    )
+    DOES_NOT_MATCH = "does_not_match"  # 🔴 A known mandatory condition clearly fails
 
 
 @dataclass
@@ -383,11 +388,15 @@ class StudentScholarshipProfile:
     state: Optional[str] = "ALL"
     family_income: Optional[int] = None
     category: Optional[str] = None  # e.g., "General", "OBC", "SC", "ST", "EBC", "DNT", "Minorities"
-    gender: Optional[str] = None    # e.g., "Male", "Female", "Other", "Any"
+    gender: Optional[str] = None  # e.g., "Male", "Female", "Other", "Any"
     disability_status: Optional[bool] = None
-    school_type: Optional[str] = None  # e.g., "Government", "Government-aided", "Local Body", "Top Class Schools", "Recognized Private"
+    school_type: Optional[str] = (
+        None  # e.g., "Government", "Government-aided", "Local Body", "Top Class Schools", "Recognized Private"
+    )
     academic_score: Optional[float] = None  # Previous class percentage
-    occupational_background: Optional[str] = None  # e.g., "Beedi Worker", "Cine Worker", "Mine Worker", "Sanitation / Waste Picker", "General"
+    occupational_background: Optional[str] = (
+        None  # e.g., "Beedi Worker", "Cine Worker", "Mine Worker", "Sanitation / Waste Picker", "General"
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -455,7 +464,12 @@ def normalize_student_profile(
     data = dict(raw_data)
 
     # 1. Class level
-    raw_cls = data.get("class_level") or data.get("selected_class") or data.get("class") or default_class_level
+    raw_cls = (
+        data.get("class_level")
+        or data.get("selected_class")
+        or data.get("class")
+        or default_class_level
+    )
     cls_int = 10
     if raw_cls is not None:
         if isinstance(raw_cls, int):
@@ -496,13 +510,15 @@ def normalize_student_profile(
             cat_str = raw_cat_str
 
     # 4. Disability status
-    raw_dis = data.get("disability_status") if "disability_status" in data else data.get("disability")
+    raw_dis = (
+        data.get("disability_status") if "disability_status" in data else data.get("disability")
+    )
     dis_bool: Optional[bool] = None
     if raw_dis is not None:
         if isinstance(raw_dis, bool):
             dis_bool = raw_dis
         elif isinstance(raw_dis, str):
-            dis_bool = (raw_dis.strip().lower() in ("yes", "true", "1", "required"))
+            dis_bool = raw_dis.strip().lower() in ("yes", "true", "1", "required")
 
     # 5. Academic score
     raw_score = data.get("academic_score") if "academic_score" in data else data.get("score")
@@ -595,7 +611,9 @@ class MatchExplanation:
     reasons_matched: List[str] = field(default_factory=list)
     reasons_unmatched: List[str] = field(default_factory=list)
     verification_needed: List[str] = field(default_factory=list)
-    action_guidance: str = "Apply directly on the official portal (https://scholarships.gov.in) with valid OTR."
+    action_guidance: str = (
+        "Apply directly on the official portal (https://scholarships.gov.in) with valid OTR."
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -667,4 +685,3 @@ class QuestionDefinition:
             "help_text": self.help_text,
             "priority": self.priority,
         }
-

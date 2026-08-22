@@ -162,7 +162,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     # 3. Quick Action Modules
     st.markdown("### Modules")
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         if st.button(
@@ -196,16 +196,6 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     with col4:
         if st.button(
-            "**Teacher View**\n\nDiagnostic alerts",
-            key="btn_module_teacher",
-            icon=":material/school:",
-            use_container_width=True,
-        ):
-            navigate_to("teacher")
-            st.rerun()
-
-    with col5:
-        if st.button(
             "**Scholarships**\n\nDiscovery & Q&A",
             key="btn_module_scholarships",
             icon=":material/verified:",
@@ -232,7 +222,13 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
         """,
         unsafe_allow_html=True,
     )
-    if st.button("Explore Scholarships", key="home_sch_unified_btn", type="primary", icon=":material/arrow_forward:", use_container_width=False):
+    if st.button(
+        "Explore Scholarships",
+        key="home_sch_unified_btn",
+        type="primary",
+        icon=":material/arrow_forward:",
+        use_container_width=False,
+    ):
         navigate_to("scholarships")
         st.rerun()
 

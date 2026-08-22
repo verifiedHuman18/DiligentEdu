@@ -2,7 +2,7 @@
 
 import re
 from html.parser import HTMLParser
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from src.academic_rag.scholarships.models import (
     EligibilityCriteria,
@@ -75,7 +75,9 @@ def parse_classes(text: str) -> List[int]:
 
     if re.search(r"\b(class\s*9|class\s*ix|9th\s*class|9th\s*standard|grade\s*9)\b", normalized):
         classes.add(9)
-    if re.search(r"\b(class\s*10|class\s*x|10th\s*class|10th\s*standard|grade\s*10|secondary)\b", normalized):
+    if re.search(
+        r"\b(class\s*10|class\s*x|10th\s*class|10th\s*standard|grade\s*10|secondary)\b", normalized
+    ):
         classes.add(10)
     if re.search(r"\bpre[\s-]*matric\b", normalized):
         classes.add(9)
@@ -86,7 +88,9 @@ def parse_classes(text: str) -> List[int]:
         classes.add(12)
 
     # Default to [9, 10] if pre-matric / school is detected but specific number isn't parsed
-    if not classes and ("school" in normalized or "pre-matric" in normalized or "secondary" in normalized):
+    if not classes and (
+        "school" in normalized or "pre-matric" in normalized or "secondary" in normalized
+    ):
         return [9, 10]
 
     return sorted(list(classes)) if classes else [9, 10]
@@ -97,18 +101,26 @@ def parse_income_ceiling(text: str) -> Optional[int]:
     normalized = text.replace(",", "").lower()
 
     # Generic lakh pattern: ₹ 3.5 Lakh / 2.50 lakh / 1 lakh / 8.0 lakh
-    lakh_match = re.search(r"(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(?:lakh|lac|lacs|lakhs)", normalized)
+    lakh_match = re.search(
+        r"(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)\s*(?:lakh|lac|lacs|lakhs)", normalized
+    )
     if lakh_match:
         try:
             return int(float(lakh_match.group(1)) * 100000)
         except ValueError:
             pass
 
-    if re.search(r"(?:rs\.?|inr|₹)?\s*10000\s*(?:per month|\/month|p\.m\.)", normalized) or "120000" in normalized:
+    if (
+        re.search(r"(?:rs\.?|inr|₹)?\s*10000\s*(?:per month|\/month|p\.m\.)", normalized)
+        or "120000" in normalized
+    ):
         return 120000
 
     # Explicit direct numbers with optional colon/text: "income ceiling: Rs. 350000"
-    match = re.search(r"(?:income|ceiling|limit)\s*[:=]?\s*(?:of|not exceeding|less than|up to|is|below)?\s*[:=]?\s*(?:rs\.?|inr|₹)?\s*(\d{5,7})", normalized)
+    match = re.search(
+        r"(?:income|ceiling|limit)\s*[:=]?\s*(?:of|not exceeding|less than|up to|is|below)?\s*[:=]?\s*(?:rs\.?|inr|₹)?\s*(\d{5,7})",
+        normalized,
+    )
     if match:
         try:
             return int(match.group(1))
@@ -149,9 +161,19 @@ def parse_categories(text: str, scheme_id: str = "") -> List[str]:
     normalized = text.lower()
 
     # Look for explicit scheme targets with exclusion handling
-    if re.search(r"(scheduled caste|\bsc\b|sc/st|for sc\b|component.*sc)", normalized) and "not covered under sc" not in normalized and "not covered under sc/st" not in normalized and "except sc" not in normalized:
+    if (
+        re.search(r"(scheduled caste|\bsc\b|sc/st|for sc\b|component.*sc)", normalized)
+        and "not covered under sc" not in normalized
+        and "not covered under sc/st" not in normalized
+        and "except sc" not in normalized
+    ):
         cats.append("SC")
-    if re.search(r"(scheduled tribe|\bst\b|sc/st|for st\b|component.*st)", normalized) and "not covered under st" not in normalized and "not covered under sc/st" not in normalized and "except st" not in normalized:
+    if (
+        re.search(r"(scheduled tribe|\bst\b|sc/st|for st\b|component.*st)", normalized)
+        and "not covered under st" not in normalized
+        and "not covered under sc/st" not in normalized
+        and "except st" not in normalized
+    ):
         cats.append("ST")
     if re.search(r"(other backward class|\bobc\b|pm-yasasvi)", normalized):
         cats.append("OBC")
@@ -163,7 +185,9 @@ def parse_categories(text: str, scheme_id: str = "") -> List[str]:
         cats.append("Minorities")
     if re.search(r"(beedi|cine|iomc|lsdm|mine worker)", normalized):
         cats.append("Labour Wards")
-    if re.search(r"(manual scavenger|sanitation worker|tanner|flayer|hazardous occupation)", normalized):
+    if re.search(
+        r"(manual scavenger|sanitation worker|tanner|flayer|hazardous occupation)", normalized
+    ):
         cats.append("Vulnerable Occupations")
 
     return sorted(list(set(cats)))
@@ -176,7 +200,9 @@ def parse_disability_requirement(text: str, scheme_id: str = "", scheme_name: st
     normalized_text = text.lower()
 
     # If scheme_id is provided and belongs to other specific affirmative schemes (e.g. SC / ST / Minorities / Beedi)
-    if scheme_id and not any(k in normalized_id or k in normalized_name for k in ("disabilit", "pwd", "divyang")):
+    if scheme_id and not any(
+        k in normalized_id or k in normalized_name for k in ("disabilit", "pwd", "divyang")
+    ):
         return "ANY"
 
     if "40%" in normalized_text or "minimum 40" in normalized_text:
@@ -202,9 +228,18 @@ def parse_institution_types(text: str) -> List[str]:
     institutions = []
     normalized = text.lower()
 
-    if "government," in normalized or "government school" in normalized or "govt school" in normalized or "government " in normalized:
+    if (
+        "government," in normalized
+        or "government school" in normalized
+        or "govt school" in normalized
+        or "government " in normalized
+    ):
         institutions.append("Government")
-    if "government-aided" in normalized or "aided school" in normalized or "govt aided" in normalized:
+    if (
+        "government-aided" in normalized
+        or "aided school" in normalized
+        or "govt aided" in normalized
+    ):
         institutions.append("Government-aided")
     if "local body" in normalized or "panchayat" in normalized or "municipal" in normalized:
         institutions.append("Local Body")
@@ -232,7 +267,9 @@ def parse_scholarship_amount(text: str) -> Optional[int]:
     if "3000" in normalized or "3 thousand" in normalized:
         return 3000
 
-    match = re.search(r"(?:rs\.?|inr|₹)?\s*(\d{4,6})\s*(?:per annum|per year|\/year|\/annum|p\.a\.)", normalized)
+    match = re.search(
+        r"(?:rs\.?|inr|₹)?\s*(\d{4,6})\s*(?:per annum|per year|\/year|\/annum|p\.a\.)", normalized
+    )
     if match:
         try:
             return int(match.group(1))
@@ -243,42 +280,59 @@ def parse_scholarship_amount(text: str) -> Optional[int]:
 
 
 def raw_to_structured(
-    raw_data: RawScholarshipData,
-    verified_at: Optional[str] = None
+    raw_data: RawScholarshipData, verified_at: Optional[str] = None
 ) -> StructuredScholarship:
     """Convert RawScholarshipData into strict StructuredScholarship without hallucination."""
-    all_text = " ".join([
-        raw_data.name,
-        str(raw_data.raw.get("catalogue_text", "")),
-        str(raw_data.raw.get("specification_text", "")),
-        str(raw_data.raw.get("faq_text", "")),
-        str(raw_data.raw.get("eligibility_summary", "")),
-        str(raw_data.raw.get("benefits_summary", "")),
-    ])
+    all_text = " ".join(
+        [
+            raw_data.name,
+            str(raw_data.raw.get("catalogue_text", "")),
+            str(raw_data.raw.get("specification_text", "")),
+            str(raw_data.raw.get("faq_text", "")),
+            str(raw_data.raw.get("eligibility_summary", "")),
+            str(raw_data.raw.get("benefits_summary", "")),
+        ]
+    )
 
     classes = parse_classes(all_text)
     income_max = parse_income_ceiling(all_text)
     categories = parse_categories(all_text, scheme_id=raw_data.id)
     gender = parse_gender(all_text)
-    disability = parse_disability_requirement(all_text, scheme_id=raw_data.id, scheme_name=raw_data.name)
+    disability = parse_disability_requirement(
+        all_text, scheme_id=raw_data.id, scheme_name=raw_data.name
+    )
     institutions = parse_institution_types(all_text)
 
     # Merit & Exam requirements
-    is_merit = "merit" in raw_data.name.lower() or "mat/sat" in all_text.lower() or "examination" in all_text.lower()
+    is_merit = (
+        "merit" in raw_data.name.lower()
+        or "mat/sat" in all_text.lower()
+        or "examination" in all_text.lower()
+    )
     min_perc = None
     if "55%" in all_text or "55 percent" in all_text:
         min_perc = 55.0
     elif "50%" in all_text or "50 percent" in all_text:
         min_perc = 50.0
 
-    exam_req = bool(re.search(r"(selection test|entrance exam|competitive test|mat/sat)", all_text.lower()))
+    exam_req = bool(
+        re.search(r"(selection test|entrance exam|competitive test|mat/sat)", all_text.lower())
+    )
 
     # Financial Assistance
     amount = parse_scholarship_amount(all_text)
-    disbursement = "Monthly" if ("1000 per month" in all_text.lower() or "monthly" in all_text.lower()) else "Annual"
+    disbursement = (
+        "Monthly"
+        if ("1000 per month" in all_text.lower() or "monthly" in all_text.lower())
+        else "Annual"
+    )
 
     # Scheme type classification
-    scheme_type = "merit_cum_means" if (is_merit and income_max) else ("merit" if is_merit else "pre_matric_welfare")
+    scheme_type = (
+        "merit_cum_means"
+        if (is_merit and income_max)
+        else ("merit" if is_merit else "pre_matric_welfare")
+    )
 
     return StructuredScholarship(
         id=raw_data.id,
@@ -298,7 +352,9 @@ def raw_to_structured(
             required=is_merit,
             min_percentage=min_perc,
             exam_required=exam_req,
-            details="Selection via merit/prescribed examination" if (is_merit or exam_req) else None,
+            details="Selection via merit/prescribed examination"
+            if (is_merit or exam_req)
+            else None,
         ),
         institution_requirements=institutions,
         financial_assistance=FinancialAssistance(
@@ -307,7 +363,9 @@ def raw_to_structured(
             details=f"Financial assistance up to ₹{amount:,} per annum" if amount else None,
         ),
         official=OfficialLinks(
-            primary_url=raw_data.raw.get("primary_url") or raw_data.specification_url or raw_data.source_url,
+            primary_url=raw_data.raw.get("primary_url")
+            or raw_data.specification_url
+            or raw_data.source_url,
             source_url=raw_data.source_url,
             specification_url=raw_data.specification_url,
             faq_url=raw_data.faq_url,

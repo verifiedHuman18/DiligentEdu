@@ -4,9 +4,6 @@ import unittest
 
 from src.academic_rag.scholarships.eligibility import (
     evaluate_scholarship,
-    get_dynamic_questionnaire,
-    match_scholarships,
-    rank_matches,
 )
 from src.academic_rag.scholarships.models import (
     EligibilityCriteria,
@@ -151,7 +148,9 @@ class TestScholarshipEligibility(unittest.TestCase):
         self.assertIsNotNone(scheme)
         self.assertEqual(scheme.id, "nmmss")
 
-        explanation = get_scholarship_explanation("nmmss", {"class_level": 9, "family_income": 150000})
+        explanation = get_scholarship_explanation(
+            "nmmss", {"class_level": 9, "family_income": 150000}
+        )
         self.assertIsNotNone(explanation)
         self.assertTrue(len(explanation.reasons_matched) > 0)
 

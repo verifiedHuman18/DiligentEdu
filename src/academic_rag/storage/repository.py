@@ -261,6 +261,19 @@ class QuizRepository:
             logger.error(f"Failed to clear data for {student_id}: {e}")
             raise StorageError(f"Failed to delete student records: {e}")
 
+    def get_all_student_ids(self) -> List[str]:
+        """Returns a distinct list of student IDs who have quiz attempt records."""
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT DISTINCT student_id FROM quiz_attempts ORDER BY student_id ASC"
+                )
+                rows = cursor.fetchall()
+                return [r["student_id"] for r in rows if r["student_id"]]
+        except Exception:
+            return []
+
 
 # Default repository instance
 quiz_repository = QuizRepository()

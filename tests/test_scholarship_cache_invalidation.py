@@ -3,7 +3,6 @@
 import unittest
 
 from src.academic_rag.scholarships.models import (
-    StudentScholarshipProfile,
     compute_profile_signature,
     normalize_student_profile,
 )
@@ -15,13 +14,15 @@ class TestScholarshipCacheInvalidation(unittest.TestCase):
 
     def test_matcher_purity(self):
         """Phase 5: Guarantee pure execution without side-effects or mutations."""
-        profile = normalize_student_profile({
-            "class_level": 10,
-            "family_income": 180000,
-            "category": "OBC",
-            "school_type": "Government School",
-            "academic_score": 75.0,
-        })
+        profile = normalize_student_profile(
+            {
+                "class_level": 10,
+                "family_income": 180000,
+                "category": "OBC",
+                "school_type": "Government School",
+                "academic_score": 75.0,
+            }
+        )
 
         run1 = match_scholarships(profile)
         run2 = match_scholarships(profile)
@@ -35,8 +36,12 @@ class TestScholarshipCacheInvalidation(unittest.TestCase):
 
     def test_immediate_invalidation_on_profile_change(self):
         """Phase 9 & 10: Changing profile invalidates old signature and produces fresh result set."""
-        profile_a = normalize_student_profile({"class_level": 9, "family_income": 120000, "category": "SC"})
-        profile_b = normalize_student_profile({"class_level": 9, "family_income": 500000, "category": "SC"})
+        profile_a = normalize_student_profile(
+            {"class_level": 9, "family_income": 120000, "category": "SC"}
+        )
+        profile_b = normalize_student_profile(
+            {"class_level": 9, "family_income": 500000, "category": "SC"}
+        )
 
         sig_a = compute_profile_signature(profile_a)
         sig_b = compute_profile_signature(profile_b)

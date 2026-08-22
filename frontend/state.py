@@ -13,7 +13,10 @@ def init_session_state() -> None:
     """Initializes default keys in Streamlit session state."""
     defaults = {
         "theme": "Dark",
-        "current_screen": "home",
+        "user_role": None,
+        "login_step": "select_role",
+        "teacher_id": "teacher_001",
+        "current_screen": "login",
         "messages": [],
         "class_level": 10,
         "selected_class": "Class 10",
@@ -102,3 +105,28 @@ def set_state(key: str, value: Any) -> None:
 def navigate_to(screen_name: str) -> None:
     """Navigates to a specific screen."""
     st.session_state.current_screen = screen_name
+
+
+def get_user_role() -> Any:
+    """Returns the active user role ('student', 'teacher', or None)."""
+    return st.session_state.get("user_role")
+
+
+def set_user_role(role: Any) -> None:
+    """Sets the active user role ('student' or 'teacher') and routes to the role's default landing screen."""
+    if role not in ("student", "teacher", None):
+        raise ValueError(f"Invalid role {role!r}. Allowed roles are 'student', 'teacher', or None.")
+    st.session_state.user_role = role
+    if role == "student":
+        st.session_state.current_screen = "home"
+    elif role == "teacher":
+        st.session_state.current_screen = "teacher"
+    else:
+        st.session_state.current_screen = "login"
+
+
+def logout() -> None:
+    """Logs out the current user, clears role, and routes back to the login / role selection screen."""
+    st.session_state.user_role = None
+    st.session_state.login_step = "select_role"
+    st.session_state.current_screen = "login"

@@ -6,7 +6,7 @@ import streamlit as st
 
 from frontend.components.cards import render_citation_box
 from frontend.components.navigation import render_back_to_home
-from frontend.state import get_student_class_level, navigate_to
+from frontend.state import get_student_class_level
 from src.academic_rag.analytics.swat import get_available_chapters
 from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
 from src.academic_rag.quiz.generator import create_student_quiz

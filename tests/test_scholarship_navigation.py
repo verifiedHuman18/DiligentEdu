@@ -3,14 +3,11 @@
 import unittest
 
 from src.academic_rag.scholarships.models import (
-    OfficialLinks,
-    StudentScholarshipProfile,
     get_scholarship_primary_url,
     normalize_student_profile,
 )
 from src.academic_rag.scholarships.service import (
     get_available_scholarships,
-    get_scholarship,
     match_scholarships,
 )
 
@@ -79,7 +76,9 @@ class TestScholarshipNavigation(unittest.TestCase):
         self.assertIsNone(get_scholarship_primary_url(None))
         self.assertIsNone(get_scholarship_primary_url({}))
         self.assertIsNone(get_scholarship_primary_url({"official": {"primary_url": "#"}}))
-        self.assertIsNone(get_scholarship_primary_url({"official": {"primary_url": "javascript:void(0)"}}))
+        self.assertIsNone(
+            get_scholarship_primary_url({"official": {"primary_url": "javascript:void(0)"}})
+        )
         self.assertIsNone(get_scholarship_primary_url({"official": {"primary_url": "about:blank"}}))
         self.assertIsNone(get_scholarship_primary_url({"official": {"primary_url": ""}}))
 
@@ -115,13 +114,15 @@ class TestScholarshipNavigation(unittest.TestCase):
 
     def test_match_result_navigation_integration(self):
         """Phase 17: Matched scholarship results directly expose the correct official URL."""
-        profile = normalize_student_profile({
-            "class_level": 9,
-            "family_income": 120000,
-            "category": "OBC",
-            "school_type": "Government School",
-            "academic_score": 75.0,
-        })
+        profile = normalize_student_profile(
+            {
+                "class_level": 9,
+                "family_income": 120000,
+                "category": "OBC",
+                "school_type": "Government School",
+                "academic_score": 75.0,
+            }
+        )
         matches = match_scholarships(profile, academic_year="2026-27")
 
         for match in matches:

@@ -5,22 +5,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from src.academic_rag.scholarships.eligibility import (
-    build_rules_for_scholarship,
     evaluate_rule,
-    evaluate_scholarship,
-    generate_template_explanation,
     get_dynamic_questionnaire,
     match_scholarships,
-    rank_matches,
 )
 from src.academic_rag.scholarships.models import (
-    CatalogueItem,
-    EligibilityCriteria,
     EligibilityRule,
     EligibilityStatus,
-    FinancialAssistance,
     RawScholarshipData,
-    StructuredScholarship,
     StudentScholarshipProfile,
 )
 from src.academic_rag.scholarships.parser import (
@@ -56,7 +48,9 @@ class TestScholarshipModule(unittest.TestCase):
         self.assertIn("ST", categories)
 
     def test_null_income_safety(self):
-        sample_text = "Pre-Matric Scholarship for vulnerable sanitation workers with no income restriction."
+        sample_text = (
+            "Pre-Matric Scholarship for vulnerable sanitation workers with no income restriction."
+        )
         income = parse_income_ceiling(sample_text)
         self.assertIsNone(income)
 
@@ -78,7 +72,10 @@ class TestScholarshipModule(unittest.TestCase):
                 academic_year="2026-27",
                 provider="Dept of School Education",
                 source_url="https://scholarships.gov.in",
-                raw={"catalogue_text": "Sample catalogue raw text", "specification_text": "Income limit Rs. 350000"},
+                raw={
+                    "catalogue_text": "Sample catalogue raw text",
+                    "specification_text": "Income limit Rs. 350000",
+                },
             )
 
             saved_file = storage.save_raw(raw_item)
@@ -107,19 +104,27 @@ class TestScholarshipModule(unittest.TestCase):
             academic_score=78.5,
         )
 
-        rule_class = EligibilityRule(field="class_level", operator="in", value=[9, 10], mandatory=True)
+        rule_class = EligibilityRule(
+            field="class_level", operator="in", value=[9, 10], mandatory=True
+        )
         status, msg = evaluate_rule(rule_class, profile)
         self.assertEqual(status, "matched")
 
-        rule_income = EligibilityRule(field="family_income", operator="<=", value=250000, mandatory=True)
+        rule_income = EligibilityRule(
+            field="family_income", operator="<=", value=250000, mandatory=True
+        )
         status, msg = evaluate_rule(rule_income, profile)
         self.assertEqual(status, "matched")
 
-        rule_income_fail = EligibilityRule(field="family_income", operator="<=", value=100000, mandatory=True)
+        rule_income_fail = EligibilityRule(
+            field="family_income", operator="<=", value=100000, mandatory=True
+        )
         status, msg = evaluate_rule(rule_income_fail, profile)
         self.assertEqual(status, "unmatched")
 
-        rule_unknown = EligibilityRule(field="school_type", operator="in", value=["Government"], mandatory=True)
+        rule_unknown = EligibilityRule(
+            field="school_type", operator="in", value=["Government"], mandatory=True
+        )
         status, msg = evaluate_rule(rule_unknown, profile)
         self.assertEqual(status, "unknown")
 
@@ -161,7 +166,9 @@ class TestScholarshipModule(unittest.TestCase):
             # category, school_type, score not provided
         )
         incomplete_results = match_scholarships(profile_incomplete, academic_year="2026-27")
-        self.assertTrue(any(r.status == EligibilityStatus.POSSIBLE_MATCH for r in incomplete_results))
+        self.assertTrue(
+            any(r.status == EligibilityStatus.POSSIBLE_MATCH for r in incomplete_results)
+        )
 
     def test_dynamic_questionnaire_prioritization(self):
         """Phase 11: Dynamic questionnaire asks only missing fields."""
@@ -171,8 +178,8 @@ class TestScholarshipModule(unittest.TestCase):
 
         field_names = [q.field_name for q in questions]
         self.assertNotIn("class_level", field_names)  # Already known!
-        self.assertIn("family_income", field_names)   # Missing core
-        self.assertIn("category", field_names)        # Missing core
+        self.assertIn("family_income", field_names)  # Missing core
+        self.assertIn("category", field_names)  # Missing core
 
         # Check priority order
         priorities = [q.priority for q in questions]
@@ -201,7 +208,10 @@ class TestScholarshipModule(unittest.TestCase):
         # Test explanation structure
         first_match = ranked[0]
         self.assertIsInstance(first_match.explanation.summary, str)
-        self.assertTrue(len(first_match.explanation.reasons_matched) > 0 or len(first_match.explanation.verification_needed) > 0)
+        self.assertTrue(
+            len(first_match.explanation.reasons_matched) > 0
+            or len(first_match.explanation.verification_needed) > 0
+        )
         self.assertIn("https://scholarships.gov.in", first_match.explanation.action_guidance)
 
 
