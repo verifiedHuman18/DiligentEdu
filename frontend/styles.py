@@ -191,13 +191,19 @@ def inject_custom_css(theme_name: str = None) -> None:
 /* Base Streamlit App Overrides (Cream & Brown) */
 .stApp,
 [data-testid="stAppViewContainer"],
-[data-testid="stHeader"],
 .main,
 header,
 body {{
     background-color: var(--bg-app) !important;
     color: var(--text-primary) !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}}
+
+[data-testid="stHeader"],
+[data-testid="stToolbar"] {{
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
 }}
 
 .block-container {{

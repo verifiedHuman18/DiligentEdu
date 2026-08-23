@@ -23,7 +23,9 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["src*", "frontend*"]
+
 
 [dependency-groups]
 dev = [
