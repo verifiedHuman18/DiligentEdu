@@ -1,4 +1,4 @@
-# 🎓 Academic RAG Assistant
+# Academic RAG Assistant
 
 > Transform your academic textbooks into an intelligent AI tutor using advanced RAG (Retrieval Augmented Generation) technology
 
@@ -13,24 +13,24 @@
 [![Issues](https://img.shields.io/github/issues/ZohaibCodez/academic-rag-assistant.svg)](https://github.com/ZohaibCodez/academic-rag-assistant/issues)
 ![Last Commit](https://img.shields.io/github/last-commit/ZohaibCodez/academic-rag-assistant)
 [![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](https://academic-rag-assistant.streamlit.app)
-## 🎯 Overview
+## Overview
 
 Academic RAG Assistant is an intelligent tutoring system that transforms your course textbooks into an interactive AI conversation partner. Using advanced agentic RAG architecture, it provides contextual answers from your specific academic materials across multiple subjects including Linear Algebra, Discrete Structures, and Calculus & Analytical Geometry.
 
-## ✨ Features
+## Features
 
-- 📚 **Multi-Subject Expertise**: Specialized tools for Linear Algebra, Discrete Structures, and Calculus & Analytical Geometry
-- 🤖 **Agentic RAG System**: Intelligent query enhancement and routing for optimal retrieval
-- 🔄 **Real-time Streaming**: Live response generation with visual typing indicators
-- 📱 **Modern UI**: Clean, responsive dark-themed interface with custom styling
-- 💾 **Session Management**: Persistent chat history with export functionality
-- 🎛️ **Model Selection**: Support for multiple Google Gemini models (2.5 Pro, Flash, 2.0 Flash, etc.)
-- 🛡️ **Error Handling**: Comprehensive error management with user-friendly messages
-- 📊 **Progress Tracking**: Visual feedback during initialization and processing
-- 🔍 **Smart Retrieval**: MMR and multi-query retrieval strategies for better context
-- 🧠 **Memory System**: SQLite-based conversation persistence
+- **Multi-Subject Expertise**: Specialized tools for Linear Algebra, Discrete Structures, and Calculus & Analytical Geometry
+- **Agentic RAG System**: Intelligent query enhancement and routing for optimal retrieval
+- **Real-time Streaming**: Live response generation with visual typing indicators
+- **Modern UI**: Clean, responsive dark-themed interface with custom styling
+- **Session Management**: Persistent chat history with export functionality
+- **Model Selection**: Support for multiple Google Gemini models (2.5 Pro, Flash, 2.0 Flash, etc.)
+- **Error Handling**: Comprehensive error management with user-friendly messages
+- **Progress Tracking**: Visual feedback during initialization and processing
+- **Smart Retrieval**: MMR and multi-query retrieval strategies for better context
+- **Memory System**: SQLite-based conversation persistence
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: Streamlit with custom CSS styling
 - **Backend**: Python with asyncio for concurrent operations
@@ -41,14 +41,14 @@ Academic RAG Assistant is an intelligent tutoring system that transforms your co
 - **Text Processing**: LangChain framework for RAG implementation
 - **Memory**: SQLite for session and conversation management
 
-## 📋 Prerequisites
+### Prerequisites
 
 - Python 3.12 or higher
 - Google Gemini API Key ([Get one here](https://makersuite.google.com/app/apikey))
 - Pinecone API Key ([Get one here](https://www.pinecone.io/))
 - Pre-processed textbook data in Pinecone vector store
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone the Repository
 
@@ -105,7 +105,7 @@ streamlit run app.py
 
 Open your browser and navigate to `http://localhost:8501`
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -135,7 +135,7 @@ LAMBDA_MUL = 0.7  # MMR diversity parameter
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 ```
 
-## 📱 How to Use
+## How to Use
 
 1. **Enter API Keys**: Add your Google Gemini and Pinecone API keys in the sidebar
 2. **Select Model**: Choose your preferred Gemini model from the dropdown
@@ -143,7 +143,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 4. **View Subjects**: Check available subjects in the "Subjects" tab
 5. **Export History**: Download your conversation anytime from the "Info" tab
 
-### 📚 Subjects Supported
+### Subjects Supported
 
 #### Linear Algebra
 
@@ -177,7 +177,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 - "What are eigenvalues and eigenvectors? Provide examples"
 - "Explain the fundamental theorem of calculus with applications"
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -189,7 +189,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 │  Streamlit UI   │◀───│   Agent Runner   │◀───│  Function Tools │
 │   (Frontend)    │    │  (Orchestrator)  │    │ (Subject RAG)   │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
-                               │                        │
+                                │                        │
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │  Session Store  │    │  Gemini Models   │    │ Pinecone Vector │
 │   (SQLite)      │    │ (Generation AI)  │    │   Database      │
@@ -201,7 +201,7 @@ EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
                                                 └─────────────────┘
 ```
 
-## 🐳 Docker Support
+## Docker Support
 
 ### Using Docker
 
@@ -215,7 +215,7 @@ docker build -t academic-rag-assistant .
 docker run -p 8501:8501 --env-file .env academic-rag-assistant
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 academic-rag-assistant/
@@ -224,10 +224,10 @@ academic-rag-assistant/
 │
 ├── notebooks/
 │   └── data_preparation_pipeline.ipynb # Complete RAG pipeline setup
-│       ├── Step 1a → Multi-Document Ingestion
-│       ├── Step 1b → Subject-Aware Text Splitting
-│       ├── Step 2 → Retrieval System Setup
-│       ├── Step 3 → Tool Definitions
+│       ├── Step 1a -> Multi-Document Ingestion
+│       ├── Step 1b -> Subject-Aware Text Splitting
+│       ├── Step 2 -> Retrieval System Setup
+│       ├── Step 3 -> Tool Definitions
 │       └── Agentic RAG Final Form
 │
 ├── logs/                               # Application logs directory
@@ -240,7 +240,7 @@ academic-rag-assistant/
 └── README.md                           # Project documentation
 ```
 
-## 📊 Performance Metrics
+## Performance Metrics
 
 - **Query Processing**: ~1-3 seconds for typical academic queries
 - **Memory Usage**: Optimized vector storage with Pinecone
@@ -249,7 +249,7 @@ academic-rag-assistant/
 - **Concurrent Users**: Supports multiple simultaneous sessions
 - **Streaming Speed**: Real-time response generation with 0.05s intervals
 
-## ⚠️ Current Limitations
+## Current Limitations
 
 - **Subject Scope**: Limited to three core subjects (Linear Algebra, Discrete Structures, Calculus)
 - **Language**: Optimized for English academic content
@@ -257,7 +257,7 @@ academic-rag-assistant/
 - **API Limits**: Subject to Google Gemini and Pinecone rate limits
 - **Context Window**: Limited by model context length for very long documents
 
-## 🔄 Data Preparation Pipeline
+## Data Preparation Pipeline
 
 The included Jupyter notebook (`data_preparation_pipeline.ipynb`) provides a complete walkthrough:
 
@@ -291,7 +291,7 @@ The included Jupyter notebook (`data_preparation_pipeline.ipynb`) provides a com
 - Testing and validation procedures
 - Performance optimization techniques
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
@@ -314,7 +314,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 - Update documentation for new functionality
 - Test with multiple subjects and query types
 
-## 📝 Future Roadmap
+## Future Roadmap
 
 - [ ] Support for additional subjects (Physics, Chemistry, Statistics)
 - [ ] Multi-language academic content support
@@ -327,14 +327,14 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 - [ ] Progress tracking and learning analytics
 - [ ] API endpoint for programmatic access
 
-## 🐛 Known Issues
+## Known Issues
 
 - Large textbook corpora may require extended initialization time
 - Complex mathematical notation may not render perfectly
 - API rate limiting may affect performance during peak usage
 - Memory usage can be high with multiple concurrent users
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -362,11 +362,11 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 - Clear browser cache and session storage
 - For Docker: increase memory allocation limits
 
-## 📄 License
+## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [OpenAI Agents SDK](https://github.com/openai/agents) for the agentic framework
 - [Streamlit](https://streamlit.io/) for the incredible web framework
@@ -376,7 +376,7 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - [HuggingFace](https://huggingface.co/) for open-source embedding models
 - Academic community for inspiration and feedback
 
-## 📞 Support
+## Support
 
 If you encounter any issues or have questions:
 
@@ -387,6 +387,6 @@ If you encounter any issues or have questions:
 
 ---
 
-⭐ **Star this repository if you found it helpful for your academic journey!**
+**Star this repository if you found it helpful for your academic journey!**
 
-Built with 🖤 for students by [@ZohaibCodez](https://github.com/ZohaibCodez) using Google Gemini AI and advanced RAG techniques
+Built for students by [@ZohaibCodez](https://github.com/ZohaibCodez) using Google Gemini AI and advanced RAG techniques

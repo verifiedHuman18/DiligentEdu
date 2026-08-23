@@ -110,7 +110,7 @@ def render_settings_screen() -> None:
                 st.info("● **Using Your Fallback API:** Active for this session.")
             else:
                 st.warning(
-                    "⚠️ **No AI Service Configured:** Please provide an optional session fallback API key below."
+                    "**No AI Service Configured:** Please provide an optional session fallback API key below."
                 )
 
             st.divider()
@@ -141,7 +141,7 @@ def render_settings_screen() -> None:
             st.divider()
 
             # 3. Optional Fallback API (Phases 8, 9, 14, 18, 24, 25)
-            st.markdown("##### 🔐 Optional Fallback API")
+            st.markdown("##### Optional Fallback API")
             st.caption(
                 "DiligentEdu normally uses the application's configured AI service. "
                 "If the service reaches its usage limit or becomes temporarily unavailable, "

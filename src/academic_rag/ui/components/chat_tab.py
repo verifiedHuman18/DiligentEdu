@@ -16,30 +16,30 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
 
     # Grade banner
     if selected_class == "Class 9":
-        st.info("🎯 **Active Mode:** Focused on **NCERT Class 9 Science** (Exploration)")
+        st.info("**Active Mode:** Focused on **NCERT Class 9 Science** (Exploration)")
     elif selected_class == "Class 10":
-        st.info("🎯 **Active Mode:** Focused on **NCERT Class 10 Science**")
+        st.info("**Active Mode:** Focused on **NCERT Class 10 Science**")
     else:
-        st.info("🌐 **Active Mode:** Comprehensive (Searching across Class 9 & Class 10)")
+        st.info("**Active Mode:** Comprehensive (Searching across Class 9 & Class 10)")
 
     # Quick Starter Prompts
-    st.markdown("##### 💡 Suggested Questions to Explore:")
+    st.markdown("##### Suggested Questions to Explore:")
     prompt_cols = st.columns(4)
     quick_prompts = [
         (
-            "⚡ What is Ohm's Law and resistance?",
+            "What is Ohm's Law and resistance?",
             "What is Ohm's law and how is resistance calculated?",
         ),
         (
-            "🧬 Cell Organelles & Plasma Membrane",
+            "Cell Organelles & Plasma Membrane",
             "What are the main cell organelles and function of the plasma membrane in Class 9 Science?",
         ),
         (
-            "🧪 Carbon Covalent Bonding",
+            "Carbon Covalent Bonding",
             "Why does carbon form covalent bonds and what is catenation?",
         ),
         (
-            "🌈 Why is the sky blue?",
+            "Why is the sky blue?",
             "Why does the sky appear blue and what causes atmospheric refraction?",
         ),
     ]
@@ -66,7 +66,7 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
                 st.markdown(clean_prompt)
 
             with st.chat_message("assistant"):
-                with st.spinner("🔍 Searching NCERT Science textbooks and synthesizing answer..."):
+                with st.spinner("Searching NCERT Science textbooks and synthesizing answer..."):
                     message_placeholder = st.empty()
                     full_response = ""
 

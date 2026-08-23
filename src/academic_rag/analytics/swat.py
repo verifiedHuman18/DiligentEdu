@@ -419,7 +419,7 @@ def format_swat_report(swat: Dict[str, Any]) -> str:
             f"               STUDENT SWAT ({student_id}{class_info})",
             "=" * 50,
             "",
-            "🟢 STRONG (≥ 70%)",
+            "STRONG (≥ 70%)",
         ]
         if swat["strengths"]:
             for item in swat["strengths"]:
@@ -427,21 +427,21 @@ def format_swat_report(swat: Dict[str, Any]) -> str:
         else:
             lines.append("  (None)")
 
-        lines.append("\n🟡 AVERAGE (50%–69%)")
+        lines.append("\nAVERAGE (50%–69%)")
         if swat["average_topics"]:
             for item in swat["average_topics"]:
                 lines.append(f"  {item['chapter']:<34} {item['score']:>3d}%")
         else:
             lines.append("  (None)")
 
-        lines.append("\n🔴 WEAK (< 50%)")
+        lines.append("\nWEAK (< 50%)")
         if swat["weak_topics"]:
             for item in swat["weak_topics"]:
                 lines.append(f"  {item['chapter']:<34} {item['score']:>3d}%")
         else:
             lines.append("  (None)")
 
-        lines.append("\n⚪ NOT ATTEMPTED")
+        lines.append("\nNOT ATTEMPTED")
         unatt = swat.get("unattempted_topics") or swat.get("unattempted", [])
         if unatt:
             for item in unatt:

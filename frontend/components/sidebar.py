@@ -34,7 +34,7 @@ def render_sidebar() -> Tuple[str, str, str, str]:
             elif api_status["fallback_configured"]:
                 st.info("● Session Fallback Active")
             else:
-                st.warning("⚠️ No AI Service Configured")
+                st.warning("No AI Service Configured")
 
             # 2. Student Profile
             st.markdown("#### Student Profile")

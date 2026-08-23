@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
     """Renders the Practice Quiz configuration, taking, and submission interface."""
-    st.markdown("### 📝 NCERT Science Practice Quiz")
+    st.markdown("### NCERT Science Practice Quiz")
     st.caption(
         "Generate grounded, multiple-choice quizzes with instant grading, textbook explanations, "
         "and exact page citations in **1 single Gemini request**."
@@ -30,17 +30,8 @@ def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
         ch_display_map = {}
         ch_labels = []
         for ch in available_chs:
-            icon = (
-                "🟢"
-                if ch["status"] == "strong"
-                else (
-                    "🟡"
-                    if ch["status"] == "average"
-                    else ("🔴" if ch["status"] == "weak" else "⚪")
-                )
-            )
             badge = f" ({ch['score']}%)" if ch["score"] is not None else " (New)"
-            label = f"{icon} Ch {ch['chapter_number']}: {ch['chapter']}{badge}"
+            label = f"Ch {ch['chapter_number']}: {ch['chapter']}{badge}"
             ch_display_map[label] = ch["chapter"]
             ch_labels.append(label)
 
@@ -57,9 +48,9 @@ def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
     with q_col4:
         quiz_count = st.selectbox("Questions", [5, 3, 7, 10], index=0, key="quiz_count_sel")
 
-    if st.button("⚡ Generate NCERT Quiz", type="primary", use_container_width=True):
+    if st.button("Generate NCERT Quiz", type="primary", use_container_width=True):
         if not user_api_key:
-            st.warning("👈 Please enter your Google Gemini API key in the sidebar.")
+            st.warning("Please enter your Google Gemini API key in the sidebar.")
         else:
             with st.spinner(
                 f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} from NCERT in 1 request..."
@@ -86,7 +77,7 @@ def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
     if curr_quiz and "questions" in curr_quiz:
         st.divider()
         st.markdown(
-            f"#### 📖 Quiz: Class {curr_quiz.get('class_level')} Science — {curr_quiz.get('chapter')}"
+            f"#### Quiz: Class {curr_quiz.get('class_level')} Science — {curr_quiz.get('chapter')}"
         )
         st.caption(
             f"Difficulty: **{curr_quiz.get('difficulty', '').upper()}** | "
@@ -128,20 +119,20 @@ def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
 
                 is_correct = user_ans_text and user_ans_text.startswith(f"{correct_key}")
                 if is_correct:
-                    st.success(f"✅ **Your Answer:** {user_ans_text}")
+                    st.success(f"**Your Answer:** {user_ans_text}")
                 else:
                     st.error(
-                        f"❌ **Your Answer:** {user_ans_text or 'No answer selected'}  \n**Correct Answer:** {correct_opt_text}"
+                        f"**Your Answer:** {user_ans_text or 'No answer selected'}  \n**Correct Answer:** {correct_opt_text}"
                     )
 
-                with st.expander(f"💡 Explanation & NCERT Citations (Q{idx})", expanded=True):
+                with st.expander(f"Explanation & NCERT Citations (Q{idx})", expanded=True):
                     st.markdown(
                         f"**Explanation:** {q_data.get('explanation', 'Refer to NCERT textbook.')}"
                     )
                     sp = q_data.get("source_pages", [])
                     sp_str = ", ".join(str(p) for p in sp) if sp else "Referenced in Chapter"
                     st.markdown(
-                        f"📚 **NCERT Citation:** Class {curr_quiz.get('class_level')} Science | "
+                        f"**NCERT Citation:** Class {curr_quiz.get('class_level')} Science | "
                         f"*{curr_quiz.get('chapter')}* | **Page(s): {sp_str}**"
                     )
 
@@ -150,7 +141,7 @@ def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
         st.session_state.quiz_user_answers = user_answers
 
         if not is_submitted:
-            if st.button("📊 Submit Quiz", type="primary", use_container_width=True):
+            if st.button("Submit Quiz", type="primary", use_container_width=True):
                 try:
                     sub_result = submit_and_grade_quiz(
                         student_id=student_id,
@@ -177,34 +168,27 @@ def render_quiz_tab(student_id: str, user_api_key: str, selected_model: str):
             with score_col1:
                 if pct >= 70:
                     st.success(
-                        f"🎉 **Outstanding Job!** Score: **{correct_count}/{total_q}** ({pct}%)"
+                        f"**Outstanding Job!** Score: **{correct_count}/{total_q}** ({pct}%)"
                     )
                 elif pct >= 50:
-                    st.info(f"👍 **Good Effort!** Score: **{correct_count}/{total_q}** ({pct}%)")
+                    st.info(f"**Good Effort!** Score: **{correct_count}/{total_q}** ({pct}%)")
                 else:
                     st.warning(
-                        f"📖 **Needs Review:** Score: **{correct_count}/{total_q}** ({pct}%) — Review the cited pages above!"
+                        f"**Needs Review:** Score: **{correct_count}/{total_q}** ({pct}%) — Review the cited pages above!"
                     )
 
                 # Render Automatic SWAT Update Banner
                 if sub_res:
-                    stat_icon = (
-                        "🟢"
-                        if sub_res.get("new_status") == "strong"
-                        else ("🟡" if sub_res.get("new_status") == "average" else "🔴")
-                    )
                     if sub_res.get("status_changed"):
-                        st.success(
-                            f"🔄 **SWAT Updated!** {sub_res.get('status_change_summary')} {stat_icon}"
-                        )
+                        st.success(f"**SWAT Updated!** {sub_res.get('status_change_summary')}")
                     else:
                         st.info(
-                            f"📊 **SWAT Chapter Score:** {sub_res.get('chapter')} average is "
-                            f"**{sub_res.get('new_chapter_score')}%** ({sub_res.get('new_status', '').upper()} {stat_icon})"
+                            f"**SWAT Chapter Score:** {sub_res.get('chapter')} average is "
+                            f"**{sub_res.get('new_chapter_score')}%** ({sub_res.get('new_status', '').upper()})"
                         )
 
             with score_col2:
-                if st.button("🔄 Take Another Quiz", type="primary", use_container_width=True):
+                if st.button("Take Another Quiz", type="primary", use_container_width=True):
                     st.session_state.current_quiz = None
                     st.session_state.quiz_submitted = False
                     st.session_state.quiz_user_answers = {}

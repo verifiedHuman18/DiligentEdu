@@ -82,7 +82,7 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================================
-# 🎓 STUDENT SIDE BACKEND API CONTRACTS (Phase 21)
+# STUDENT SIDE BACKEND API CONTRACTS (Phase 21)
 # =====================================================================
 
 
@@ -301,7 +301,7 @@ def get_unattempted_chapters(
 
 
 # =====================================================================
-# 👨‍🏫 TEACHER SIDE BACKEND API CONTRACTS (Phase 21)
+# TEACHER SIDE BACKEND API CONTRACTS (Phase 21)
 # =====================================================================
 
 

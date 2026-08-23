@@ -180,9 +180,9 @@ class TestSwatUnattemptedChapters(unittest.TestCase):
         swat = get_student_swat(self.student_id, class_level=10, db_path=self.db_path)
         report = format_swat_report(swat)
 
-        self.assertIn("🟢 STRONG (≥ 70%)", report)
+        self.assertIn("STRONG (≥ 70%)", report)
         self.assertIn("Light – Reflection and Refraction", report)
-        self.assertIn("⚪ NOT ATTEMPTED", report)
+        self.assertIn("NOT ATTEMPTED", report)
         self.assertIn("Electricity", report)
         self.assertIn("Chemical Reactions and Equations", report)
 

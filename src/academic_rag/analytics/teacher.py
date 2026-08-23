@@ -192,7 +192,7 @@ def get_student_status(
             "has_data": False,
             "overall_status": "No Data",
             "status_code": "no_data",
-            "status_icon": "⚪",
+            "status_icon": "no_data",
             "overall_average": 0,
             "trend": {
                 "direction": "no_data",
@@ -211,15 +211,15 @@ def get_student_status(
     if overall_avg >= 70:
         overall_status = "Performing Well"
         status_code = "performing_well"
-        status_icon = "🟢"
+        status_icon = "performing_well"
     elif overall_avg >= 50:
         overall_status = "Monitor"
         status_code = "monitor"
-        status_icon = "🟡"
+        status_icon = "monitor"
     else:
         overall_status = "Needs Attention"
         status_code = "needs_attention"
-        status_icon = "🔴"
+        status_icon = "needs_attention"
 
     trend_alert = False
     trend_reason = ""
@@ -246,11 +246,13 @@ def get_student_status(
 
         if diff >= 4.0:
             trend_direction = "improving"
-            trend_reason = f"Performance is steadily improving over recent quizzes ({earlier_avg}% ➔ {recent_avg}%)."
+            trend_reason = f"Performance is steadily improving over recent quizzes ({earlier_avg}% -> {recent_avg}%)."
         elif diff <= -4.0:
             trend_direction = "declining"
             trend_alert = True
-            trend_reason = f"Recent quiz performance is declining ({earlier_avg}% ➔ {recent_avg}%)."
+            trend_reason = (
+                f"Recent quiz performance is declining ({earlier_avg}% -> {recent_avg}%)."
+            )
         else:
             trend_direction = "stable"
             trend_reason = f"Performance has remained steady around {recent_avg}%."
@@ -266,7 +268,7 @@ def get_student_status(
                 "type": "weak_topic",
                 "chapter": ch_name,
                 "score": ch_score,
-                "message": f"⚠ Weak performance in {ch_name} ({ch_score}%)",
+                "message": f"Weak performance in {ch_name} ({ch_score}%)",
             }
         )
 
@@ -274,17 +276,17 @@ def get_student_status(
         alerts.append(
             {
                 "type": "declining_trend",
-                "message": f"⚠ {trend_reason}",
+                "message": f"{trend_reason}",
             }
         )
 
     positive_notes = []
     if trend_direction == "improving":
-        positive_notes.append(f"📈 {trend_reason}")
+        positive_notes.append(trend_reason)
         if status_code != "performing_well":
             overall_status = "Improving"
             status_code = "improving"
-            status_icon = "📈"
+            status_icon = "improving"
 
     return {
         "student_id": student_id,

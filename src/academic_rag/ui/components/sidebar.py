@@ -8,12 +8,12 @@ from src.academic_rag.curriculum.service import curriculum_service
 def render_sidebar():
     """Renders the application sidebar tabs: Settings, Syllabus."""
     with st.sidebar:
-        st.markdown("### 🔬 NCERT Science Tutor")
-        tab1, tab2 = st.tabs(["⚙️ Settings", "📚 Syllabus"])
+        st.markdown("### NCERT Science Tutor")
+        tab1, tab2 = st.tabs(["Settings", "Syllabus"])
 
         # Tab 1: Configuration & Settings
         with tab1:
-            st.markdown("#### 🤖 AI Service")
+            st.markdown("#### AI Service")
             from src.academic_rag.ai import get_api_status
 
             api_status = get_api_status()
@@ -22,9 +22,9 @@ def render_sidebar():
             elif api_status["fallback_configured"]:
                 st.info("● Session Fallback Active")
             else:
-                st.warning("⚠️ No AI Service Configured")
+                st.warning("No AI Service Configured")
 
-            st.markdown("#### 👤 Student Profile")
+            st.markdown("#### Student Profile")
             student_id = st.text_input(
                 "Student ID",
                 value=st.session_state.get("student_id", "student_001"),
@@ -32,7 +32,7 @@ def render_sidebar():
             )
             st.session_state.student_id = student_id
 
-            st.markdown("#### 🎓 Student Grade & Focus")
+            st.markdown("#### Student Grade & Focus")
             grade_options = ["All Classes", "Class 9", "Class 10"]
             current_grade_idx = (
                 grade_options.index(st.session_state.selected_class)
@@ -61,7 +61,7 @@ def render_sidebar():
 
             st.divider()
 
-            st.markdown("#### 🤖 LLM Model")
+            st.markdown("#### LLM Model")
             model_options = [
                 "gemini-3.5-flash-lite",
                 "gemini-flash-lite-latest",
@@ -80,17 +80,17 @@ def render_sidebar():
 
         # Tab 2: Syllabus
         with tab2:
-            st.markdown("#### 📖 NCERT Science Curriculum")
+            st.markdown("#### NCERT Science Curriculum")
 
             with st.expander(
-                "📘 Class 9 Science (13 Chapters)", expanded=(selected_class == "Class 9")
+                "Class 9 Science (13 Chapters)", expanded=(selected_class == "Class 9")
             ):
                 cls9_chs = curriculum_service.get_chapters_for_grade(9)
                 for ch in cls9_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
 
             with st.expander(
-                "📗 Class 10 Science (13 Chapters)", expanded=(selected_class == "Class 10")
+                "Class 10 Science (13 Chapters)", expanded=(selected_class == "Class 10")
             ):
                 cls10_chs = curriculum_service.get_chapters_for_grade(10)
                 for ch in cls10_chs:
