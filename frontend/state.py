@@ -31,6 +31,15 @@ def init_session_state() -> None:
         "quiz_user_answers": {},
         "last_submission_result": None,
         "active_prompt": None,
+        "quiz_mode": "socrates",
+        "socrates_active_q": 1,
+        "socrates_hints_revealed": {},
+        "socrates_chat_history": {},
+        "socrates_attempts": {},
+        "socrates_completed": False,
+        "tutor_needs_refresh": True,
+        "tutor_suggested_questions": None,
+        "tutor_suggested_class": None,
     }
 
     for key, val in defaults.items():
@@ -80,6 +89,12 @@ def set_student_class_level(class_level: int) -> None:
         st.session_state.quiz_user_answers = {}
         st.session_state.last_submission_result = None
         st.session_state.selected_chapter = "All Chapters"
+        st.session_state.socrates_active_q = 1
+        st.session_state.socrates_hints_revealed = {}
+        st.session_state.socrates_chat_history = {}
+        st.session_state.socrates_attempts = {}
+        st.session_state.socrates_completed = False
+        st.session_state.tutor_needs_refresh = True
 
 
 def get_student_profile() -> Dict[str, Any]:
@@ -104,6 +119,9 @@ def set_state(key: str, value: Any) -> None:
 
 def navigate_to(screen_name: str) -> None:
     """Navigates to a specific screen."""
+    if screen_name != st.session_state.get("current_screen"):
+        if screen_name == "tutor":
+            st.session_state.tutor_needs_refresh = True
     st.session_state.current_screen = screen_name
 
 

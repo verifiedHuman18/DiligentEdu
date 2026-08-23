@@ -1,7 +1,6 @@
 """Dedicated Configuration and Settings Screen with Compact Sidebar Navigation and Translucent Active Buttons."""
 
 import os
-from datetime import datetime
 
 import streamlit as st
 
@@ -10,7 +9,6 @@ from frontend.state import navigate_to
 from frontend.styles import inject_custom_css
 from src.academic_rag.config import config
 from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.storage.repository import quiz_repository
 
 
 def render_settings_screen() -> None:
@@ -35,10 +33,10 @@ def render_settings_screen() -> None:
         render_back_to_home("settings")
 
     st.markdown("### Settings")
-    st.caption("Manage API keys, profile identity, AI model selection, theme, and session data.")
+    st.caption("Manage API keys, profile identity, AI model selection, and theme.")
     st.write("")
 
-    if "settings_tab" not in st.session_state:
+    if "settings_tab" not in st.session_state or st.session_state.settings_tab == "Data & Storage":
         st.session_state.settings_tab = "Authentication"
 
     active_tab = st.session_state.settings_tab
@@ -54,7 +52,6 @@ def render_settings_screen() -> None:
             (profile_tab_label, "Profile", ":material/person:"),
             ("AI & Model", "AI & Model", ":material/smart_toy:"),
             ("Appearance", "Appearance", ":material/palette:"),
-            ("Data & Storage", "Data & Storage", ":material/database:"),
         ]
 
         for label, tab_id, icon_name in tabs:
@@ -250,51 +247,3 @@ def render_settings_screen() -> None:
                 st.session_state.theme = selected_theme
                 inject_custom_css(selected_theme)
                 st.rerun()
-
-        # Tab 5: Data & Storage
-        elif active_tab == "Data & Storage":
-            st.markdown("#### Session & Storage Management")
-            st.caption("Export your conversation records or reset student quiz attempt data.")
-            st.write("")
-
-            d1, d2, d3 = st.columns(3)
-            with d1:
-                msg_count = len(st.session_state.get("messages", []))
-                if msg_count > 0:
-                    chat_text = ""
-                    for msg in st.session_state.messages:
-                        role = "Student" if msg["role"] == "user" else "NCERT Assistant"
-                        chat_text += f"{role}:\n{msg['content']}\n\n"
-
-                    st.download_button(
-                        "Export Chat History",
-                        chat_text,
-                        f"ncert_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                        "text/plain",
-                        icon=":material/download:",
-                        use_container_width=True,
-                    )
-                else:
-                    st.button(
-                        "Export Chat History",
-                        icon=":material/download:",
-                        disabled=True,
-                        use_container_width=True,
-                    )
-
-            with d2:
-                if st.button(
-                    "Clear Chat History", icon=":material/delete_sweep:", use_container_width=True
-                ):
-                    st.session_state.messages = []
-                    st.success("Chat history cleared.")
-                    st.rerun()
-
-            with d3:
-                student_id = st.session_state.get("student_id", "student_001")
-                if st.button(
-                    "Clear Quiz History", icon=":material/restart_alt:", use_container_width=True
-                ):
-                    quiz_repository.clear_student_data(student_id)
-                    st.success("Quiz history cleared.")
-                    st.rerun()

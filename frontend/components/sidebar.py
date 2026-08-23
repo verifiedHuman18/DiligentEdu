@@ -1,7 +1,6 @@
 """Sidebar component handling settings, authentication, curriculum, and theme controls (No Emojis)."""
 
 import os
-from datetime import datetime
 from typing import Tuple
 
 import streamlit as st
@@ -23,7 +22,7 @@ def render_sidebar() -> Tuple[str, str, str, str]:
         st.caption("NCERT Science AI Assistant")
 
         # Tabs
-        tab_config, tab_syllabus, tab_session = st.tabs(["Settings", "Syllabus", "Session"])
+        tab_config, tab_syllabus = st.tabs(["Settings", "Syllabus"])
 
         # Tab 1: Configuration
         with tab_config:
@@ -125,36 +124,6 @@ def render_sidebar() -> Tuple[str, str, str, str]:
                 cls10_chs = curriculum_service.get_chapters_for_grade(10)
                 for ch in cls10_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
-
-        # Tab 3: Session & Export
-        with tab_session:
-            st.markdown("#### Session Overview")
-            msg_count = len(st.session_state.get("messages", []))
-            questions_asked = msg_count // 2 if msg_count > 0 else 0
-
-            st.metric("Questions Asked", questions_asked)
-            st.info(
-                f"**Active Model:** {selected_model}\n\n**Vector Index:** Pinecone ({config.pinecone_index_name})"
-            )
-
-            if msg_count > 0:
-                st.divider()
-                chat_text = ""
-                for msg in st.session_state.messages:
-                    role = "Student" if msg["role"] == "user" else "NCERT Assistant"
-                    chat_text += f"{role}:\n{msg['content']}\n\n"
-
-                st.download_button(
-                    "Export Chat History",
-                    chat_text,
-                    f"ncert_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                    "text/plain",
-                    use_container_width=True,
-                )
-
-            if st.button("Clear Chat History", use_container_width=True):
-                st.session_state.messages = []
-                st.rerun()
 
     return (
         selected_model,

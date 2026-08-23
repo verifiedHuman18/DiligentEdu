@@ -1,7 +1,6 @@
 """Sidebar UI component handling authentication, syllabus view, and grade focus."""
 
 import os
-from datetime import datetime
 
 import streamlit as st
 
@@ -10,10 +9,10 @@ from src.academic_rag.curriculum.service import curriculum_service
 
 
 def render_sidebar():
-    """Renders the application sidebar tabs: Settings, Syllabus, Info."""
+    """Renders the application sidebar tabs: Settings, Syllabus."""
     with st.sidebar:
         st.markdown("### 🔬 NCERT Science Tutor")
-        tab1, tab2, tab3 = st.tabs(["⚙️ Settings", "📚 Syllabus", "📊 Info"])
+        tab1, tab2 = st.tabs(["⚙️ Settings", "📚 Syllabus"])
 
         # Tab 1: Configuration & Settings
         with tab1:
@@ -102,34 +101,6 @@ def render_sidebar():
                 cls10_chs = curriculum_service.get_chapters_for_grade(10)
                 for ch in cls10_chs:
                     st.markdown(f"**Ch {ch.chapter_number}:** {ch.chapter_title}")
-
-        # Tab 3: Info & Export
-        with tab3:
-            msg_count = len(st.session_state.messages)
-            st.metric("Questions Asked", msg_count // 2 if msg_count > 0 else 0)
-            st.info(f"**Active Model:**\n{selected_model}")
-            st.info(
-                f"**Vector Store:**\nPinecone (`{config.pinecone_index_name}`)\n`sentence-transformers` 384-dim"
-            )
-
-            if msg_count > 0:
-                st.divider()
-                chat_text = ""
-                for msg in st.session_state.messages:
-                    role = "Student" if msg["role"] == "user" else "NCERT Assistant"
-                    chat_text += f"{role}:\n{msg['content']}\n\n"
-
-                st.download_button(
-                    "📥 Export Conversation",
-                    chat_text,
-                    f"ncert_chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                    "text/plain",
-                    use_container_width=True,
-                )
-
-            if st.button("🗑️ Clear Chat", use_container_width=True):
-                st.session_state.messages = []
-                st.rerun()
 
     return (
         selected_model,

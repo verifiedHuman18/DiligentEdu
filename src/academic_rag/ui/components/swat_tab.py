@@ -133,7 +133,3 @@ def render_swat_tab(student_id: str, class_level: Optional[int] = None):
                     st.caption(
                         f"Your answer: `{q_rec['user_answer']}` | Correct: `{q_rec['correct_answer']}`"
                     )
-
-    if st.button("🗑️ Clear My Quiz History", type="secondary"):
-        quiz_repository.clear_student_data(student_id)
-        st.rerun()

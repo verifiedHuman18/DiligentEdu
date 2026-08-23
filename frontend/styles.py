@@ -1530,10 +1530,210 @@ hr {{
     margin-top: 2px;
 }}
 
+/* Socrates Learning System Mode Styling */
+.socrates-banner {{
+    background: linear-gradient(135deg, var(--surface-container-high) 0%, var(--surface-container) 100%);
+    border: 1px solid var(--md-amber);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 14px var(--card-shadow);
+}}
+
+.socrates-avatar {{
+    font-size: 2.2rem;
+    line-height: 1;
+    background: var(--md-amber-container);
+    color: var(--md-on-amber-container);
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 2px solid var(--md-amber);
+    flex-shrink: 0;
+}}
+
+.socrates-banner-title {{
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--md-amber);
+    margin: 0;
+}}
+
+.socrates-banner-sub {{
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    font-style: italic;
+}}
+
+.socrates-hint-tier1 {{
+    background: rgba(251, 191, 36, 0.09);
+    border-left: 4px solid var(--md-amber);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1.1rem;
+    margin: 0.6rem 0;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}}
+
+.socrates-hint-tier2 {{
+    background: rgba(52, 211, 153, 0.09);
+    border-left: 4px solid var(--md-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1.1rem;
+    margin: 0.6rem 0;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}}
+
+.socrates-hint-tier3 {{
+    background: rgba(192, 132, 252, 0.09);
+    border-left: 4px solid var(--md-secondary);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem 1.1rem;
+    margin: 0.6rem 0;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}}
+
+.socrates-reflection-box {{
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid var(--md-error);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.3rem;
+    margin: 0.8rem 0;
+    color: var(--text-primary);
+    line-height: 1.55;
+    font-size: 0.94rem;
+}}
+
+.socrates-success-box {{
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px solid var(--md-tertiary);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.3rem;
+    margin: 0.8rem 0;
+    color: var(--text-primary);
+    line-height: 1.55;
+    font-size: 0.94rem;
+}}
+
+.socrates-chat-header {{
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--md-amber);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0.4rem;
+}}
+
+.socrates-chat-msg-user {{
+    background: var(--surface-container-highest);
+    border-radius: 12px 12px 2px 12px;
+    padding: 8px 12px;
+    margin: 4px 0 4px auto;
+    max-width: 85%;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+}}
+
+.socrates-chat-msg-bot {{
+    background: var(--surface-container-low);
+    border: 1px solid var(--border-outline-variant);
+    border-radius: 12px 12px 12px 2px;
+    padding: 9px 13px;
+    margin: 4px auto 4px 0;
+    max-width: 90%;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    line-height: 1.45;
+}}
+
+/* Quiz Mode Selection Cards */
+.quiz-mode-card {{
+    background: var(--surface-container);
+    border: 1px solid var(--border-outline-variant);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.3rem;
+    transition: all 0.2s ease-in-out;
+    margin-bottom: 0.6rem;
+}}
+
+.quiz-mode-card-active {{
+    background: var(--surface-container-high);
+    border: 2px solid var(--md-amber) !important;
+    box-shadow: 0 4px 16px rgba(251, 191, 36, 0.12);
+}}
+
+.quiz-mode-card-active-std {{
+    background: var(--surface-container-high);
+    border: 2px solid var(--md-primary) !important;
+    box-shadow: 0 4px 16px var(--card-shadow);
+}}
+
+.quiz-mode-header {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}}
+
+.quiz-mode-title {{
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}}
+
+.quiz-mode-badge {{
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 4px;
+}}
+
+.quiz-mode-badge-rec {{
+    background: var(--md-amber-container);
+    color: var(--md-on-amber-container);
+    border: 1px solid var(--md-amber);
+}}
+
+.quiz-mode-badge-std {{
+    background: var(--surface-container-highest);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-outline-variant);
+}}
+
+.quiz-mode-desc {{
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin: 0;
+}}
+
+
 /* Hide unnecessary default Streamlit decoration and sidebar */
 #MainMenu, footer {{
     visibility: hidden;
 }}
+
 header {{
     background: transparent !important;
 }}

@@ -111,7 +111,7 @@ async def main():
         elif active_screen == "tutor":
             await render_tutor_screen(selected_model, user_api_key, selected_class)
         elif active_screen == "quiz":
-            render_quiz_screen(student_id, user_api_key, selected_model)
+            await render_quiz_screen(student_id, user_api_key, selected_model)
         elif active_screen == "swat":
             render_swat_screen(student_id, selected_class=selected_class)
         elif active_screen == "scholarships":
