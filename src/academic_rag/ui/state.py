@@ -17,8 +17,8 @@ def init_session_state() -> None:
         st.session_state.student_id = "student_001"
     if "model" not in st.session_state:
         st.session_state.model = config.default_llm_model
-    if "api_key" not in st.session_state:
-        st.session_state.api_key = config.get_google_api_key() or ""
+    if "user_gemini_api_key" not in st.session_state:
+        st.session_state.user_gemini_api_key = None
     if "current_quiz" not in st.session_state:
         st.session_state.current_quiz = None
     if "quiz_submitted" not in st.session_state:

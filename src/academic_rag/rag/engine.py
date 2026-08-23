@@ -3,10 +3,8 @@
 import logging
 from typing import AsyncGenerator, Dict, List, Optional
 
-from openai import AsyncOpenAI
-
+from src.academic_rag.ai.client_factory import stream_chat_completion
 from src.academic_rag.config import config
-from src.academic_rag.exceptions import AuthenticationError
 from src.academic_rag.rag.prompts import NCERT_TUTOR_SYSTEM_PROMPT
 from src.academic_rag.rag.retriever import retrieve_ncert_context
 
@@ -24,16 +22,12 @@ async def stream_ncert_rag_response(
     **kwargs,
 ) -> AsyncGenerator[str, None]:
     """
-    Direct NCERT RAG streaming engine.
+    Direct NCERT RAG streaming engine with centralized Gemini client and automated fallback.
     1. Retrieves top NCERT chunks from Pinecone filtered by Class level.
-    2. Directly invokes Gemini via OpenAI-compatible endpoint.
+    2. Invokes Gemini via centralized stream_chat_completion factory.
     3. Streams response token-by-token with grounded textbook explanations & exact page citations.
     """
     effective_class_filter = grade if grade is not None else class_filter
-    active_key = config.get_google_api_key(override=api_key)
-    if not active_key:
-        raise AuthenticationError("Google Gemini API key is required.")
-
     active_model = model_name or config.default_llm_model
 
     # 1. Retrieve NCERT Context
@@ -57,18 +51,10 @@ Please provide a thorough, pedagogically structured explanation with step-by-ste
 
     messages.append({"role": "user", "content": user_content})
 
-    client = AsyncOpenAI(
-        base_url=config.gemini_base_url,
-        api_key=active_key,
-    )
-
-    response_stream = await client.chat.completions.create(
-        model=active_model,
+    async for chunk in stream_chat_completion(
         messages=messages,
-        stream=True,
+        model=active_model,
         temperature=0.2,
-    )
-
-    async for chunk in response_stream:
-        if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
-            yield chunk.choices[0].delta.content
+        override_api_key=api_key,
+    ):
+        yield chunk

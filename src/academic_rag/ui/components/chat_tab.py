@@ -53,12 +53,6 @@ async def render_chat_tab(selected_model: str, user_api_key: str, selected_class
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    if not user_api_key:
-        st.warning(
-            "👈 Please enter your Google Gemini API key in the sidebar to start asking questions."
-        )
-        return
-
     # User input
     prompt_input = st.chat_input("Ask any question from NCERT Class 9 or 10 Science...")
     prompt = prompt_input or st.session_state.pop("active_prompt", None)

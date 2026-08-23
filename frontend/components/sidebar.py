@@ -1,12 +1,10 @@
 """Sidebar component handling settings, authentication, curriculum, and theme controls (No Emojis)."""
 
-import os
 from typing import Tuple
 
 import streamlit as st
 
 from frontend.components.theme_switcher import render_theme_switcher
-from src.academic_rag.config import config
 from src.academic_rag.curriculum.service import curriculum_service
 
 
@@ -26,20 +24,17 @@ def render_sidebar() -> Tuple[str, str, str, str]:
 
         # Tab 1: Configuration
         with tab_config:
-            # 1. Authentication
-            st.markdown("#### Authentication")
-            api_key = st.text_input(
-                "Google Gemini API Key",
-                type="password",
-                placeholder="AIzaSy...",
-                value=st.session_state.get("api_key", config.get_google_api_key() or ""),
-                help="Your API key remains securely in your current browser session.",
-            )
-            if api_key:
-                st.session_state.api_key = api_key
-                os.environ["GOOGLE_API_KEY"] = api_key
+            # 1. AI Service Status
+            st.markdown("#### AI Service")
+            from src.academic_rag.ai import get_api_status
+
+            api_status = get_api_status()
+            if api_status["primary_configured"]:
+                st.success("● Primary AI Connected")
+            elif api_status["fallback_configured"]:
+                st.info("● Session Fallback Active")
             else:
-                st.info("Enter your Gemini API key to enable AI features.")
+                st.warning("⚠️ No AI Service Configured")
 
             # 2. Student Profile
             st.markdown("#### Student Profile")
@@ -127,7 +122,7 @@ def render_sidebar() -> Tuple[str, str, str, str]:
 
     return (
         selected_model,
-        st.session_state.get("api_key", ""),
+        st.session_state.get("user_gemini_api_key", ""),
         selected_class,
         st.session_state.get("student_id", "student_001"),
     )

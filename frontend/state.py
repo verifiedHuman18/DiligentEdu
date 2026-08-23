@@ -25,7 +25,7 @@ def init_session_state() -> None:
         "model": config.default_llm_model
         if hasattr(config, "default_llm_model")
         else "gemini-3.5-flash-lite",
-        "api_key": config.get_google_api_key() or "",
+        "user_gemini_api_key": None,
         "current_quiz": None,
         "quiz_submitted": False,
         "quiz_user_answers": {},

@@ -158,41 +158,68 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
         type="primary",
         use_container_width=True,
     ):
-        if not user_api_key:
-            st.warning(
-                "Please enter your Google Gemini API key in Settings (gear icon in the top right)."
-            )
-        else:
-            with st.spinner(
-                f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level})..."
-            ):
-                try:
-                    generated = create_student_quiz(
-                        student_id=student_id,
-                        chapter=selected_ch_title,
-                        class_level=class_level,
-                        num_questions=quiz_count,
-                        difficulty=quiz_diff,
-                        api_key=user_api_key,
-                        model=selected_model,
-                    )
-                    # Enrich with Socratic hints
-                    generated = enrich_quiz_with_socrates(
-                        generated, api_key=user_api_key, model=selected_model
-                    )
-                    st.session_state.current_quiz = generated
-                    st.session_state.quiz_submitted = False
-                    st.session_state.quiz_user_answers = {}
-                    st.session_state.last_submission_result = None
-                    st.session_state.socrates_active_q = 1
-                    st.session_state.socrates_hints_revealed = {}
-                    st.session_state.socrates_chat_history = {}
-                    st.session_state.socrates_attempts = {}
-                    st.session_state.socrates_completed = False
+        with st.spinner(
+            f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level})..."
+        ):
+            try:
+                from src.academic_rag.exceptions import (
+                    GeminiAuthError,
+                    GeminiConfigurationError,
+                    GeminiQuotaExhaustedError,
+                )
+
+                generated = create_student_quiz(
+                    student_id=student_id,
+                    chapter=selected_ch_title,
+                    class_level=class_level,
+                    num_questions=quiz_count,
+                    difficulty=quiz_diff,
+                    api_key=user_api_key,
+                    model=selected_model,
+                )
+                # Enrich with Socratic hints
+                generated = enrich_quiz_with_socrates(
+                    generated, api_key=user_api_key, model=selected_model
+                )
+                st.session_state.current_quiz = generated
+                st.session_state.quiz_submitted = False
+                st.session_state.quiz_user_answers = {}
+                st.session_state.last_submission_result = None
+                st.session_state.socrates_active_q = 1
+                st.session_state.socrates_hints_revealed = {}
+                st.session_state.socrates_chat_history = {}
+                st.session_state.socrates_attempts = {}
+                st.session_state.socrates_completed = False
+                st.rerun()
+            except GeminiQuotaExhaustedError:
+                st.warning(
+                    "**AI service temporarily unavailable**\n\n"
+                    "The configured AI service has reached its current usage limit. "
+                    "You can add your own Gemini API key in Settings to continue."
+                )
+                from frontend.state import navigate_to
+
+                if st.button(
+                    "Open Settings",
+                    icon=":material/settings:",
+                    key="quiz_quota_open_settings_btn",
+                ):
+                    navigate_to("settings")
                     st.rerun()
-                except Exception as e:
-                    logger.error(f"Quiz generation failed: {e}")
-                    st.error(f"Quiz generation failed: {e}")
+            except (GeminiAuthError, GeminiConfigurationError) as auth_err:
+                st.error(f"**Authentication Error:** {auth_err}")
+                from frontend.state import navigate_to
+
+                if st.button(
+                    "Configure API Key in Settings",
+                    icon=":material/key:",
+                    key="quiz_auth_open_settings_btn",
+                ):
+                    navigate_to("settings")
+                    st.rerun()
+            except Exception as e:
+                logger.error(f"Quiz generation failed: {e}")
+                st.error(f"Quiz generation failed: {e}")
 
     # Active Quiz Display
     curr_quiz = st.session_state.get("current_quiz")

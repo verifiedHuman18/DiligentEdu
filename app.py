@@ -93,7 +93,7 @@ async def main():
     selected_class = f"Class {cls_int}"
     student_id = st.session_state.get("student_id", "student_001")
     selected_model = st.session_state.get("model", "gemini-3.5-flash-lite")
-    user_api_key = st.session_state.get("api_key", "")
+    user_api_key = st.session_state.get("user_gemini_api_key", "")
 
     # Top Navbar & Screen Selector
     active_screen = render_navbar(selected_class=selected_class, student_id=student_id)

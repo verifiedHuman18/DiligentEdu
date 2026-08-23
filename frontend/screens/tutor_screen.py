@@ -206,13 +206,6 @@ async def render_tutor_screen(
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Check API Key
-    if not user_api_key:
-        st.info(
-            "Please enter your Google Gemini API key in Settings (gear icon in the top right) to start asking questions."
-        )
-        return
-
     # Chat Input
     prompt_input = st.chat_input(f"Ask any question from NCERT Class {class_level} Science...")
     prompt = prompt_input or st.session_state.pop("active_prompt", None)
@@ -234,6 +227,12 @@ async def render_tutor_screen(
                 full_response = ""
 
                 try:
+                    from src.academic_rag.exceptions import (
+                        GeminiAuthError,
+                        GeminiConfigurationError,
+                        GeminiQuotaExhaustedError,
+                    )
+
                     async for chunk in stream_ncert_rag_response(
                         query=clean_prompt,
                         class_filter=class_level,
@@ -246,10 +245,40 @@ async def render_tutor_screen(
                         await asyncio.sleep(streaming_speed)
 
                     message_placeholder.markdown(full_response)
+                except GeminiQuotaExhaustedError:
+                    message_placeholder.empty()
+                    st.warning(
+                        "**AI service temporarily unavailable**\n\n"
+                        "The configured AI service has reached its current usage limit. "
+                        "You can add your own Gemini API key in Settings to continue."
+                    )
+                    from frontend.state import navigate_to
+
+                    if st.button(
+                        "Open Settings", icon=":material/settings:", key="tutor_open_settings_btn"
+                    ):
+                        navigate_to("settings")
+                        st.rerun()
+                    full_response = "*(AI service reached usage limit. Add your fallback API key in Settings to continue.)*"
+                except (GeminiAuthError, GeminiConfigurationError) as auth_err:
+                    message_placeholder.empty()
+                    st.error(f"**Authentication Error:** {auth_err}")
+                    from frontend.state import navigate_to
+
+                    if st.button(
+                        "Configure API Key in Settings",
+                        icon=":material/key:",
+                        key="tutor_open_settings_auth_btn",
+                    ):
+                        navigate_to("settings")
+                        st.rerun()
+                    full_response = "*(API key configuration error. Please check Settings.)*"
                 except Exception as e:
                     logger.error(f"Tutor response generation failed: {e}")
                     st.error(f"Error generating answer: {e}")
-                    full_response = "Sorry, I encountered an issue generating the answer. Please check your API key."
+                    full_response = (
+                        "Sorry, I encountered an issue generating the answer. Please try again."
+                    )
 
             # Append assistant message
             st.session_state.messages.append({"role": "assistant", "content": full_response})
