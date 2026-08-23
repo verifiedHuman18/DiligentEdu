@@ -21,6 +21,12 @@ if PROJECT_ROOT not in sys.path:
 from src.academic_rag.analytics.action_plan import (
     generate_action_plan as _internal_generate_action_plan,
 )
+from src.academic_rag.analytics.action_plan import (
+    reset_teacher_action_plan as _internal_reset_teacher_action_plan,
+)
+from src.academic_rag.analytics.action_plan import (
+    save_teacher_action_plan as _internal_save_teacher_action_plan,
+)
 from src.academic_rag.analytics.swat import (
     format_swat_report,
 )
@@ -332,6 +338,42 @@ def get_teacher_action_plan(
     )
 
 
+def save_teacher_action_plan(
+    student_id: str,
+    class_level: int,
+    actions: List[Dict[str, Any]],
+    teacher_notes: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Saves or updates customized action plan for a student assigned by a teacher.
+    """
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_save_teacher_action_plan(
+        str(student_id).strip(),
+        class_level=class_level,
+        actions=actions,
+        teacher_notes=teacher_notes,
+        db_path=db_path,
+    )
+
+
+def reset_teacher_action_plan(
+    student_id: str,
+    class_level: int,
+    db_path: Optional[str] = None,
+) -> bool:
+    """
+    Resets a student's action plan back to standard algorithmic SWAT recommendations.
+    """
+    if not student_id or not str(student_id).strip():
+        raise ValueError("student_id cannot be empty.")
+    return _internal_reset_teacher_action_plan(
+        str(student_id).strip(), class_level=class_level, db_path=db_path
+    )
+
+
 def get_teacher_quiz_history(
     student_id: str,
     class_level: Optional[int] = None,
@@ -413,6 +455,8 @@ __all__ = [
     "get_teacher_student_overview",
     "get_teacher_swat",
     "get_teacher_action_plan",
+    "save_teacher_action_plan",
+    "reset_teacher_action_plan",
     "get_teacher_quiz_history",
     # Additional Facades & Helpers
     "get_student_quiz_history",

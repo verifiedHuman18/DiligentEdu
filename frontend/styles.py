@@ -40,6 +40,7 @@ THEMES: Dict[str, Dict[str, str]] = {
         "md_cyan": "#38bdf8",
         "md_cyan_container": "#0c4a6e",
         "md_on_cyan_container": "#e0f2fe",
+        "card_shadow": "rgba(0, 0, 0, 0.45)",
         # Vibrant Module Buttons
         "btn_tutor_bg": "#172554",
         "btn_tutor_border": "#3b82f6",
@@ -89,6 +90,7 @@ THEMES: Dict[str, Dict[str, str]] = {
         "md_cyan": "#0284c7",
         "md_cyan_container": "#e0f2fe",
         "md_on_cyan_container": "#0c4a6e",
+        "card_shadow": "rgba(42, 31, 22, 0.08)",
         # Vibrant Module Buttons
         "btn_tutor_bg": "#eff6ff",
         "btn_tutor_border": "#2563eb",
@@ -130,18 +132,23 @@ def inject_custom_css(theme_name: str = None) -> None:
 :root {{
     --bg-app: {t["bg_app"]};
     --bg-surface: {t["bg_surface"]};
-    --surface-container_lowest: {t["surface_container_lowest"]};
+    --surface-container-lowest: {t["surface_container_lowest"]};
     --surface-container-low: {t["surface_container_low"]};
     --surface-container: {t["surface_container"]};
     --surface-container-high: {t["surface_container_high"]};
     --surface-container-highest: {t["surface_container_highest"]};
     --border-outline: {t["border_outline"]};
     --border-outline-variant: {t["border_outline_variant"]};
+    --outline: {t["border_outline"]};
+    --outline-variant: {t["border_outline_variant"]};
     --text-primary: {t["text_primary"]};
     --text-secondary: {t["text_secondary"]};
     --text-muted: {t["text_muted"]};
+    --on-surface: {t["text_primary"]};
+    --on-surface-variant: {t["text_secondary"]};
     --md-primary: {t["md_primary"]};
     --md-on-primary: {t["md_on_primary"]};
+    --on-primary: {t["md_on_primary"]};
     --md-primary-container: {t["md_primary_container"]};
     --md-on-primary-container: {t["md_on_primary_container"]};
     --md-secondary: {t["md_secondary"]};
@@ -159,6 +166,8 @@ def inject_custom_css(theme_name: str = None) -> None:
     --md-cyan: {t["md_cyan"]};
     --md-cyan-container: {t["md_cyan_container"]};
     --md-on-cyan-container: {t["md_on_cyan_container"]};
+    --danger-text: {t["md_error"]};
+    --card-shadow: {t["card_shadow"]};
     --btn-tutor-bg: {t["btn_tutor_bg"]};
     --btn-tutor-border: {t["btn_tutor_border"]};
     --btn-tutor-text: {t["btn_tutor_text"]};
@@ -569,7 +578,9 @@ div[data-testid="column"]:nth-of-type(4) button:has(p + p) p strong {{
 /* =============================================================
    2. SETTINGS CATEGORY SIDEBAR BUTTONS (Single-Line Buttons)
    ============================================================= */
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p)) {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p)),
+button[key^="btn_tab_"],
+button[key="btn_settings_logout"] {{
     min-height: 40px !important;
     height: 40px !important;
     padding: 0.35rem 0.95rem !important;
@@ -585,7 +596,9 @@ div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid=
     width: 100% !important;
 }}
 
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p)) [data-testid="stIconMaterial"] {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p)) [data-testid="stIconMaterial"],
+button[key^="btn_tab_"] [data-testid="stIconMaterial"],
+button[key="btn_settings_logout"] [data-testid="stIconMaterial"] {{
     font-size: 1.3rem !important;
     width: 1.35rem !important;
     height: 1.35rem !important;
@@ -593,21 +606,27 @@ div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid=
 }}
 
 /* Inactive category button: 100% transparent */
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[kind="secondary"],
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[data-testid="stBaseButton-secondary"] {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[kind="secondary"],
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[data-testid="stBaseButton-secondary"],
+button[key^="btn_tab_"][kind="secondary"],
+button[key="btn_settings_logout"] {{
     background: transparent !important;
     background-color: transparent !important;
     border: 1px solid transparent !important;
     color: var(--text-secondary) !important;
 }}
 
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[kind="secondary"] *,
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[data-testid="stBaseButton-secondary"] * {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[kind="secondary"] *,
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[data-testid="stBaseButton-secondary"] *,
+button[key^="btn_tab_"][kind="secondary"] *,
+button[key="btn_settings_logout"] * {{
     color: var(--text-secondary) !important;
 }}
 
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[kind="secondary"]:hover,
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[data-testid="stBaseButton-secondary"]:hover {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[kind="secondary"]:hover,
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[data-testid="stBaseButton-secondary"]:hover,
+button[key^="btn_tab_"][kind="secondary"]:hover,
+button[key="btn_settings_logout"]:hover {{
     background: var(--surface-container) !important;
     background-color: var(--surface-container) !important;
     border-color: var(--border-outline-variant) !important;
@@ -615,8 +634,10 @@ div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid=
 }}
 
 /* Active category button: Translucent neutral container, ZERO blue */
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[kind="primary"],
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[data-testid="stBaseButton-primary"] {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[kind="primary"],
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[data-testid="stBaseButton-primary"],
+button[key^="btn_tab_"][kind="primary"],
+button[key^="btn_tab_"][data-testid="stBaseButton-primary"] {{
     background: var(--md-primary-container) !important;
     background-color: var(--md-primary-container) !important;
     border: 1.5px solid var(--border-outline) !important;
@@ -624,17 +645,154 @@ div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid=
     font-weight: 700 !important;
 }}
 
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[kind="primary"] *,
-div[data-testid="stHorizontalBlock"]:not(:has(.brand-corner)) > div[data-testid="column"]:first-child button:not(:has(p + p))[data-testid="stBaseButton-primary"] * {{
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[kind="primary"] *,
+div[data-testid="column"]:first-child:has(button[key^="btn_tab_"]) button:not(:has(p + p))[data-testid="stBaseButton-primary"] *,
+button[key^="btn_tab_"][kind="primary"] *,
+button[key^="btn_tab_"][data-testid="stBaseButton-primary"] * {{
     color: var(--text-primary) !important;
 }}
 
-/* Streamlit Inputs & Selectboxes */
+/* =============================================================
+   3. STREAMLIT & BASEWEB TOOLTIPS (Simple, Minimalist, Single Layer)
+   ============================================================= */
+[data-baseweb="tooltip"],
+div[role="tooltip"]:not([data-baseweb="tooltip"] div[role="tooltip"]) {{
+    background-color: #1f1f1f !important;
+    color: #f3f3f3 !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+    font-size: 0.76rem !important;
+    font-weight: 400 !important;
+    padding: 5px 9px !important;
+    max-width: 280px !important;
+    z-index: 999999 !important;
+    line-height: 1.35 !important;
+}}
+
+/* Ensure all nested children are completely transparent without extra padding/borders */
+[data-baseweb="tooltip"] *,
+div[role="tooltip"] *,
+[data-testid="stTooltipContent"],
+[data-testid="stTooltipContent"] *,
+[data-testid="stTooltipErrorContent"],
+[data-testid="stTooltipErrorContent"] * {{
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #f3f3f3 !important;
+    font-size: 0.76rem !important;
+    line-height: 1.35 !important;
+}}
+
+/* Simple Tooltip Trigger Icon (Non-intrusive) */
+[data-testid="stTooltipIcon"],
+[data-testid="stTooltipHoverTarget"] {{
+    color: var(--text-muted) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+    cursor: help !important;
+    opacity: 0.75 !important;
+    transition: opacity 0.15s ease !important;
+}}
+
+[data-testid="stTooltipIcon"]:hover,
+[data-testid="stTooltipHoverTarget"]:hover {{
+    opacity: 1 !important;
+}}
+
+[data-testid="stTooltipIcon"] svg,
+[data-testid="stTooltipIcon"] [data-testid="stIconMaterial"],
+[data-testid="stTooltipHoverTarget"] svg {{
+    fill: var(--text-muted) !important;
+    color: var(--text-muted) !important;
+    font-size: 1rem !important;
+}}
+
+[data-testid="stTooltipIcon"]:hover svg,
+[data-testid="stTooltipIcon"]:hover [data-testid="stIconMaterial"],
+[data-testid="stTooltipHoverTarget"]:hover svg {{
+    fill: var(--text-primary) !important;
+    color: var(--text-primary) !important;
+}}
+
+/* =============================================================
+   4. METRIC CARDS & MINIMALIST BADGES (from cards.py)
+   ============================================================= */
+.metric-flat {{
+    background-color: var(--surface-container-low) !important;
+    border: 1px solid var(--border-outline-variant) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 1.1rem 1.25rem !important;
+    min-height: 90px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+}}
+
+.metric-flat:hover {{
+    transform: translateY(-2px) !important;
+    border-color: var(--border-outline) !important;
+    box-shadow: 0 4px 12px var(--card-shadow) !important;
+}}
+
+.metric-label {{
+    font-size: 0.75rem !important;
+    color: var(--text-muted) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.35rem !important;
+}}
+
+.metric-value {{
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.85rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    color: var(--text-primary) !important;
+}}
+
+.minimal-badge {{
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    background: var(--surface-container-highest) !important;
+    color: var(--text-secondary) !important;
+    letter-spacing: 0.03em !important;
+}}
+
+.badge-accent {{
+    background: var(--md-tertiary-container) !important;
+    color: var(--md-on-tertiary-container) !important;
+}}
+
+/* =============================================================
+   5. INPUTS, TEXTAREAS & SELECTBOXES
+   ============================================================= */
 input, textarea, [data-baseweb="input"], [data-baseweb="base-input"] {{
     background-color: var(--bg-surface) !important;
     color: var(--text-primary) !important;
     border-color: var(--border-outline-variant) !important;
     border-radius: var(--radius-sm) !important;
+}}
+
+input:focus, textarea:focus, [data-baseweb="input"]:focus-within {{
+    border-color: var(--md-primary) !important;
+    box-shadow: 0 0 0 1px var(--md-primary) !important;
+}}
+
+input::placeholder, textarea::placeholder {{
+    color: var(--text-muted) !important;
+    opacity: 0.75;
 }}
 
 [data-baseweb="select"] > div {{
@@ -644,57 +802,106 @@ input, textarea, [data-baseweb="input"], [data-baseweb="base-input"] {{
     border-radius: var(--radius-sm) !important;
 }}
 
-[data-baseweb="popover"], [data-baseweb="menu"], ul[data-baseweb="menu"] {{
+[data-baseweb="select"] span,
+[data-baseweb="select"] div {{
+    color: var(--text-primary) !important;
+}}
+
+[data-baseweb="select"] svg {{
+    fill: var(--text-secondary) !important;
+}}
+
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+ul[data-baseweb="menu"],
+div[data-testid="stPopoverBody"] {{
     background-color: var(--bg-surface) !important;
     color: var(--text-primary) !important;
-    border: 1px solid var(--border-outline-variant) !important;
+    border: 1.5px solid var(--border-outline-variant) !important;
     border-radius: var(--radius-md) !important;
+    box-shadow: 0 8px 24px var(--card-shadow) !important;
 }}
 
 li[data-baseweb="menu-item"] {{
     background-color: transparent !important;
     color: var(--text-primary) !important;
+    padding: 0.55rem 0.95rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    transition: background-color 0.12s ease;
 }}
 
-li[data-baseweb="menu-item"]:hover {{
+li[data-baseweb="menu-item"] * {{
+    color: var(--text-primary) !important;
+}}
+
+li[data-baseweb="menu-item"]:hover,
+li[data-baseweb="menu-item"][aria-selected="true"] {{
     background-color: var(--surface-container) !important;
     color: var(--text-primary) !important;
 }}
 
-/* GLOBAL PRIMARY BUTTONS: Translucent Background on Active Selections (NO BLUE) */
+/* =============================================================
+   6. GLOBAL PRIMARY BUTTONS & LINK BUTTONS
+   ============================================================= */
 button[kind="primary"],
 button[data-testid="stBaseButton-primary"],
+a[kind="primary"],
+a[data-testid="stBaseButton-primary"],
 .stButton > button[kind="primary"],
-.stButton > button[data-testid="stBaseButton-primary"] {{
+.stButton > button[data-testid="stBaseButton-primary"],
+div[data-testid="stLinkButton"] > a[data-testid="stBaseButton-primary"],
+div[data-testid="stLinkButton"] > a,
+div[data-testid="stDownloadButton"] > button[kind="primary"] {{
     background-color: var(--md-primary-container) !important;
     background: var(--md-primary-container) !important;
     border: 1.5px solid var(--border-outline) !important;
     color: var(--text-primary) !important;
     font-weight: 700 !important;
+    border-radius: var(--radius-md) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
 }}
 
 button[kind="primary"] *,
 button[data-testid="stBaseButton-primary"] *,
+a[kind="primary"] *,
+a[data-testid="stBaseButton-primary"] *,
 .stButton > button[kind="primary"] *,
-.stButton > button[data-testid="stBaseButton-primary"] * {{
+.stButton > button[data-testid="stBaseButton-primary"] *,
+div[data-testid="stLinkButton"] > a * {{
     color: var(--text-primary) !important;
 }}
 
 button[kind="primary"]:hover,
 button[data-testid="stBaseButton-primary"]:hover,
+a[kind="primary"]:hover,
+a[data-testid="stBaseButton-primary"]:hover,
 .stButton > button[kind="primary"]:hover,
-.stButton > button[data-testid="stBaseButton-primary"]:hover {{
+.stButton > button[data-testid="stBaseButton-primary"]:hover,
+div[data-testid="stLinkButton"] > a:hover {{
     background-color: var(--surface-container-high) !important;
     background: var(--surface-container-high) !important;
     border-color: var(--border-outline) !important;
     color: var(--text-primary) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px var(--card-shadow) !important;
 }}
 
-/* GLOBAL SECONDARY BUTTONS */
+/* =============================================================
+   7. GLOBAL SECONDARY BUTTONS
+   ============================================================= */
 button[kind="secondary"],
 button[data-testid="stBaseButton-secondary"],
+a[kind="secondary"],
+a[data-testid="stBaseButton-secondary"],
 .stButton > button[kind="secondary"],
-.stButton > button[data-testid="stBaseButton-secondary"] {{
+.stButton > button[data-testid="stBaseButton-secondary"],
+div[data-testid="stDownloadButton"] > button[kind="secondary"],
+div[data-testid="stDownloadButton"] > button {{
     background-color: var(--surface-container) !important;
     border: 1.5px solid var(--border-outline-variant) !important;
     color: var(--text-primary) !important;
@@ -702,20 +909,34 @@ button[data-testid="stBaseButton-secondary"],
     font-weight: 700 !important;
     font-size: 0.9rem !important;
     padding: 0.55rem 1.2rem !important;
+    text-decoration: none !important;
     transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
+}}
+
+button[kind="secondary"] *,
+button[data-testid="stBaseButton-secondary"] *,
+a[kind="secondary"] *,
+a[data-testid="stBaseButton-secondary"] *,
+div[data-testid="stDownloadButton"] > button * {{
+    color: var(--text-primary) !important;
 }}
 
 button[kind="secondary"]:hover,
 button[data-testid="stBaseButton-secondary"]:hover,
+a[kind="secondary"]:hover,
+a[data-testid="stBaseButton-secondary"]:hover,
 .stButton > button[kind="secondary"]:hover,
-.stButton > button[data-testid="stBaseButton-secondary"]:hover {{
+.stButton > button[data-testid="stBaseButton-secondary"]:hover,
+div[data-testid="stDownloadButton"] > button:hover {{
     background-color: var(--surface-container-high) !important;
     border-color: var(--border-outline) !important;
     color: var(--text-primary) !important;
-    transform: translateY(-1px);
+    transform: translateY(-1px) !important;
 }}
 
-/* Citation Line */
+/* =============================================================
+   8. CITATIONS, EXPANDERS & CHAT
+   ============================================================= */
 .citation-clean {{
     border-left: 4px solid var(--md-amber);
     background-color: var(--surface-container-low);
@@ -732,30 +953,119 @@ button[data-testid="stBaseButton-secondary"]:hover,
     margin-bottom: 0.3rem;
 }}
 
-/* Expanders */
-[data-testid="stExpander"] {{
+[data-testid="stExpander"],
+[data-testid="stExpander"] details,
+[data-testid="stExpander"] details[open] {{
     background-color: var(--surface-container) !important;
+    background: var(--surface-container) !important;
     border: 1.5px solid var(--border-outline-variant) !important;
     border-radius: var(--radius-md) !important;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0.85rem !important;
+    overflow: hidden !important;
 }}
 
-.streamlit-expanderHeader {{
+summary[data-testid="stExpanderSummary"],
+.streamlit-expanderHeader,
+[data-testid="stExpander"] summary,
+[data-testid="stExpander"] details summary,
+[data-testid="stExpander"] details[open] > summary {{
     background-color: var(--surface-container) !important;
+    background: var(--surface-container) !important;
     border: none !important;
     border-radius: var(--radius-md) !important;
     color: var(--text-primary) !important;
-    font-size: 0.95rem !important;
+    font-size: 0.92rem !important;
     font-weight: 700 !important;
-    padding: 0.85rem 1.25rem !important;
+    padding: 0.75rem 1.1rem !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 0.6rem !important;
+    cursor: pointer !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transition: color 0.15s ease, background-color 0.15s ease !important;
+}}
+
+summary[data-testid="stExpanderSummary"]:hover,
+summary[data-testid="stExpanderSummary"]:focus,
+summary[data-testid="stExpanderSummary"]:focus-visible,
+summary[data-testid="stExpanderSummary"]:active,
+.streamlit-expanderHeader:hover,
+[data-testid="stExpander"] summary:hover,
+[data-testid="stExpander"] summary:focus,
+[data-testid="stExpander"] details[open] > summary:hover,
+[data-testid="stExpander"] details[open] > summary:focus {{
+    background-color: var(--surface-container-high) !important;
+    background: var(--surface-container-high) !important;
+    color: var(--md-primary) !important;
+    outline: none !important;
+    box-shadow: none !important;
+}}
+
+[data-testid="stExpander"] details[open] > summary,
+[data-testid="stExpander"] details[open] > summary[data-testid="stExpanderSummary"],
+[data-testid="stExpander"] details[open] > .streamlit-expanderHeader {{
+    background-color: var(--surface-container) !important;
+    background: var(--surface-container) !important;
+    border-bottom: 1px solid var(--border-outline-variant) !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}}
+
+summary[data-testid="stExpanderSummary"] *,
+.streamlit-expanderHeader *,
+[data-testid="stExpander"] summary *,
+[data-testid="stExpander"] details[open] > summary * {{
+    color: var(--text-primary) !important;
+    background-color: transparent !important;
+}}
+
+summary[data-testid="stExpanderSummary"] p,
+summary[data-testid="stExpanderSummary"] span,
+summary[data-testid="stExpanderSummary"] [data-testid="stMarkdownContainer"],
+summary[data-testid="stExpanderSummary"] [data-testid="stMarkdownContainer"] p {{
+    color: var(--text-primary) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}}
+
+summary[data-testid="stExpanderSummary"] svg,
+[data-testid="stExpanderToggleIcon"] svg,
+[data-testid="stExpander"] summary svg {{
+    fill: var(--text-secondary) !important;
+    color: var(--text-secondary) !important;
+    min-width: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    transition: fill 0.15s ease, color 0.15s ease !important;
+}}
+
+summary[data-testid="stExpanderSummary"]:hover svg,
+[data-testid="stExpander"] summary:hover svg {{
+    fill: var(--md-primary) !important;
+    color: var(--md-primary) !important;
 }}
 
 [data-testid="stExpanderDetails"] {{
     background-color: var(--surface-container) !important;
+    background: var(--surface-container) !important;
     color: var(--text-primary) !important;
+    padding: 1.1rem 1.25rem 1.25rem 1.25rem !important;
+    border: none !important;
 }}
 
-/* Chat messages & Chat Input */
+[data-testid="stExpanderDetails"] * {{
+    color: var(--text-primary);
+}}
+
 [data-testid="stChatMessage"] {{
     background-color: var(--surface-container-low) !important;
     border: 1.5px solid var(--border-outline-variant) !important;
@@ -771,22 +1081,127 @@ button[data-testid="stBaseButton-secondary"]:hover,
     border-radius: var(--radius-md) !important;
 }}
 
+[data-testid="stChatInput"]:focus-within {{
+    border-color: var(--md-primary) !important;
+}}
+
 [data-testid="stChatInput"] textarea {{
     color: var(--text-primary) !important;
 }}
 
-/* Radio and Input containers */
+/* =============================================================
+   9. RADIO BUTTONS, SLIDERS, TABS, ALERTS & CODE
+   ============================================================= */
 div[data-testid="stRadio"] > div {{
     background-color: transparent !important;
     border: none !important;
     padding: 0.25rem 0 !important;
 }}
 
+div[data-testid="stRadio"] label,
+div[data-testid="stRadio"] label p,
+div[data-testid="stRadio"] [data-testid="stMarkdownContainer"] p {{
+    color: var(--text-primary) !important;
+    font-size: 0.92rem !important;
+    font-weight: 500 !important;
+}}
+
+div[data-testid="stRadio"] input[type="radio"] {{
+    accent-color: var(--md-primary) !important;
+}}
+
+/* Sliders */
+div[data-testid="stSlider"] [data-baseweb="slider"] div {{
+    color: var(--text-primary) !important;
+}}
+
+div[data-testid="stSlider"] div[role="slider"] {{
+    background-color: var(--md-primary) !important;
+    border: 2px solid var(--bg-surface) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}}
+
+/* Tabs */
+button[data-baseweb="tab"] {{
+    background-color: transparent !important;
+    color: var(--text-secondary) !important;
+    font-weight: 600 !important;
+    border: none !important;
+    font-size: 0.92rem !important;
+    padding: 0.6rem 1.1rem !important;
+    transition: color 0.15s ease !important;
+}}
+
+button[data-baseweb="tab"]:hover {{
+    color: var(--text-primary) !important;
+}}
+
+button[data-baseweb="tab"][aria-selected="true"] {{
+    color: var(--md-primary) !important;
+    font-weight: 700 !important;
+}}
+
+div[data-baseweb="tab-highlight"] {{
+    background-color: var(--md-primary) !important;
+}}
+
+div[data-baseweb="tab-border"] {{
+    background-color: var(--border-outline-variant) !important;
+}}
+
+/* Streamlit Alerts / Callouts */
+[data-testid="stAlert"] {{
+    background-color: var(--surface-container-low) !important;
+    border: 1.5px solid var(--border-outline-variant) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.9rem 1.25rem !important;
+    color: var(--text-primary) !important;
+}}
+
+[data-testid="stAlert"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stAlert"] [data-testid="stMarkdownContainer"] span {{
+    color: var(--text-primary) !important;
+}}
+
+[data-testid="stAlert"]:has([data-testid="stNotificationContentSuccess"]) {{
+    border-left: 5px solid var(--md-tertiary) !important;
+}}
+
+[data-testid="stAlert"]:has([data-testid="stNotificationContentInfo"]) {{
+    border-left: 5px solid var(--md-cyan) !important;
+}}
+
+[data-testid="stAlert"]:has([data-testid="stNotificationContentWarning"]) {{
+    border-left: 5px solid var(--md-amber) !important;
+}}
+
+[data-testid="stAlert"]:has([data-testid="stNotificationContentError"]) {{
+    border-left: 5px solid var(--md-error) !important;
+}}
+
+/* Code & Inline Code */
+code:not([class*="language-"]) {{
+    background-color: var(--surface-container-high) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-outline-variant) !important;
+    border-radius: var(--radius-xs) !important;
+    padding: 0.15rem 0.4rem !important;
+    font-size: 0.85em !important;
+}}
+
+pre {{
+    background-color: var(--surface-container-low) !important;
+    border: 1.5px solid var(--border-outline-variant) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 1rem !important;
+}}
+}}
+
 /* Clean Dividers */
 hr {{
     border: none !important;
-    border-top: 1px solid transparent !important;
-    margin: 1.5rem 0 !important;
+    border-top: 1px solid var(--border-outline-variant) !important;
+    margin: 1.25rem 0 !important;
 }}
 
 /* SWAT Kanban Board Styles */
@@ -1065,6 +1480,54 @@ hr {{
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--border-outline-variant);
+}}
+
+/* =============================================================
+   10. SECTION BOUNDARIES & DISTINCT VISUAL CONTAINERS
+   ============================================================= */
+.section-card {{
+    background: var(--surface-container-low);
+    border: 1px solid var(--border-outline-variant);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.5rem;
+}}
+
+.section-header-bar {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-outline-variant);
+}}
+
+.section-tag {{
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--surface-container-highest);
+    color: var(--text-secondary);
+}}
+
+.section-title-text {{
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    margin: 0;
+}}
+
+.section-subtitle-text {{
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
 }}
 
 /* Hide unnecessary default Streamlit decoration and sidebar */

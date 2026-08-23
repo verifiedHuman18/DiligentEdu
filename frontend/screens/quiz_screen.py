@@ -26,21 +26,7 @@ def render_quiz_screen(student_id: str, user_api_key: str, selected_model: str) 
     st.caption(
         f"Generate curriculum-aligned practice quizzes for **Class {class_level} Science** *(based on your student profile)*."
     )
-
-    # Informational Standard Badge
-    st.markdown(
-        f"""
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-            <span style="background: var(--md-primary); color: var(--on-primary); font-weight: 700; font-size: 0.82rem; padding: 4px 10px; border-radius: 6px;">
-                Class {class_level} · Science
-            </span>
-            <span style="font-size: 0.8rem; color: var(--on-surface-variant);">
-                (Standard set via Student Profile Settings)
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.write("")
 
     # Controls Grid (Phase 6: Chapter, Difficulty, Question Count)
     c1, c2, c3 = st.columns([3.0, 1.2, 1.2])

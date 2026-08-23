@@ -84,33 +84,70 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
 
     st.write("")
 
-    # 2. YOUR ACTION PLAN (Phases 9, 10, 11, 14, 16, 17)
-    st.markdown(f"### Your Action Plan — Class {class_level} · Science")
-    plan = generate_action_plan(student_id, class_level=class_level)
+    st.write("")
 
-    if has_data and plan.get("actions"):
-        st.caption(
-            "Priority study recommendations tailored to your recent mastery. "
-            "*(Advisory recommendations — feel free to practice any chapter anytime)*"
-        )
+    # SECTION 1: YOUR ACTION PLAN
+    st.markdown(
+        f"""
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Your Action Plan — Class {class_level} · Science</h4>
+                <div class="section-subtitle-text">Priority study recommendations tailored to your recent mastery and teacher guidance.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    plan = generate_action_plan(student_id, class_level=class_level)
+    is_custom = plan.get("is_customized", False)
+
+    if (has_data or is_custom) and plan.get("actions"):
+        if is_custom:
+            teacher_note_text = (
+                plan.get("teacher_notes")
+                or "Your teacher has assigned these specific priority topics for you."
+            )
+            st.markdown(
+                f"""
+                <div style="background: var(--surface-container); border-left: 4px solid var(--md-primary); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span style="background: var(--md-primary); color: var(--on-primary); font-weight: 700; font-size: 0.76rem; padding: 2px 8px; border-radius: 4px;">TEACHER ASSIGNED</span>
+                        <span style="font-weight: 700; font-size: 0.9rem; color: var(--on-surface);">Customized Study Plan</span>
+                    </div>
+                    <div style="font-size: 0.86rem; color: var(--on-surface-variant);">{teacher_note_text}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
         top_actions = plan["actions"][:3]
         act_cols = st.columns(len(top_actions))
         for idx, (col, act) in enumerate(zip(act_cols, top_actions)):
             with col:
-                p_label = act.get("priority_label", "RECOMMENDATION")
+                is_t_act = act.get("is_teacher_assigned", False)
+                p_label = (
+                    f"Priority {act['priority_rank']} · Teacher Assigned"
+                    if (is_custom or is_t_act)
+                    else f"Priority {act['priority_rank']} Target"
+                )
                 score_str = f"{act['score']}%" if act["score"] is not None else "Not attempted"
                 ch_title = (
                     f"Ch {act['chapter_number']}: {act['chapter']}"
                     if act.get("chapter_number")
                     else act["chapter"]
                 )
+                diff_str = act.get("difficulty", "medium").capitalize()
+
+                top_border = "3px solid var(--md-primary)"
 
                 st.markdown(
                     f"""
-                    <div style="background: var(--surface-container); border-radius: 10px; padding: 14px; margin-bottom: 10px; border-top: 3px solid var(--md-primary);">
-                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px;">{p_label}</div>
+                    <div style="background: var(--surface-container); border-radius: 10px; padding: 14px; margin-bottom: 10px; border-top: {top_border};">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">{p_label}</div>
                         <div style="font-size: 0.98rem; font-weight: 700; color: var(--on-surface); margin-bottom: 2px;">{ch_title}</div>
-                        <div style="font-size: 0.86rem; color: var(--md-secondary); font-weight: 600; margin-bottom: 6px;">{score_str}</div>
+                        <div style="font-size: 0.84rem; color: var(--md-secondary); font-weight: 600; margin-bottom: 6px;">
+                            Score: {score_str} &nbsp;·&nbsp; Target: `{diff_str}`
+                        </div>
                         <div style="font-size: 0.8rem; color: var(--on-surface-variant); min-height: 40px; margin-bottom: 8px;">{act["reason"]}</div>
                     </div>
                     """,
@@ -125,7 +162,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
                     key=btn_key,
                     type=btn_type,
                     use_container_width=True,
-                    help=f"Practice {act['chapter']} now",
+                    help=f"Practice {act['chapter']} now ({diff_str} difficulty)",
                 ):
                     st.session_state.selected_chapter = act["chapter"]
                     st.session_state.quiz_difficulty = act["difficulty"]
@@ -133,7 +170,7 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
                     st.rerun()
 
     else:
-        # Phase 16: Unattempted Student Onboarding State
+        # Unattempted Student Onboarding State
         st.markdown(
             f"""
             <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 10px; padding: 18px; text-align: center; margin-bottom: 12px;">
@@ -160,8 +197,18 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
     st.write("")
     st.write("")
 
-    # 3. Quick Action Modules
-    st.markdown("### Modules")
+    # SECTION 2: Quick Action Modules
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Core Learning Modules</h4>
+                <div class="section-subtitle-text">Direct shortcuts to interactive tutoring, assessments, analytics, and scholarships.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
@@ -205,40 +252,19 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
             st.rerun()
 
     st.write("")
+    st.write("")
 
-    # 3.5. Single Unified Scholarship Banner (Phases 1 & 2)
+    # SECTION 3: NCERT Curriculum Navigator
     st.markdown(
         f"""
-        <div style="background: var(--surface-container-high); border: 1px solid var(--outline-variant); border-left: 4px solid var(--md-primary); border-radius: 12px; padding: 1.2rem 1.4rem; margin-top: 0.5rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div style="flex: 1; min-width: 260px;">
-                <div style="font-size: 1.1rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    🎓 Scholarships — Class {class_level}
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                    Explore verified National Scholarship Portal (NSP) schemes, check your eligibility, and get answers to scholarship questions.
-                </div>
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">NCERT Science Curriculum — Class {class_level}</h4>
+                <div class="section-subtitle-text">Click any chapter below to explore textbook PDF, practice quizzes, or ask questions.</div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
-    )
-    if st.button(
-        "Explore Scholarships",
-        key="home_sch_unified_btn",
-        type="primary",
-        icon=":material/arrow_forward:",
-        use_container_width=False,
-    ):
-        navigate_to("scholarships")
-        st.rerun()
-
-    st.write("")
-    st.write("")
-
-    # 4. NCERT Curriculum Navigator with SWAT Indicators (Phases 12, 13, 14)
-    st.markdown(f"### NCERT Science Curriculum — Class {class_level}")
-    st.caption(
-        "Click any chapter below to explore textbook source details, practice quizzes, or ask doubts."
     )
 
     curriculum_chapters = get_ncert_curriculum(class_level)
@@ -253,7 +279,6 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
             ch_name = ch["chapter"]
             ch_stats = breakdown.get(ch_name)
 
-            # Phase 13: Determine SWAT Indicator
             if (
                 ch_stats
                 and ch_stats.get("status") != "unattempted"
@@ -268,7 +293,6 @@ Welcome to NCERT Science! Explore your curriculum, take practice quizzes, or ask
                 else:
                     indicator = f"{score}% (Average)"
             else:
-                # Phase 13: Unattempted chapters NEVER show artificial 0%
                 indicator = "Not Attempted"
 
             btn_label = f"**{ch_num_str}**  {ch_name}  ·  {indicator}"

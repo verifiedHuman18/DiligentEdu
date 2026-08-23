@@ -1,10 +1,10 @@
 """Unified Scholarship Screen (Phases 1 - 16).
 
 Provides a single, cohesive scholarship experience on one page:
-1. 👤 Student Profile Context (synced with master Class 9/10 selection)
-2. 🔎 Scholarships for You (Informational matching cards without per-card buttons)
-3. 💬 Scholarship Questions (Interactive inline Q&A with dynamic suggestions)
-4. 🏛️ Official Government Information (Single authoritative NSP destination)
+1. Student Profile Context (synced with master Class 9/10 selection)
+2. Scholarships for You (Informational matching cards without per-card buttons)
+3. Scholarship Questions (Interactive inline Q&A with dynamic suggestions)
+4. Official Government Information (Single authoritative NSP destination)
 """
 
 import textwrap
@@ -26,7 +26,7 @@ from src.academic_rag.scholarships.service import (
 
 
 def render_scholarships_screen() -> None:
-    """Renders the single unified 🎓 Scholarships Screen."""
+    """Renders the single unified Scholarships Screen."""
     # Top Navigation Back to Home (Phases 1-19)
     render_back_to_home("scholarships")
 
@@ -38,7 +38,7 @@ def render_scholarships_screen() -> None:
 <div class="m3-hero-card" style="margin-bottom: 1.5rem; min-height: 130px;">
   <div class="m3-hero-content">
     <div class="m3-hero-title">
-      🎓 <span style="color: var(--md-primary);">Scholarships</span>
+      <span style="color: var(--md-primary);">National Scholarships</span>
     </div>
     <div class="m3-chips-group" style="margin-bottom: 0.4rem;">
       <span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.0rem;">school</span> Class {class_level}</span>
@@ -55,44 +55,92 @@ def render_scholarships_screen() -> None:
     )
 
     # ==========================================
-    # 1. TOP SECTION: STUDENT PROFILE CONTEXT (Phase 5)
+    # SECTION 1: STUDENT PROFILE CONTEXT
     # ==========================================
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Matching Profile Context</h4>
+                <div class="section-subtitle-text">Adjust your family income, reservation category, and school type to update scheme recommendations.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     _render_profile_section(class_level)
 
     st.write("")
-    st.divider()
+    st.write("")
 
     # ==========================================
-    # 2. MAIN SECTION: SCHOLARSHIPS FOR YOU (Phases 6 & 7)
+    # SECTION 2: SCHOLARSHIPS FOR YOU
     # ==========================================
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Matched Scholarship Opportunities</h4>
+                <div class="section-subtitle-text">Verified National Scholarship Portal (NSP) schemes evaluated against your current criteria.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     _render_matches_section(class_level)
 
     st.write("")
-    st.divider()
+    st.write("")
 
     # ==========================================
-    # 3. CONVERSATIONAL Q&A SECTION (Phases 8 - 11)
+    # SECTION 3: CONVERSATIONAL Q&A SECTION
     # ==========================================
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Scholarship Q&A Assistant</h4>
+                <div class="section-subtitle-text">Instant verified answers to scholarship guidelines, documents required, and application criteria.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     _render_qa_section(class_level)
 
     st.write("")
-    st.divider()
+    st.write("")
 
     # ==========================================
-    # 4. GLOBAL GOVERNMENT INFORMATION SECTION (Phases 4, 12, 13)
+    # SECTION 4: GLOBAL GOVERNMENT INFORMATION SECTION
     # ==========================================
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Official Government Portals</h4>
+                <div class="section-subtitle-text">Authoritative links and guidelines from the National Scholarship Portal (NSP).</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     render_official_scholarship_info()
 
 
 def _render_profile_section(class_level: int) -> None:
-    """Renders the student profile context and customization bar (Phase 5)."""
+    """Renders the student profile context and customization bar."""
     # Stored preferences with sensible defaults
     saved_income = st.session_state.get("profile_income", "₹1.5–2.5 Lakh (₹1,50,000 – ₹2,50,000)")
     saved_cat = st.session_state.get("profile_category", "OBC")
     saved_school = st.session_state.get("profile_school_type", "Government School")
     saved_pwd = st.session_state.get("profile_pwd", "No")
 
-    with st.expander("👤 Your Matching Profile (Click to adjust parameters)", expanded=True):
+    with st.expander(
+        "Your Matching Profile (Click to adjust parameters)",
+        icon=":material/person:",
+        expanded=True,
+    ):
         st.caption(
             f"Matching is active for **Class {class_level}**. *(To switch between Class 9 and 10, use the Class setting in the sidebar)*. "
             "No sensitive government identifiers (Aadhaar, OTR, bank details) are ever requested."
@@ -166,64 +214,60 @@ def _render_profile_section(class_level: int) -> None:
                 )
 
             submitted = st.form_submit_button(
-                "Update Matches",
+                "Update & Apply Matching Criteria",
                 type="primary",
-                icon=":material/refresh:",
-                use_container_width=False,
+                icon=":material/tune:",
+                use_container_width=True,
             )
-
-        if submitted or "profile_canonical" not in st.session_state:
-            # Map into canonical profile (Phase 4 & 5)
-            st.session_state["profile_income"] = sel_income
-            st.session_state["profile_category"] = sel_cat
-            st.session_state["profile_school_type"] = sel_school
-            st.session_state["profile_pwd"] = sel_pwd
-
-            raw_dict = {
-                "class_level": class_level,
-                "family_income": sel_income,
-                "category": sel_cat,
-                "school_type": sel_school,
-                "disability_status": "Yes" if "Yes" in sel_pwd else "No",
-                "academic_score": 75.0,
-            }
-            canonical = normalize_student_profile(raw_dict, default_class_level=class_level)
-            st.session_state["profile_canonical"] = canonical
+            if submitted:
+                st.session_state["profile_income"] = sel_income
+                st.session_state["profile_category"] = sel_cat
+                st.session_state["profile_school_type"] = sel_school
+                st.session_state["profile_pwd"] = "Yes" if "Yes" in sel_pwd else "No"
+                st.rerun()
 
 
 def _render_matches_section(class_level: int) -> None:
-    """Renders the main scholarship matching cards without per-card buttons (Phases 6 & 7)."""
-    canonical_profile = st.session_state.get(
-        "profile_canonical",
-        normalize_student_profile({"class_level": class_level}, default_class_level=class_level),
-    )
+    """Renders the matching scholarships results based on the student profile."""
+    # Stored preferences with sensible defaults
+    saved_income = st.session_state.get("profile_income", "₹1.5–2.5 Lakh (₹1,50,000 – ₹2,50,000)")
+    saved_cat = st.session_state.get("profile_category", "OBC")
+    saved_school = st.session_state.get("profile_school_type", "Government School")
+    saved_pwd = st.session_state.get("profile_pwd", "No")
 
-    # Ensure class level is always synced with master state (Phase 13)
+    raw_profile = {
+        "class_level": class_level,
+        "income": saved_income,
+        "category": saved_cat,
+        "school_type": saved_school,
+        "pwd": saved_pwd,
+    }
+
+    canonical_profile = normalize_student_profile(raw_profile)
+
+    # Ensure class level is always synced with master state
     if canonical_profile.class_level != class_level:
         canonical_profile.class_level = class_level
         st.session_state["profile_canonical"] = canonical_profile
 
-    # Pure evaluation without stale cache (Phase 13)
     matches = match_scholarships(canonical_profile, academic_year="2026-27")
 
     likely = [m for m in matches if m.status == EligibilityStatus.LIKELY_MATCH]
     possible = [m for m in matches if m.status == EligibilityStatus.POSSIBLE_MATCH]
     does_not = [m for m in matches if m.status == EligibilityStatus.DOES_NOT_MATCH]
 
-    st.markdown("### 🔎 Scholarships You May Qualify For")
-
     # Match summary chips
     st.markdown(
         f"""
         <div style="display: flex; gap: 10px; margin-bottom: 1.2rem; flex-wrap: wrap;">
-            <span style="background: rgba(46, 125, 50, 0.15); color: #81c784; border: 1px solid #2e7d32; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 600;">
-                🟢 {len(likely)} Strong Matches
+            <span style="background: var(--md-tertiary-container); color: var(--md-on-tertiary-container); border: 1px solid var(--md-tertiary); padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 700;">
+                {len(likely)} Strong Matches
             </span>
-            <span style="background: rgba(245, 124, 0, 0.15); color: #ffb74d; border: 1px solid #f57c00; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 600;">
-                🟡 {len(possible)} Possible Matches
+            <span style="background: var(--md-amber-container); color: var(--md-on-amber-container); border: 1px solid var(--md-amber); padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 700;">
+                {len(possible)} Possible Matches
             </span>
-            <span style="background: rgba(211, 47, 47, 0.15); color: #e57373; border: 1px solid #d32f2f; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 600;">
-                🔴 {len(does_not)} Non-matching Schemes
+            <span style="background: var(--md-error-container); color: var(--md-on-error-container); border: 1px solid var(--md-error); padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; font-weight: 700;">
+                {len(does_not)} Non-matching Schemes
             </span>
         </div>
         """,
@@ -235,7 +279,6 @@ def _render_matches_section(class_level: int) -> None:
         for m in primary_matches:
             _render_scholarship_card(m)
     else:
-        # Phase 7: Clean handling when no schemes match
         st.info(
             "No scholarships currently appear to match your profile based on the available criteria. "
             "You can still ask a question below or browse the official scholarship portal."
@@ -244,14 +287,15 @@ def _render_matches_section(class_level: int) -> None:
     # Optional expandable section for non-matching schemes
     if does_not:
         with st.expander(
-            f"🔴 Show {len(does_not)} Non-matching Schemes (Click to inspect criteria)"
+            f"Show {len(does_not)} Non-matching Schemes (Click to inspect criteria)",
+            icon=":material/visibility:",
         ):
             for m in does_not:
                 _render_scholarship_card(m)
 
 
 def _render_scholarship_card(match: Any) -> None:
-    """Phases 1, 3, 6: Render a focused, purely informational scholarship result card without per-card buttons."""
+    """Render a focused, purely informational scholarship result card."""
     amt_str = (
         f"₹{match.amount_per_annum:,} / year"
         if match.amount_per_annum
@@ -260,63 +304,90 @@ def _render_scholarship_card(match: Any) -> None:
     status_label = match.status.replace("_", " ").title()
 
     badge_color = (
-        "#2e7d32"
-        if match.status == EligibilityStatus.LIKELY_MATCH
-        else ("#f57c00" if match.status == EligibilityStatus.POSSIBLE_MATCH else "#d32f2f")
-    )
-    badge_bg = (
-        "rgba(46, 125, 50, 0.15)"
+        "var(--md-tertiary)"
         if match.status == EligibilityStatus.LIKELY_MATCH
         else (
-            "rgba(245, 124, 0, 0.15)"
+            "var(--md-amber)"
             if match.status == EligibilityStatus.POSSIBLE_MATCH
-            else "rgba(211, 47, 47, 0.15)"
+            else "var(--md-error)"
+        )
+    )
+    badge_bg = (
+        "var(--md-tertiary-container)"
+        if match.status == EligibilityStatus.LIKELY_MATCH
+        else (
+            "var(--md-amber-container)"
+            if match.status == EligibilityStatus.POSSIBLE_MATCH
+            else "var(--md-error-container)"
+        )
+    )
+    badge_text_color = (
+        "var(--md-on-tertiary-container)"
+        if match.status == EligibilityStatus.LIKELY_MATCH
+        else (
+            "var(--md-on-amber-container)"
+            if match.status == EligibilityStatus.POSSIBLE_MATCH
+            else "var(--md-on-error-container)"
         )
     )
 
-    with st.container():
-        st.markdown(
-            f"""
-            <div style="background: var(--surface-container-high); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 1.2rem; margin-bottom: 0.8rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <span style="background: {badge_bg}; color: {badge_color}; border: 1px solid {badge_color}; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;">
-                            {match.status_icon} {status_label}
-                        </span>
-                        <h4 style="margin: 0.4rem 0 0.2rem 0; color: var(--on-surface); font-size: 1.15rem; font-weight: 700;">🎓 {match.scholarship_name}</h4>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">{match.provider}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="font-size: 1.15rem; font-weight: 700; color: var(--md-primary);">{amt_str}</span>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">Direct Benefit Transfer (DBT)</div>
-                    </div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    reasons_html_list = []
+    if match.explanation.reasons_matched:
+        items = "".join(
+            f'<li style="margin-bottom: 2px;">{r.replace("✓", "").strip()}</li>'
+            for r in match.explanation.reasons_matched
+        )
+        reasons_html_list.append(
+            f'<div style="margin-top: 8px;"><strong style="font-size: 0.84rem; color: var(--on-surface);">Why this appears relevant:</strong><ul style="margin: 4px 0 0 0; padding-left: 18px; font-size: 0.84rem; color: var(--on-surface-variant);">{items}</ul></div>'
         )
 
-        if match.explanation.reasons_matched:
-            st.markdown("**Why this appears relevant:**")
-            for r in match.explanation.reasons_matched:
-                st.markdown(f"✓ {r}")
+    if match.explanation.verification_needed:
+        items = "".join(
+            f'<li style="margin-bottom: 2px;">{v.replace("⚠", "").strip()}</li>'
+            for v in match.explanation.verification_needed
+        )
+        reasons_html_list.append(
+            f'<div style="margin-top: 8px;"><strong style="font-size: 0.84rem; color: var(--md-amber);">Requirements to verify:</strong><ul style="margin: 4px 0 0 0; padding-left: 18px; font-size: 0.84rem; color: var(--on-surface-variant);">{items}</ul></div>'
+        )
 
-        if match.explanation.verification_needed:
-            st.markdown("**Requirements to verify:**")
-            for v in match.explanation.verification_needed:
-                st.markdown(f"⚠ {v}")
+    if match.explanation.reasons_unmatched:
+        items = "".join(
+            f'<li style="margin-bottom: 2px;">{u.replace("🔴", "").replace("✗", "").strip()}</li>'
+            for u in match.explanation.reasons_unmatched
+        )
+        reasons_html_list.append(
+            f'<div style="margin-top: 8px;"><strong style="font-size: 0.84rem; color: var(--danger-text);">Why it does not match:</strong><ul style="margin: 4px 0 0 0; padding-left: 18px; font-size: 0.84rem; color: var(--on-surface-variant);">{items}</ul></div>'
+        )
 
-        if match.explanation.reasons_unmatched:
-            st.markdown("**Why it does not match:**")
-            for u in match.explanation.reasons_unmatched:
-                st.markdown(f"🔴 {u}")
+    explanation_block = (
+        f'<div style="border-top: 1px dashed var(--outline-variant); margin-top: 10px; padding-top: 6px;">{"".join(reasons_html_list)}</div>'
+        if reasons_html_list
+        else ""
+    )
 
-        st.divider()
+    card_html = f"""
+    <div style="background: var(--surface-container-high); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 1.1rem 1.3rem; margin-bottom: 0.9rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <span style="background: {badge_bg}; color: {badge_text_color}; border: 1px solid {badge_color}; padding: 2px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700; text-transform: uppercase;">
+                    {status_label}
+                </span>
+                <h4 style="margin: 0.4rem 0 0.2rem 0; color: var(--on-surface); font-size: 1.1rem; font-weight: 700;">{match.scholarship_name}</h4>
+                <div style="font-size: 0.84rem; color: var(--text-secondary);">{match.provider}</div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 1.1rem; font-weight: 700; color: var(--md-primary);">{amt_str}</span>
+                <div style="font-size: 0.74rem; color: var(--text-secondary);">Direct Benefit Transfer (DBT)</div>
+            </div>
+        </div>
+        {explanation_block}
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
 
 
 def _render_qa_section(class_level: int) -> None:
-    """Phases 8, 9, 10, 11: Renders the inline rule-based Q&A section on the same page."""
-    st.markdown("### 💬 Scholarship Questions")
+    """Renders the inline rule-based Q&A section on the same page."""
     st.caption("Have a question about scholarships? Ask below for instant, verified answers.")
 
     # Contextual suggested questions respecting class_level (Phase 9)

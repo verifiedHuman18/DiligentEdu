@@ -2,7 +2,12 @@
 
 __version__ = "0.1.0"
 
-from src.academic_rag.analytics.action_plan import generate_action_plan
+from src.academic_rag.analytics.action_plan import (
+    generate_action_plan,
+    get_teacher_action_plan,
+    reset_teacher_action_plan,
+    save_teacher_action_plan,
+)
 from src.academic_rag.analytics.swat import (
     format_swat_report,
     get_attempted_chapters,
@@ -39,6 +44,7 @@ from src.academic_rag.storage.repository import (
 # Aliases for unified contracts
 get_student_action_plan = generate_action_plan
 get_chapters_with_status = get_available_chapters
+get_teacher_swat = get_student_swat
 
 __all__ = [
     "config",
@@ -64,6 +70,8 @@ __all__ = [
     "get_teacher_student_overview",
     "get_teacher_swat",
     "get_teacher_action_plan",
+    "save_teacher_action_plan",
+    "reset_teacher_action_plan",
     "get_teacher_chapter_statistics",
     "get_teacher_quiz_history",
     "get_student_status",

@@ -19,24 +19,9 @@ def render_swat_screen(student_id: str, selected_class: Optional[str] = None) ->
     class_level = get_student_class_level()
 
     st.write("")
-    st.markdown(f"### Your Performance — Class {class_level} · Science")
+    st.markdown(f"### Performance & Topic Mastery — Class {class_level} · Science")
     st.caption(
         "Comprehensive SWAT analysis and chapter-wise mastery based on your student profile."
-    )
-
-    # Informational Standard Badge
-    st.markdown(
-        f"""
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-            <span style="background: var(--md-primary); color: var(--on-primary); font-weight: 700; font-size: 0.82rem; padding: 4px 10px; border-radius: 6px;">
-                Class {class_level} · Science
-            </span>
-            <span style="font-size: 0.8rem; color: var(--on-surface-variant);">
-                (Active Standard — Modify in Profile Settings)
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True,
     )
 
     swat = get_student_swat(student_id, class_level=class_level)
@@ -50,7 +35,19 @@ def render_swat_screen(student_id: str, selected_class: Optional[str] = None) ->
         )
         return
 
-    # Top Metrics Grid
+    # SECTION 1: Top Metrics Grid & Trajectory
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Lifetime Aggregate Metrics</h4>
+                <div class="section-subtitle-text">Average scores, overall question accuracy, and syllabus coverage.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     m1, m2, m3, m4 = st.columns(4)
     with m1:
         render_metric_card("Overall Average", f"{swat['overall']['average']}%")
@@ -85,22 +82,45 @@ def render_swat_screen(student_id: str, selected_class: Optional[str] = None) ->
         st.info(f"Performance Trend: {dir_str} (Recent: {recent_avg}%)")
 
     st.write("")
+    st.write("")
 
-    # 4-Column Mastery Breakdown
-    st.markdown("#### Mastery by Chapter")
+    # SECTION 2: 4-Column Mastery Breakdown
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Chapter Mastery Breakdown</h4>
+                <div class="section-subtitle-text">4-category matrix categorizing chapters by performance score and attempt frequency.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     render_swat_columns(swat)
 
     st.write("")
+    st.write("")
 
-    # Quiz History
-    st.markdown("#### Quiz History")
+    # SECTION 3: Quiz History
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Chronological Quiz History</h4>
+                <div class="section-subtitle-text">Detailed breakdown of questions, student answers, and correct answers.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     if history:
         for q in reversed(history[-5:]):
             score_pct = (
                 round((q["score"] / q["total_questions"]) * 100, 1) if q["total_questions"] else 0
             )
             with st.expander(
-                f"Ch {q['chapter']} | Score: {q['score']}/{q['total_questions']} ({score_pct}%) | {q['timestamp'][:16]}"
+                f"Ch {q['chapter']} | Score: {q['score']}/{q['total_questions']} ({score_pct}%) | {q['timestamp'][:16]}",
+                icon=":material/history_edu:",
             ):
                 for idx, item in enumerate(q.get("questions_data", []), 1):
                     user_ans = item.get("user_answer", "None")

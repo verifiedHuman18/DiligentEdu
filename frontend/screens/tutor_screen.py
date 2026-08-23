@@ -29,21 +29,7 @@ async def render_tutor_screen(
     st.caption(
         f"Ask conceptual science questions with verified textbook citations grounded strictly in **NCERT Class {class_level} Science**."
     )
-
-    # Informational Standard Badge
-    st.markdown(
-        f"""
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-            <span style="background: var(--md-primary); color: var(--on-primary); font-weight: 700; font-size: 0.82rem; padding: 4px 10px; border-radius: 6px;">
-                Your Class: Class {class_level} · Science
-            </span>
-            <span style="font-size: 0.8rem; color: var(--on-surface-variant);">
-                (Grounded strictly in NCERT Class {class_level} textbooks)
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.write("")
 
     # Suggested Prompts tailored to active standard
     st.markdown("##### Suggested Questions")

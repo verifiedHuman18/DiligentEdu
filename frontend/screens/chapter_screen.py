@@ -41,9 +41,20 @@ def render_chapter_screen(
 
     st.write("")
     st.markdown(f"### Chapter {ch_num}: {ch_title}")
+    st.caption(f"Class {class_level} NCERT Science Textbook Module")
 
-    # 2. Action Buttons (Phases 2, 3, 4)
-    st.markdown("#### Actions")
+    # SECTION 1: Action Buttons & Textbook Access
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Study Actions & Textbook PDF</h4>
+                <div class="section-subtitle-text">Read textbook in a new tab, download local copy, or initiate practice quizzes.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     col1, col2, col3, col4 = st.columns(4)
 
     # Prepare PDF Data for New Tab Link & Download
@@ -58,7 +69,6 @@ def render_chapter_screen(
     static_url = pdf_info.get("static_url", f"app/static/class{class_level}/{filename}")
 
     with col1:
-        # Phase 2 & 4: Genuine browser hyperlink opening PDF in new tab via Streamlit static serving
         if file_exists:
             st.link_button(
                 "Open in New Tab",
@@ -77,7 +87,6 @@ def render_chapter_screen(
             )
 
     with col2:
-        # Phase 3: Download PDF Secondary Action
         if pdf_bytes:
             st.download_button(
                 label="Download PDF",
@@ -121,8 +130,18 @@ def render_chapter_screen(
     st.write("")
     st.write("")
 
-    # 3. Chapter Performance & Mastery Analytics (Phase 4)
-    st.markdown("#### Performance Mastery")
+    # SECTION 2: Chapter Performance & Mastery Analytics
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Performance & Mastery Analytics</h4>
+                <div class="section-subtitle-text">Historical accuracy, score progression, and mastery classification for this chapter.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     swat = get_student_swat(student_id, class_level=class_level)
     breakdown = swat.get("chapter_breakdown", {})
@@ -155,7 +174,7 @@ def render_chapter_screen(
         st.markdown(
             f"""
             <div style="background: var(--surface-container); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; border-left: 5px solid {badge_color};">
-                <div style="font-weight: 700; font-size: 0.9rem; color: {badge_color}; margin-bottom: 4px;">{badge_label}</div>
+                <div style="font-weight: 700; font-size: 0.82rem; color: {badge_color}; margin-bottom: 4px; text-transform: uppercase;">{badge_label}</div>
                 <div style="font-size: 0.86rem; color: var(--on-surface);">{badge_desc}</div>
             </div>
             """,
@@ -186,9 +205,20 @@ def render_chapter_screen(
         )
 
     st.write("")
+    st.write("")
 
-    # 4. Quiz History for this Chapter (Phase 4)
-    st.markdown("#### Quiz History")
+    # SECTION 3: Quiz History for this Chapter
+    st.markdown(
+        """
+        <div class="section-header-bar">
+            <div>
+                <h4 class="section-title-text">Chapter Quiz History</h4>
+                <div class="section-subtitle-text">Record of all past assessments taken on this chapter.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     all_history = quiz_repository.get_student_class_history(student_id, class_level)
     ch_history = [h for h in all_history if h.get("chapter") == ch_title]
 

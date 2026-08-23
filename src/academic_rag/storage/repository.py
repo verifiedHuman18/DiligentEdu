@@ -243,7 +243,7 @@ class QuizRepository:
         )
 
     def clear_student_data(self, student_id: str) -> None:
-        """Deletes all attempts and question responses for a student."""
+        """Deletes all attempts, question responses, and custom action plans for a student."""
         clean_id = str(student_id).strip()
         try:
             with get_db_connection(self.db_path) as conn:
@@ -256,6 +256,7 @@ class QuizRepository:
                     (clean_id,),
                 )
                 cursor.execute("DELETE FROM quiz_attempts WHERE student_id = ?", (clean_id,))
+                cursor.execute("DELETE FROM teacher_action_plans WHERE student_id = ?", (clean_id,))
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to clear data for {student_id}: {e}")
@@ -273,6 +274,112 @@ class QuizRepository:
                 return [r["student_id"] for r in rows if r["student_id"]]
         except Exception:
             return []
+
+    def save_teacher_action_plan(
+        self,
+        student_id: str,
+        class_level: int,
+        plan_data: Dict[str, Any],
+        teacher_notes: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Saves or updates a customized teacher action plan for a student and class level.
+        """
+        clean_id = str(student_id).strip()
+        class_int = int(class_level)
+        plan_json = json.dumps(plan_data)
+        notes = (str(teacher_notes).strip()) if teacher_notes is not None else None
+        ts = datetime.now(timezone.utc).isoformat()
+
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO teacher_action_plans (student_id, class_level, plan_data, teacher_notes, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    ON CONFLICT(student_id, class_level) DO UPDATE SET
+                        plan_data = excluded.plan_data,
+                        teacher_notes = excluded.teacher_notes,
+                        updated_at = excluded.updated_at
+                """,
+                    (clean_id, class_int, plan_json, notes, ts),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(
+                f"Failed to save teacher action plan for {student_id} Class {class_level}: {e}"
+            )
+            raise StorageError(f"Failed to save teacher action plan: {e}")
+
+        return {
+            "student_id": clean_id,
+            "class_level": class_int,
+            "plan_data": plan_data,
+            "teacher_notes": notes,
+            "updated_at": ts,
+        }
+
+    def get_teacher_custom_plan(
+        self, student_id: str, class_level: int
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves active custom teacher action plan for a student and class level if present.
+        """
+        clean_id = str(student_id).strip()
+        class_int = int(class_level)
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    SELECT plan_data, teacher_notes, updated_at
+                    FROM teacher_action_plans
+                    WHERE student_id = ? AND class_level = ?
+                """,
+                    (clean_id, class_int),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return None
+
+                plan_content = json.loads(row["plan_data"])
+                return {
+                    "student_id": clean_id,
+                    "class_level": class_int,
+                    "plan_data": plan_content,
+                    "teacher_notes": row["teacher_notes"],
+                    "updated_at": row["updated_at"],
+                }
+        except Exception as e:
+            logger.error(
+                f"Failed to fetch teacher custom plan for {student_id} Class {class_level}: {e}"
+            )
+            return None
+
+    def delete_teacher_action_plan(self, student_id: str, class_level: int) -> bool:
+        """
+        Deletes custom action plan for a student and class level, resetting to default SWAT recommendations.
+        """
+        clean_id = str(student_id).strip()
+        class_int = int(class_level)
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    DELETE FROM teacher_action_plans
+                    WHERE student_id = ? AND class_level = ?
+                """,
+                    (clean_id, class_int),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(
+                f"Failed to delete teacher action plan for {student_id} Class {class_level}: {e}"
+            )
+            raise StorageError(f"Failed to delete teacher action plan: {e}")
 
 
 # Default repository instance

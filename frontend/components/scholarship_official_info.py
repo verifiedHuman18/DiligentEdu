@@ -73,7 +73,7 @@ def render_official_scholarship_info(
             <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
                 <div style="flex: 1; min-width: 280px;">
                     <h4 style="margin: 0 0 0.5rem 0; color: var(--on-surface); font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        🏛️ Official Scholarship Information
+                        Official Government Portal Information
                     </h4>
                     <p style="font-size: 0.9rem; color: var(--on-surface); line-height: 1.5; margin: 0 0 0.8rem 0;">
                         {guidance_intro}
@@ -83,7 +83,7 @@ def render_official_scholarship_info(
                     </div>
                 </div>
                 <div style="display: flex; flex-direction: column; justify-content: center; align-self: center;">
-                    <a href="{url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-align: center; background: var(--md-primary); color: #ffffff; padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.15); white-space: nowrap;">
+                    <a href="{url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-align: center; background: var(--md-primary); color: var(--on-primary); padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.15); white-space: nowrap;">
                         Visit {name} ↗
                     </a>
                     <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-top: 6px;">

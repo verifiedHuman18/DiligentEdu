@@ -54,6 +54,19 @@ def init_database(db_path: str = None) -> None:
             )
         """)
 
+        # Teacher custom action plans table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS teacher_action_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id TEXT NOT NULL,
+                class_level INTEGER NOT NULL,
+                plan_data TEXT NOT NULL,
+                teacher_notes TEXT,
+                updated_at TEXT NOT NULL,
+                UNIQUE(student_id, class_level)
+            )
+        """)
+
         # Indexes for performance
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_attempts_student ON quiz_attempts(student_id)"
@@ -69,6 +82,9 @@ def init_database(db_path: str = None) -> None:
         )
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_responses_chapter ON question_responses(chapter)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_teacher_plans_student ON teacher_action_plans(student_id, class_level)"
         )
 
         conn.commit()
