@@ -107,6 +107,7 @@ DEFAULT_DB_PATH = str(config.default_db_path)
 MAPPING_FILE = str(config.mapping_file_path)
 EMBEDDING_MODEL_NAME = config.embedding_model_name
 PINECONE_INDEX_NAME = config.pinecone_index_name
+INDEX_NAME = PINECONE_INDEX_NAME
 DEFAULT_MODEL = config.default_llm_model
 STRONG_THRESHOLD = config.strong_threshold
 AVERAGE_THRESHOLD = config.average_threshold
