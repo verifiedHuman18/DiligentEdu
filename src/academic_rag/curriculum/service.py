@@ -281,8 +281,8 @@ def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Di
             filename = fname
             break
 
+    prefix = "iesc1" if cls_int == 9 else "jesc1"
     if not filename:
-        prefix = "iesc1" if cls_int == 9 else "jesc1"
         filename = f"{prefix}{ch_num:02d}.pdf"
 
     pdf_path = os.path.join("data", f"class{cls_int}", filename)
@@ -290,6 +290,8 @@ def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Di
     slug = ch_title.lower().replace(" ", "_").replace("–", "-").replace(":", "")
     chapter_id = f"class{cls_int}_science_{slug}"
     static_url = f"app/static/class{cls_int}/{filename}"
+    external_url = f"https://ncert.nic.in/textbook.php?{prefix}=1-13"
+    official_pdf_url = f"https://ncert.nic.in/textbook/pdf/{filename}"
 
     return {
         "class_level": cls_int,
@@ -299,6 +301,8 @@ def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Di
         "filename": filename,
         "pdf_path": clean_pdf_path,
         "static_url": static_url,
+        "external_url": external_url,
+        "official_pdf_url": official_pdf_url,
         "exists": os.path.isfile(pdf_path),
     }
 

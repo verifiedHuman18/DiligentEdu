@@ -43,7 +43,7 @@ By scoping specifically to **Pre-Matric** and **Secondary School** schemes for A
 
 ## 3. Targeted Schemes Catalogue
 
-The current scoped schemes catalogued in [`sources.json`](file:///c:/Users/Arnav/Desktop/academic-rag-assistant/scholarships/sources.json) are:
+The current scoped schemes catalogued in [`sources.json`](sources.json) are:
 
 ### 1. National Means-cum-Merit Scholarship Scheme (NMMSS)
 * **Ministry**: Ministry of Education (*Department of School Education & Literacy*)

@@ -79,11 +79,16 @@ def render_chapter_screen(
                 help=f"Open {filename} in a new browser tab",
             )
         else:
-            st.button(
-                "PDF Unavailable",
-                disabled=True,
+            online_url = pdf_info.get(
+                "external_url", f"https://ncert.nic.in/textbook.php?iesc1=1-13"
+            )
+            st.link_button(
+                "Open NCERT Portal",
+                url=online_url,
+                type="primary",
+                icon=":material/public:",
                 use_container_width=True,
-                key="ch_newtab_btn_disabled",
+                help=f"Open official NCERT textbook portal for Class {class_level}",
             )
 
     with col2:

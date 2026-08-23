@@ -227,7 +227,8 @@ rag_assistant.log
 *.db-journal
 
 # Streamlit specific
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml
 .streamlit/secrets.toml
 
 # Jupyter notebook checkpoints
