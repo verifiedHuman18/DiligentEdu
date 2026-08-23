@@ -1,4 +1,4 @@
-"""Session state initialization and helpers for Academic RAG Assistant."""
+"""Session state initialization and helpers for DiligentEdu."""
 
 from typing import Any, Dict
 

@@ -1,4 +1,4 @@
-"""Custom CSS styling and design system for Academic RAG Assistant."""
+"""Custom CSS styling and design system for DiligentEdu."""
 
 import streamlit as st
 

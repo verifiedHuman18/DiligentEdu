@@ -1,4 +1,4 @@
-"""Domain-specific exceptions for the Academic RAG Assistant."""
+"""Domain-specific exceptions for DiligentEdu NCERT Academic Science RAG Assistant."""
 
 
 class AcademicRAGError(Exception):

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Git Pre-Commit Hook for DiligentEdu (Academic RAG Assistant)
+# Git Pre-Commit Hook for DiligentEdu
 # Available to all collaborators via: git config core.hooksPath .githooks
 # Or via pre-commit framework: uv run pre-commit install
 # ==============================================================================

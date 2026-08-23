@@ -1,392 +1,381 @@
-# Academic RAG Assistant
+# DiligentEdu
 
-> Transform your academic textbooks into an intelligent AI tutor using advanced RAG (Retrieval Augmented Generation) technology
+> **Intelligent NCERT Academic Science RAG Assistant, Socratic AI Tutor, Adaptive Diagnostic System & National Scholarship Discovery Platform**
 
 ![Python](https://img.shields.io/badge/python-v3.12+-blue.svg)
-![Streamlit](https://img.shields.io/badge/streamlit-latest-red.svg)
-![LangChain](https://img.shields.io/badge/langchain-latest-green.svg)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub Stars](https://img.shields.io/github/stars/ZohaibCodez/academic-rag-assistant.svg)](https://github.com/ZohaibCodez/academic-rag-assistant/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/ZohaibCodez/academic-rag-assistant.svg)](https://github.com/ZohaibCodez/academic-rag-assistant/network)
-[![GitHub Watchers](https://img.shields.io/github/watchers/ZohaibCodez/academic-rag-assistant.svg)](https://github.com/ZohaibCodez/academic-rag-assistant/watchers)
-[![GitHub Contributors](https://img.shields.io/github/contributors/ZohaibCodez/academic-rag-assistant.svg)](https://github.com/ZohaibCodez/academic-rag-assistant/graphs/contributors)
-[![Issues](https://img.shields.io/github/issues/ZohaibCodez/academic-rag-assistant.svg)](https://github.com/ZohaibCodez/academic-rag-assistant/issues)
-![Last Commit](https://img.shields.io/github/last-commit/ZohaibCodez/academic-rag-assistant)
-[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](https://academic-rag-assistant.streamlit.app)
+![Streamlit](https://img.shields.io/badge/streamlit-v1.49+-red.svg)
+![LangChain](https://img.shields.io/badge/langchain-v0.3+-green.svg)
+![Google Gemini](https://img.shields.io/badge/google%20gemini-2.5%20%2F%202.0%20%2F%201.5-orange.svg)
+![Pinecone](https://img.shields.io/badge/vector%20store-pinecone-blueviolet.svg)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
+---
+
 ## Overview
 
-Academic RAG Assistant is an intelligent tutoring system that transforms your course textbooks into an interactive AI conversation partner. Using advanced agentic RAG architecture, it provides contextual answers from your specific academic materials across multiple subjects including Linear Algebra, Discrete Structures, and Calculus & Analytical Geometry.
+**DiligentEdu** is an enterprise-grade, multi-role academic learning platform and intelligent tutoring system designed for Indian secondary education. Built specifically around the authoritative **NCERT Class 9 and Class 10 Science curriculum**, DiligentEdu combines advanced Retrieval-Augmented Generation (RAG), Socratic pedagogical guidance, continuous diagnostic assessment, early-warning analytics for educators, and a centralized government scholarship discovery engine.
 
-## Features
+Whether a student needs step-by-step conceptual guidance on *Chemical Reactions and Equations*, an educator needs real-time mastery analytics to identify at-risk learners, or a family is searching for eligible National Scholarship schemes, DiligentEdu provides an integrated, curriculum-grounded solution.
 
-- **Multi-Subject Expertise**: Specialized tools for Linear Algebra, Discrete Structures, and Calculus & Analytical Geometry
-- **Agentic RAG System**: Intelligent query enhancement and routing for optimal retrieval
-- **Real-time Streaming**: Live response generation with visual typing indicators
-- **Modern UI**: Clean, responsive dark-themed interface with custom styling
-- **Session Management**: Persistent chat history with export functionality
-- **Model Selection**: Support for multiple Google Gemini models (2.5 Pro, Flash, 2.0 Flash, etc.)
-- **Error Handling**: Comprehensive error management with user-friendly messages
-- **Progress Tracking**: Visual feedback during initialization and processing
-- **Smart Retrieval**: MMR and multi-query retrieval strategies for better context
-- **Memory System**: SQLite-based conversation persistence
+---
+
+## Key Features
+
+### 🎓 1. NCERT Science RAG Assistant & Textbook Integration
+- **Curriculum-Grounded Retrieval**: Powered by Pinecone vector storage with strict class-level isolation (`class9`, `class10`) across all 25 NCERT Science chapters.
+- **Page-Level Verifiable Citations**: Every explanation includes direct chapter and page citations from the official NCERT textbooks.
+- **Built-in Textbook PDF Viewer**: Seamlessly view authoritative textbook PDFs directly within the application via static streaming.
+- **Real-Time Streaming**: Low-latency token streaming with dynamic visual indicators and responsive formatting.
+
+### 🧠 2. Intelligent Socratic & Exploratory Tutor
+- **Dual Tutoring Modes**: Choose between *Exploratory Mode* (broad conceptual explanations) and *Socrates Mode* (guided inquiry prompting the student to deduce answers).
+- **Dynamic Suggested Questions**: Context-aware suggested prompts tailored specifically to the selected class and chapter.
+- **Mathematical & Chemical Precision**: Full LaTeX formula rendering and structured tables for reactions, equations, and physics laws.
+
+### 📝 3. Adaptive Quiz & Diagnostic Engine
+- **Bloom's Taxonomy Progression**: Dynamic quiz generation scaling from foundational recall to conceptual understanding and analytical application.
+- **Interactive Socrates Quiz Mode**: Step-by-step question breakdown offering progressive hints without prematurely revealing solutions.
+- **Instant Automated Grading**: Real-time evaluation, point breakdown, and detailed explanations for every option.
+
+### 📊 4. Student SWAT Performance Analysis
+- **SWAT Diagnostics**: Automated assessment of **S**trengths (≥75%), **W**eaknesses (<50%), **A**ptitude (50–74%), and **T**argets (unattempted chapters).
+- **Mastery Heatmaps & Radar Charts**: Visual score distributions tracking curriculum mastery over time.
+- **Prescriptive Action Plans**: Tailored recommendations and targeted revision pathways generated from individual quiz performance.
+
+### 👩‍🏫 5. Educator / Teacher Early-Warning Dashboard
+- **Cohort-Wide Monitoring**: Class-level performance metrics, completion rates, and average score distributions.
+- **Early-Warning Alerts**: Immediate flagging of students requiring academic intervention or falling behind in core chapters.
+- **Customizable Action Plans**: Review, modify, or override AI-generated student action plans with custom educator remarks.
+
+### 🏛️ 6. National Scholarship Portal (NSP) Discovery Hub
+- **Curated Scholarship Catalog**: Comprehensive database of central and state schemes (Pre-Matric, PM-YASASVI, NMMS, Disabilities, Minorities).
+- **Multi-Factor Eligibility Matchmaker**: Instant scheme matching based on class, gender, social category, annual family income, and disability status.
+- **AI Scholarship Assistant**: Interactive Q&A engine answering questions about application timelines, document checklists, and eligibility criteria with official portal links.
+
+### 🔐 7. Dual-Key Resilient AI Architecture
+- **Primary + Fallback Resolution**: Seamless fallback from primary environment/secrets keys to user-provided session keys.
+- **Zero Disk Leakage**: Session API keys are retained exclusively in volatile memory and never persisted to disk or logs.
+- **Intelligent Error Categorization**: Automated recovery and clear guidance for authentication errors (HTTP 401/403), quota limits (HTTP 429), and service disruptions (HTTP 500/503).
+
+---
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             STREAMLIT UI LAYER                              │
+│   ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐   │
+│   │ Student Space │ │ Socratic Quiz │ │ SWAT Analysis │ │ Teacher Radar │   │
+│   └───────┬───────┘ └───────┬───────┘ └───────┬───────┘ └───────┬───────┘   │
+│           │                 │                 │                 │           │
+│   ┌───────┴───────┐ ┌───────┴───────┐ ┌───────┴───────┐ ┌───────┴───────┐   │
+│   │ Chapter Hub   │ │ PDF Reader    │ │ Scholarships  │ │ Settings/Keys │   │
+│   └───────┬───────┘ └───────┬───────┘ └───────┬───────┘ └───────┬───────┘   │
+└───────────┼─────────────────┼─────────────────┼─────────────────┼───────────┘
+            ▼                 ▼                 ▼                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   UNIFIED BACKEND FACADE (backend.py)                       │
+│  Central single-source-of-truth API orchestrating all subsystem operations   │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                          ▼
+┌───────────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐
+│     RAG / TUTOR       │  │    DIAGNOSTICS &      │  │     SCHOLARSHIPS      │
+│      SUBSYSTEM        │  │       ANALYTICS       │  │       SUBSYSTEM       │
+│                       │  │                       │  │                       │
+│ • NCERT RAG Engine    │  │ • Adaptive Generator  │  │ • Eligibility Engine  │
+│ • Prompt Orchestrator │  │ • Socrates Evaluator  │  │ • Scheme Searcher     │
+│ • Suggested Prompts   │  │ • SWAT Diagnostic     │  │ • Scholarship QA Bot  │
+│ • PDF Page Resolver   │  │ • Teacher Action Plan │  │ • NSP Scraper/Parser  │
+└───────────┬───────────┘  └───────────┬───────────┘  └───────────┬───────────┘
+            │                          │                          │
+            ▼                          ▼                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            AI & DATA LAYER                                  │
+│  ┌──────────────────────┐ ┌──────────────────────┐ ┌─────────────────────┐  │
+│  │ Google Gemini Models │ │ HuggingFace MiniLM   │ │ Pinecone Vector DB  │  │
+│  │ (2.5 Pro/Flash/Lite) │ │ Embeddings (384-dim) │ │ (class9 / class10)  │  │
+│  └──────────────────────┘ └──────────────────────┘ └─────────────────────┘  │
+│  ┌──────────────────────┐ ┌──────────────────────┐ ┌─────────────────────┐  │
+│  │ SQLite Database      │ │ Static NCERT PDFs    │ │ Scholarship Catalog │  │
+│  │ (quiz_history.db)    │ │ (/static/class{9,10})│ │ (sources.json)      │  │
+│  └──────────────────────┘ └──────────────────────┘ └─────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Supported NCERT Curriculum
+
+<details>
+<summary><strong>Class 9 Science (12 Chapters)</strong></summary>
+
+1. **Chapter 1**: Matter in Our Surroundings
+2. **Chapter 2**: Is Matter Around Us Pure
+3. **Chapter 3**: Atoms and Molecules
+4. **Chapter 4**: Structure of the Atom
+5. **Chapter 5**: The Fundamental Unit of Life
+6. **Chapter 6**: Tissues
+7. **Chapter 7**: Motion
+8. **Chapter 8**: Force and Laws of Motion
+9. **Chapter 9**: Gravitation
+10. **Chapter 10**: Work and Energy
+11. **Chapter 11**: Sound
+12. **Chapter 12**: Improvement in Food Resources
+</details>
+
+<details>
+<summary><strong>Class 10 Science (13 Chapters)</strong></summary>
+
+1. **Chapter 1**: Chemical Reactions and Equations
+2. **Chapter 2**: Acids, Bases and Salts
+3. **Chapter 3**: Metals and Non-metals
+4. **Chapter 4**: Carbon and its Compounds
+5. **Chapter 5**: Life Processes
+6. **Chapter 6**: Control and Coordination
+7. **Chapter 7**: How do Organisms Reproduce?
+8. **Chapter 8**: Heredity
+9. **Chapter 9**: Light – Reflection and Refraction
+10. **Chapter 10**: The Human Eye and the Colourful World
+11. **Chapter 11**: Electricity
+12. **Chapter 12**: Magnetic Effects of Electric Current
+13. **Chapter 13**: Our Environment
+</details>
+
+---
 
 ## Tech Stack
 
-- **Frontend**: Streamlit with custom CSS styling
-- **Backend**: Python with asyncio for concurrent operations
-- **AI Framework**: OpenAI Agents SDK for agentic behavior
-- **LLM Integration**: Google Gemini via OpenAI-compatible API
-- **Vector Database**: Pinecone for document storage and retrieval
-- **Embeddings**: HuggingFace Sentence Transformers (all-MiniLM-L6-v2)
-- **Text Processing**: LangChain framework for RAG implementation
-- **Memory**: SQLite for session and conversation management
+| Component | Technology / Library | Description |
+| :--- | :--- | :--- |
+| **Frontend UI** | Streamlit, Custom Dark CSS | Responsive multi-role user interface |
+| **Backend Facade** | Python 3.12+ | Unified synchronous/asynchronous data layer |
+| **AI / LLM Integration** | Google Gemini (via OpenAI Agents SDK) | High-speed reasoning, tutoring, and quiz generation |
+| **Embeddings** | HuggingFace `sentence-transformers/all-MiniLM-L6-v2` | Dense 384-dimensional vector embeddings |
+| **Vector Database** | Pinecone | Managed vector store partitioned by grade namespaces |
+| **Relational Storage** | SQLite (`quiz_history.db`) | Student profiles, attempt histories, and action plans |
+| **Package Manager** | `uv` / `pip` | Fast dependency resolution and environment management |
+| **Code Quality** | Ruff, Pre-Commit | Strict linting, formatting, and type adherence |
 
-### Prerequisites
-
-- Python 3.12 or higher
-- Google Gemini API Key ([Get one here](https://makersuite.google.com/app/apikey))
-- Pinecone API Key ([Get one here](https://www.pinecone.io/))
-- Pre-processed textbook data in Pinecone vector store
+---
 
 ## Quick Start
 
-### 1. Clone the Repository
+### 1. Prerequisites
+- **Python 3.12** or higher
+- **Google Gemini API Key** ([Google AI Studio](https://aistudio.google.com/app/apikey))
+- **Pinecone API Key** ([Pinecone Console](https://app.pinecone.io/)) with an index named `ncert-science`
 
+### 2. Clone the Repository
 ```bash
-git clone https://github.com/ZohaibCodez/academic-rag-assistant.git
-cd academic-rag-assistant
+git clone https://github.com/verifiedHuman18/DiligentEdu.git
+cd DiligentEdu
 ```
 
-### 2. Install Dependencies
+### 3. Install Dependencies
 
+Using **`uv`** (recommended):
 ```bash
-# Using uv (recommended)
 uv sync --group dev
+```
 
-# Or using pip
+Or using standard **`pip`**:
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Set Up Pre-Commit Git Hooks (For Collaborators)
-
-To enable automatic linting and formatting on every `git commit`:
-
+### 4. Set Up Pre-Commit Git Hooks
+To enable automated linting and formatting on every commit:
 ```bash
-# Quick 1-step setup
+# 1-step automated setup
 bash scripts/setup_hooks.sh
 
-# Or manually using pre-commit
+# Or via uv pre-commit
 uv run pre-commit install
 ```
 
-To run linter checks manually at any time:
+### 5. Configure Environment Variables
+Create a `.env` file in the root directory (or `.streamlit/secrets.toml`):
 
 ```bash
-uv run pre-commit run --all-files
-# or directly with ruff
-uv run ruff check .
-```
-
-### 4. Set Up Environment
-
-```bash
-# Create .env file
 cp .env.example .env
-# Edit .env with your API keys
 ```
 
-### 5. Run the Application
-
-```bash
-streamlit run app.py
-```
-
-### 6. Access the App
-
-Open your browser and navigate to `http://localhost:8501`
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
+Edit `.env` with your API credentials:
 ```env
 GOOGLE_API_KEY=your_google_gemini_api_key_here
 PINECONE_API_KEY=your_pinecone_api_key_here
 ```
 
-### Supported Models
-
-- `gemini-2.5-pro` (Most capable, recommended for complex analysis)
-- `gemini-2.5-flash` (Balanced performance and speed)
-- `gemini-2.5-flash-lite` (Lightweight and fast)
-- `gemini-2.0-flash` (Fast responses with good accuracy)
-- `gemini-1.5-pro` (Reliable baseline model)
-- `gemini-1.5-flash` (Quick processing)
-
-### Configurable Parameters
-
-```python
-CHUNK_OVERLAP = 100  # Text chunk overlap for context
-RETRIEVER_K_MMR = 2  # MMR retrieval count
-RETRIEVER_K_SIMILARITY = 5  # Similarity search count
-LAMBDA_MUL = 0.7  # MMR diversity parameter
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+### 6. Run the Application
+```bash
+streamlit run app.py
 ```
 
-## How to Use
+Open your browser and navigate to: **`http://localhost:8501`**
 
-1. **Enter API Keys**: Add your Google Gemini and Pinecone API keys in the sidebar
-2. **Select Model**: Choose your preferred Gemini model from the dropdown
-3. **Start Learning**: Ask questions about your coursework in natural language
-4. **View Subjects**: Check available subjects in the "Subjects" tab
-5. **Export History**: Download your conversation anytime from the "Info" tab
+---
 
-### Subjects Supported
+## Configuration Reference
 
-#### Linear Algebra
+### Environment Variables
 
-- Matrix operations and properties
-- Systems of linear equations (Gaussian elimination, substitution)
-- Eigenvalues and eigenvectors
-- Vector spaces and transformations
-- Determinants and matrix inverses
+| Variable | Required | Default | Description |
+| :--- | :---: | :--- | :--- |
+| `GOOGLE_API_KEY` | Optional* | None | Primary Google Gemini API key (*can also be entered in UI) |
+| `PINECONE_API_KEY` | Yes | None | Pinecone vector database API key |
+| `PINECONE_INDEX_NAME`| No | `ncert-science` | Target Pinecone vector index name |
 
-#### Discrete Structures
+### Supported Gemini Models
 
-- Mathematical logic and proof techniques
-- Set theory and relations
-- Graph theory and trees
-- Combinatorics and counting principles
-- Boolean algebra and functions
+| Model Identifier | Capabilities & Use Case |
+| :--- | :--- |
+| `gemini-2.5-flash` | **Default / Recommended**: Ultra-fast responses and high accuracy |
+| `gemini-2.5-pro` | Advanced reasoning for complex multi-step physics and chemistry proofs |
+| `gemini-2.5-flash-lite` | Lightweight and cost-efficient for rapid query resolution |
+| `gemini-2.0-flash` | High throughput baseline model |
+| `gemini-1.5-pro` | High context window model for large document analysis |
+| `gemini-1.5-flash` | Fast baseline model |
 
-#### Calculus & Analytical Geometry
+---
 
-- Limits and continuity
-- Differentiation techniques and applications
-- Integration methods and applications
-- Analytical geometry in 2D and 3D
-- Sequences and series
+## Docker Deployment
 
-### Example Queries
-
-- "Explain the steps to solve a system of linear equations using Gaussian elimination"
-- "What is mathematical induction and how do I write a proof?"
-- "How do you find the derivative of a composite function using chain rule?"
-- "What are eigenvalues and eigenvectors? Provide examples"
-- "Explain the fundamental theorem of calculus with applications"
-
-## Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   User Query    │───▶│  Query Enhancer  │───▶│ Subject Router  │
-│   (Natural)     │    │  (Agent System)  │    │ (Classification)│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                        │
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Streamlit UI   │◀───│   Agent Runner   │◀───│  Function Tools │
-│   (Frontend)    │    │  (Orchestrator)  │    │ (Subject RAG)   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                        │
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Session Store  │    │  Gemini Models   │    │ Pinecone Vector │
-│   (SQLite)      │    │ (Generation AI)  │    │   Database      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                        │
-                                                ┌─────────────────┐
-                                                │  HuggingFace    │
-                                                │   Embeddings    │
-                                                └─────────────────┘
-```
-
-## Docker Support
-
-### Using Docker
+Build and run DiligentEdu inside an isolated Docker container:
 
 ```bash
-# Create .env file with your API keys
-echo "GOOGLE_API_KEY=your-gemini-key-here" >> .env
-echo "PINECONE_API_KEY=your-pinecone-key-here" >> .env
+# 1. Build the Docker image
+docker build -t diligentedu .
 
-# Build and run
-docker build -t academic-rag-assistant .
-docker run -p 8501:8501 --env-file .env academic-rag-assistant
+# 2. Run container with environment configuration
+docker run -p 8501:8501 --env-file .env diligentedu
 ```
+
+Access the containerized instance at `http://localhost:8501`.
+
+---
 
 ## Project Structure
 
 ```
-academic-rag-assistant/
+DiligentEdu/
+├── app.py                              # Main Streamlit application entry point
+├── backend.py                          # Unified backend facade (single source of truth)
+├── adaptive_engine.py                  # Adaptive quiz backward-compatibility module
+├── quiz_generator.py                   # Quiz generation backward-compatibility module
+├── quiz_storage.py                     # Quiz storage backward-compatibility module
+├── swat_analyzer.py                    # SWAT analytics backward-compatibility module
+├── teacher_engine.py                   # Teacher analytics backward-compatibility module
 │
-├── app.py                              # Main Streamlit application
+├── frontend/                           # Streamlit UI & Presentation Layer
+│   ├── assets/                         # UI illustrations and hero images
+│   ├── components/                     # Reusable UI widgets (navbar, sidebar, cards, etc.)
+│   ├── screens/                        # Role-specific screens (home, tutor, quiz, teacher, etc.)
+│   ├── state.py                        # Unified session state management
+│   └── styles.py                       # Custom themes and CSS styling system
 │
-├── notebooks/
-│   └── data_preparation_pipeline.ipynb # Complete RAG pipeline setup
-│       ├── Step 1a -> Multi-Document Ingestion
-│       ├── Step 1b -> Subject-Aware Text Splitting
-│       ├── Step 2 -> Retrieval System Setup
-│       ├── Step 3 -> Tool Definitions
-│       └── Agentic RAG Final Form
+├── src/academic_rag/                   # Core Business Logic & Algorithms
+│   ├── ai/                             # Centralized Gemini client factory & dual-key management
+│   ├── analytics/                      # SWAT diagnostic engine & teacher action plans
+│   ├── curriculum/                     # NCERT Class 9 & 10 curriculum service & PDF resolvers
+│   ├── models/                         # Domain data dataclasses (quiz, curriculum, analytics)
+│   ├── quiz/                           # Socrates tutor, quiz generator, and evaluators
+│   ├── rag/                            # Pinecone retriever, prompts, and streaming engine
+│   ├── scholarships/                   # NSP scraper, eligibility matchmaker, and QA engine
+│   ├── storage/                        # SQLite connection manager and repositories
+│   ├── config.py                       # Centralized application path and settings config
+│   └── exceptions.py                   # Domain-specific exception hierarchy
 │
-├── logs/                               # Application logs directory
-├── Dockerfile                          # Container configuration
-├── requirements.txt                    # Python dependencies
-├── pyproject.toml                      # Project configuration
-├── uv.lock                            # UV dependency lock
-├── .env.example                        # Example environment variables
-├── .gitignore                          # Git ignore rules
-└── README.md                           # Project documentation
+├── scholarships/                       # Scholarship dataset and sources metadata
+│   └── sources.json                    # Canonical government scholarship guidelines and portals
+│
+├── data/                               # Local storage and mapping metadata
+│   ├── metadata/                       # NCERT curriculum chapter JSON mappings
+│   └── storage/                        # SQLite databases (quiz_history.db)
+│
+├── static/                             # Authoritative NCERT textbook PDFs
+│   ├── class9/                         # Class 9 science textbook PDFs
+│   └── class10/                        # Class 10 science textbook PDFs
+│
+├── scripts/                            # Maintenance, benchmark, and ingestion scripts
+│   ├── ingest_corpus.py                # NCERT PDF chunking and vector index ingestion
+│   ├── retrieval_benchmark.py          # Vector search accuracy and latency benchmark
+│   └── setup_hooks.sh                  # One-step pre-commit hook setup
+│
+├── tests/                              # Comprehensive Unit & Integration Test Suite (203+ tests)
+├── .githooks/                          # Version-controlled Git pre-commit hooks
+├── .github/workflows/                  # GitHub Actions CI/CD workflows (lint & quality)
+├── requirements.txt                    # Python runtime dependencies
+├── pyproject.toml                      # Project metadata, Ruff & Pyright configurations
+├── DockerFile                          # Containerization build specification
+└── LICENSE                             # GNU General Public License v3.0
 ```
-
-## Performance Metrics
-
-- **Query Processing**: ~1-3 seconds for typical academic queries
-- **Memory Usage**: Optimized vector storage with Pinecone
-- **Retrieval Accuracy**: High precision with multi-strategy retrieval
-- **Response Quality**: Enhanced by agentic query reformulation
-- **Concurrent Users**: Supports multiple simultaneous sessions
-- **Streaming Speed**: Real-time response generation with 0.05s intervals
-
-## Current Limitations
-
-- **Subject Scope**: Limited to three core subjects (Linear Algebra, Discrete Structures, Calculus)
-- **Language**: Optimized for English academic content
-- **Data Dependency**: Requires pre-processed textbooks in Pinecone
-- **API Limits**: Subject to Google Gemini and Pinecone rate limits
-- **Context Window**: Limited by model context length for very long documents
-
-## Data Preparation Pipeline
-
-The included Jupyter notebook (`data_preparation_pipeline.ipynb`) provides a complete walkthrough:
-
-### Step 1a: Multi-Document Ingestion
-
-- PDF text extraction and processing
-- Document metadata handling
-- Quality validation and cleanup
-
-### Step 1b: Subject-Aware Text Splitting
-
-- Intelligent chunking based on academic structure
-- Subject-specific namespace organization
-- Context preservation across chunks
-
-### Step 2: Retrieval System Setup
-
-- Vector store initialization with Pinecone
-- Embedding model configuration
-- Index creation and optimization
-
-### Step 3: Tool Definitions
-
-- Subject-specific RAG function tools
-- Query enhancement and routing logic
-- Response formatting and validation
-
-### Agentic RAG Final Form
-
-- Complete agent system integration
-- Testing and validation procedures
-- Performance optimization techniques
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Setup
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Install development dependencies (`uv sync`)
-4. Make your changes with comprehensive logging
-5. Test across multiple Gemini models
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
-
-### Development Guidelines
-
-- Follow PEP 8 style guidelines
-- Add comprehensive logging for new features
-- Include error handling for all external API calls
-- Update documentation for new functionality
-- Test with multiple subjects and query types
-
-## Future Roadmap
-
-- [ ] Support for additional subjects (Physics, Chemistry, Statistics)
-- [ ] Multi-language academic content support
-- [ ] Advanced visualization tools for mathematical concepts
-- [ ] Integration with learning management systems
-- [ ] Collaborative study session features
-- [ ] Custom textbook upload and processing
-- [ ] Mobile-responsive design improvements
-- [ ] Voice interaction capabilities
-- [ ] Progress tracking and learning analytics
-- [ ] API endpoint for programmatic access
-
-## Known Issues
-
-- Large textbook corpora may require extended initialization time
-- Complex mathematical notation may not render perfectly
-- API rate limiting may affect performance during peak usage
-- Memory usage can be high with multiple concurrent users
-
-## Troubleshooting
-
-### Common Issues
-
-**"Agent initialization failed" error:**
-
-- Verify both Google Gemini and Pinecone API keys are valid
-- Check internet connectivity and API service status
-- Ensure sufficient API quota remaining
-
-**"Vector store connection failed":**
-
-- Confirm Pinecone API key and index configuration
-- Verify the "semester-books" index exists with correct namespaces
-- Check Pinecone service status and regional settings
-
-**Slow response times:**
-
-- Try switching to gemini-2.5-flash for faster responses
-- Check your network connection stability
-- Consider using a different model if quota limits are reached
-
-**Memory errors:**
-
-- Restart the Streamlit application
-- Clear browser cache and session storage
-- For Docker: increase memory allocation limits
-
-## License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [OpenAI Agents SDK](https://github.com/openai/agents) for the agentic framework
-- [Streamlit](https://streamlit.io/) for the incredible web framework
-- [LangChain](https://langchain.com/) for comprehensive RAG implementation
-- [Google AI](https://ai.google.dev/) for Gemini API access
-- [Pinecone](https://www.pinecone.io/) for scalable vector database services
-- [HuggingFace](https://huggingface.co/) for open-source embedding models
-- Academic community for inspiration and feedback
-
-## Support
-
-If you encounter any issues or have questions:
-
-- Open an [Issue](https://github.com/ZohaibCodez/academic-rag-assistant/issues)
-- Check existing issues for solutions
-- Review the troubleshooting section above
-- Contact: [itxlevicodez@gmail.com](mailto:itxlevicodez@gmail.com)
 
 ---
 
-**Star this repository if you found it helpful for your academic journey!**
+## Testing & Quality Assurance
 
-Built for students by [@ZohaibCodez](https://github.com/ZohaibCodez) using Google Gemini AI and advanced RAG techniques
+DiligentEdu maintains an automated test suite comprising **203+ unit and integration tests** covering class isolation, RAG retriever integrity, Socrates evaluation, SWAT analytics, teacher customization, and scholarship match accuracy.
+
+### Running the Test Suite
+```bash
+# Run all tests using unittest
+uv run python -m unittest discover -s tests
+
+# Or with verbose output
+uv run python -m unittest discover -s tests -v
+```
+
+### Running Code Quality Checks
+```bash
+# Run Ruff lint checks
+uv run ruff check .
+
+# Run Ruff formatting checks
+uv run ruff format --check .
+
+# Auto-format all code
+uv run ruff format .
+```
+
+---
+
+## Contributing
+
+Contributions are welcome! To contribute:
+
+1. **Fork the repository** on GitHub.
+2. **Create a descriptive feature branch**:
+   ```bash
+   git checkout -b feature/interactive-concept-map
+   ```
+3. **Set up local development hooks**:
+   ```bash
+   bash scripts/setup_hooks.sh
+   ```
+4. **Make your changes** with thorough docstrings and unit tests.
+5. **Ensure all linters and tests pass**:
+   ```bash
+   uv run ruff check . && uv run python -m unittest discover -s tests
+   ```
+6. **Commit your changes**:
+   ```bash
+   git commit -m "Add interactive concept map feature"
+   ```
+7. **Push to your branch and open a Pull Request**.
+
+---
+
+## License
+
+DiligentEdu is open-source software licensed under the **GNU General Public License v3.0 (GPLv3)**. See the [LICENSE](LICENSE) file for complete details.
+
+---
+
+## Acknowledgments
+
+- **National Council of Educational Research and Training (NCERT)** for standardizing and publishing open curriculum textbooks.
+- **National Scholarship Portal (NSP)** for central and state scholarship scheme guidelines.
+- **Streamlit**, **LangChain**, **Pinecone**, and **Google AI Studio** for the foundational technologies empowering this platform.

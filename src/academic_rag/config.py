@@ -1,4 +1,4 @@
-"""Configuration module for Academic RAG Assistant."""
+"""Configuration module for DiligentEdu NCERT Academic Science RAG Assistant."""
 
 import os
 from dataclasses import dataclass, field

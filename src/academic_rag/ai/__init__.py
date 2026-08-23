@@ -1,4 +1,4 @@
-"""Centralized AI Services and API Configuration for Academic RAG Assistant."""
+"""Centralized AI Services and API Configuration for DiligentEdu."""
 
 from src.academic_rag.ai.api_config import (
     get_active_api_mode,
