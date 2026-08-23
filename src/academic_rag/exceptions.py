@@ -47,3 +47,34 @@ class StorageError(AcademicRAGError):
     """Raised when database operations encounter errors."""
 
     pass
+
+
+class GeminiAPIError(AcademicRAGError):
+    """Base exception for Google Gemini API errors."""
+
+    pass
+
+
+class GeminiQuotaExhaustedError(GeminiAPIError):
+    """Raised when the Gemini API quota or rate limit (HTTP 429) is exhausted."""
+
+    pass
+
+
+class GeminiAuthError(GeminiAPIError):
+    """Raised when the Gemini API key is invalid or unauthorized (HTTP 401/403)."""
+
+    pass
+
+
+class GeminiUnavailableError(GeminiAPIError):
+    """Raised when the Gemini API is temporarily unavailable (HTTP 500/503 or network error)."""
+
+    pass
+
+
+class GeminiConfigurationError(GeminiAPIError):
+    """Raised when no valid Gemini API key (neither primary nor fallback) is configured."""
+
+    pass
+

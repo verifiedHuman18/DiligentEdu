@@ -39,7 +39,7 @@ def render_settings_screen() -> None:
     st.write("")
 
     if "settings_tab" not in st.session_state:
-        st.session_state.settings_tab = "Authentication"
+        st.session_state.settings_tab = "AI Configuration"
 
     active_tab = st.session_state.settings_tab
 
@@ -50,9 +50,8 @@ def render_settings_screen() -> None:
 
     with nav_col:
         tabs = [
-            ("Authentication", "Authentication", ":material/key:"),
+            ("AI Configuration", "AI Configuration", ":material/smart_toy:"),
             (profile_tab_label, "Profile", ":material/person:"),
-            ("AI & Model", "AI & Model", ":material/smart_toy:"),
             ("Appearance", "Appearance", ":material/palette:"),
             ("Data & Storage", "Data & Storage", ":material/database:"),
         ]
@@ -87,27 +86,100 @@ def render_settings_screen() -> None:
             st.rerun()
 
     with content_col:
-        # Tab 1: Authentication
-        if active_tab == "Authentication":
-            st.markdown("#### API Authentication")
-            st.caption(
-                "Configure your Google Gemini API key to power grounded Q&A and adaptive quizzes."
+        # Tab 1: AI Configuration (Phases 7, 8, 9, 14, 18, 19, 24, 25)
+        if active_tab in ("AI Configuration", "Authentication", "AI & Model"):
+            from src.academic_rag.ai import (
+                get_api_status,
+                has_user_fallback_api_key,
+                remove_user_fallback_api_key,
+                set_user_fallback_api_key,
+                test_gemini_api_key,
             )
+
+            api_status = get_api_status()
+
+            st.markdown("#### AI Configuration")
+            st.caption("Manage AI model reasoning and active API connectivity.")
             st.write("")
 
-            api_key = st.text_input(
-                "Google Gemini API Key",
-                type="password",
-                placeholder="AIzaSy...",
-                value=st.session_state.get("api_key", config.get_google_api_key() or ""),
-                help="Your API key is securely stored in active session memory.",
-            )
-            if api_key:
-                st.session_state.api_key = api_key
-                os.environ["GOOGLE_API_KEY"] = api_key
-                st.success("API key configured and active for current session.")
+            # 1. Primary AI Service Status (Phase 7 & 19)
+            st.markdown("##### AI Service Status")
+            if api_status["primary_configured"]:
+                st.success("● **Application AI Service:** Connected and ready for NCERT Tutor & Quiz generation.")
+            elif api_status["fallback_configured"]:
+                st.info("● **Using Your Fallback API:** Active for this session.")
             else:
-                st.info("Please enter your Gemini API key to enable AI features.")
+                st.warning("⚠️ **No AI Service Configured:** Please provide an optional session fallback API key below.")
+
+            st.divider()
+
+            # 2. AI Model Selection
+            st.markdown("##### AI Model & Reasoning")
+            st.caption("Select the Google Gemini model used for conceptual explanations and quiz synthesis.")
+            model_options = [
+                "gemini-3.5-flash-lite",
+                "gemini-flash-lite-latest",
+                "gemini-3-flash-preview",
+                "gemini-3.6-flash",
+                "gemini-3.7-flash",
+                "gemini-2.5-pro",
+            ]
+            curr_model = st.session_state.get("model", "gemini-3.5-flash-lite")
+            curr_model_idx = model_options.index(curr_model) if curr_model in model_options else 0
+            selected_model = st.selectbox(
+                "Gemini Model",
+                model_options,
+                index=curr_model_idx,
+                help="Flash Lite provides fast streaming speed; Pro provides deep reasoning.",
+            )
+            st.session_state.model = selected_model
+
+            st.divider()
+
+            # 3. Optional Fallback API (Phases 8, 9, 14, 18, 24, 25)
+            st.markdown("##### 🔐 Optional Fallback API")
+            st.caption(
+                "DiligentEdu normally uses the application's configured AI service. "
+                "If the service reaches its usage limit or becomes temporarily unavailable, "
+                "you can provide your own Gemini API key for this session."
+            )
+
+            fallback_active = has_user_fallback_api_key()
+
+            if fallback_active:
+                st.write("")
+                st.success("● **Session Fallback API Configured**")
+                st.caption(
+                    "Your key is active in session memory and will be used if the primary service reaches quota limit."
+                )
+                if st.button("Remove API Key", type="secondary", icon=":material/delete:", key="btn_remove_fallback_key"):
+                    remove_user_fallback_api_key()
+                    st.success("Fallback API key removed.")
+                    st.rerun()
+            else:
+                fallback_input = st.text_input(
+                    "Gemini API Key",
+                    type="password",
+                    placeholder="Enter your Gemini API key (AIzaSy...)",
+                    key="settings_fallback_key_input",
+                    help="Your API key is used strictly for this session and is never stored in the database.",
+                )
+                st.caption(
+                    "Your API key is used only for this session and is not stored as part of your student profile."
+                )
+
+                if st.button("Save & Test", type="primary", icon=":material/verified:", key="btn_save_test_fallback_key"):
+                    if not fallback_input or not fallback_input.strip():
+                        st.warning("Please enter a valid Gemini API key before testing.")
+                    else:
+                        with st.spinner("Testing API key with 1 lightweight request..."):
+                            is_valid, msg = test_gemini_api_key(fallback_input, model_name=selected_model)
+                            if is_valid:
+                                set_user_fallback_api_key(fallback_input)
+                                st.success("API key verified and activated for this session!")
+                                st.rerun()
+                            else:
+                                st.error(f"Unable to use the provided Gemini API key: {msg}")
 
         # Tab 2: Profile (Student or Teacher)
         elif active_tab in ("Profile", "Student Profile", "Teacher Profile"):
@@ -202,36 +274,7 @@ def render_settings_screen() -> None:
                     )
                     st.rerun()
 
-        # Tab 3: AI & Model
-        elif active_tab == "AI & Model":
-            st.markdown("#### AI Model & Reasoning")
-            st.caption("Select the Google Gemini model used for reasoning and quiz synthesis.")
-            st.write("")
-
-            model_options = [
-                "gemini-3.5-flash-lite",
-                "gemini-flash-lite-latest",
-                "gemini-3-flash-preview",
-                "gemini-3.6-flash",
-                "gemini-3.7-flash",
-                "gemini-2.5-pro",
-            ]
-            curr_model = st.session_state.get("model", "gemini-3.5-flash-lite")
-            curr_model_idx = model_options.index(curr_model) if curr_model in model_options else 0
-            selected_model = st.selectbox(
-                "Gemini Model",
-                model_options,
-                index=curr_model_idx,
-                help="Select model for reasoning and synthesis.",
-            )
-            st.session_state.model = selected_model
-
-            st.write("")
-            st.info(
-                "Flash Lite models provide fastest streaming speed, while Pro models provide deeper conceptual synthesis."
-            )
-
-        # Tab 4: Appearance
+        # Tab 3: Appearance
         elif active_tab == "Appearance":
             st.markdown("#### Theme & Display")
             st.caption("Switch between Warm Cream (Light) and Warm Brown (Dark) palettes.")

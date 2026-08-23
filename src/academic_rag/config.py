@@ -73,12 +73,12 @@ class AppConfig:
         if override and str(override).strip():
             return str(override).strip()
         try:
-            import streamlit as st
+            from src.academic_rag.ai.api_config import (
+                get_primary_api_key,
+                get_user_fallback_api_key,
+            )
 
-            if "api_key" in st.session_state and st.session_state.api_key:
-                return str(st.session_state.api_key).strip()
-            if hasattr(st, "secrets") and "GOOGLE_API_KEY" in st.secrets:
-                return str(st.secrets["GOOGLE_API_KEY"]).strip()
+            return get_primary_api_key() or get_user_fallback_api_key()
         except Exception:
             pass
         return os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")

@@ -17,19 +17,16 @@ def render_sidebar():
 
         # Tab 1: Configuration & Settings
         with tab1:
-            st.markdown("#### 🔑 Authentication")
-            api_key = st.text_input(
-                "Google Gemini API Key",
-                type="password",
-                placeholder="AIzaSy...",
-                value=st.session_state.get("api_key", config.get_google_api_key() or ""),
-                help="Your key is kept securely in your current browser session.",
-            )
-            if api_key:
-                st.session_state.api_key = api_key
-                os.environ["GOOGLE_API_KEY"] = api_key
+            st.markdown("#### 🤖 AI Service")
+            from src.academic_rag.ai import get_api_status
+
+            api_status = get_api_status()
+            if api_status["primary_configured"]:
+                st.success("● Primary AI Connected")
+            elif api_status["fallback_configured"]:
+                st.info("● Session Fallback Active")
             else:
-                st.info("💡 Enter your Google Gemini API key to begin.")
+                st.warning("⚠️ No AI Service Configured")
 
             st.markdown("#### 👤 Student Profile")
             student_id = st.text_input(
@@ -133,7 +130,7 @@ def render_sidebar():
 
     return (
         selected_model,
-        st.session_state.get("api_key"),
+        st.session_state.get("user_gemini_api_key", ""),
         selected_class,
         st.session_state.get("student_id", "student_001"),
     )

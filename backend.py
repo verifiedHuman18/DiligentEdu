@@ -57,6 +57,17 @@ from src.academic_rag.analytics.teacher import (
 from src.academic_rag.analytics.teacher import (
     get_teacher_student_profile as _internal_get_teacher_student_profile,
 )
+from src.academic_rag.ai import (
+    get_active_api_mode,
+    get_api_status,
+    get_primary_api_key,
+    get_user_fallback_api_key,
+    has_primary_api_key,
+    has_user_fallback_api_key,
+    remove_user_fallback_api_key,
+    set_user_fallback_api_key,
+    test_gemini_api_key,
+)
 from src.academic_rag.config import DEFAULT_DB_PATH
 from src.academic_rag.curriculum.service import (
     curriculum_service,
@@ -458,6 +469,16 @@ __all__ = [
     "save_teacher_action_plan",
     "reset_teacher_action_plan",
     "get_teacher_quiz_history",
+    # AI Resolution & API Configuration (Phases 2-20)
+    "get_primary_api_key",
+    "get_user_fallback_api_key",
+    "has_primary_api_key",
+    "has_user_fallback_api_key",
+    "get_active_api_mode",
+    "get_api_status",
+    "set_user_fallback_api_key",
+    "remove_user_fallback_api_key",
+    "test_gemini_api_key",
     # Additional Facades & Helpers
     "get_student_quiz_history",
     "get_student_class_history",

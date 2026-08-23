@@ -4,11 +4,14 @@ import json
 import logging
 from typing import Any, Dict, List, Optional, Union
 
-from openai import OpenAI
-
+from src.academic_rag.ai.client_factory import execute_chat_completion
 from src.academic_rag.config import config
 from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.exceptions import AuthenticationError, QuizGenerationError
+from src.academic_rag.exceptions import (
+    AuthenticationError,
+    GeminiAPIError,
+    QuizGenerationError,
+)
 from src.academic_rag.rag.prompts import QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE
 from src.academic_rag.rag.retriever import get_embeddings, get_pinecone_index
 
@@ -85,10 +88,6 @@ def generate_quiz(
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """Generates structured MCQ practice quiz in 1 single Gemini API request."""
-    active_key = config.get_google_api_key(override=api_key)
-    if not active_key:
-        raise AuthenticationError("Google Gemini API key is required.")
-
     active_model = model or model_name or config.default_llm_model
 
     # 1. Resolve chapter
@@ -112,12 +111,6 @@ def generate_quiz(
             f"Could not retrieve textbook context for Class {class_level} Chapter {ch_number} ({ch_title})."
         )
 
-    # 3. Create OpenAI-compatible client
-    client = OpenAI(
-        base_url=config.gemini_base_url,
-        api_key=active_key,
-    )
-
     system_prompt = QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE.format(
         num_questions=num_questions,
         difficulty_upper=difficulty.upper(),
@@ -134,32 +127,33 @@ NCERT Textbook Excerpts (Class {class_level} Science — Chapter {ch_number}: {c
 Generate the complete {num_questions}-question '{difficulty}' quiz now as a valid JSON object.
 """
 
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+
     try:
-        response = client.chat.completions.create(
+        response = execute_chat_completion(
+            messages=messages,
             model=active_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
             response_format={"type": "json_object"},
             temperature=0.3,
+            override_api_key=api_key,
         )
     except Exception as e:
         logger.warning(
-            f"Primary model '{active_model}' failed ({e}). Retrying with fallback '{config.fallback_llm_model}'..."
+            f"Primary model '{active_model}' failed ({e}). Retrying with fallback model '{config.fallback_llm_model}'..."
         )
         try:
-            response = client.chat.completions.create(
+            response = execute_chat_completion(
+                messages=messages,
                 model=config.fallback_llm_model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
                 response_format={"type": "json_object"},
                 temperature=0.3,
+                override_api_key=api_key,
             )
         except Exception as retry_err:
-            raise QuizGenerationError(f"Gemini quiz generation failed: {retry_err}")
+            raise QuizGenerationError(f"Gemini quiz generation failed: {retry_err}") from retry_err
 
     raw_json_str = response.choices[0].message.content or "{}"
 
