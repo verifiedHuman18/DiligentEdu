@@ -235,8 +235,8 @@ rag_assistant.log
 .ipynb_checkpoints/
 
 # Model files and embeddings cache
-models/
-embeddings/
+/models/
+/embeddings/
 *.pkl
 *.pickle
 *.joblib
