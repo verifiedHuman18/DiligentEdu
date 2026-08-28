@@ -158,35 +158,34 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
                 )
                 diff_str = act.get("difficulty", "medium").capitalize()
 
-                top_border = "3px solid var(--md-primary)"
-
-                st.markdown(
-                    f"""
-                    <div style="background: var(--surface-container); border-radius: 10px; padding: 14px; margin-bottom: 10px; border-top: {top_border};">
-                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">{p_label}</div>
-                        <div style="font-size: 0.98rem; font-weight: 700; color: var(--on-surface); margin-bottom: 2px;">{ch_title}</div>
-                        <div style="font-size: 0.84rem; color: var(--md-secondary); font-weight: 600; margin-bottom: 6px;">
-                            Score: {score_str} &nbsp;·&nbsp; Target: `{diff_str}`
+                with st.container(border=True):
+                    st.markdown(
+                        f"""
+                        <div style="height: 135px; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 5px;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">{p_label}</div>
+                            <div style="font-size: 0.98rem; font-weight: 700; color: var(--on-surface); margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-shrink: 0;">{ch_title}</div>
+                            <div style="font-size: 0.84rem; color: var(--md-secondary); font-weight: 600; margin-bottom: 6px; flex-shrink: 0;">
+                                Score: {score_str} &nbsp;·&nbsp; Target: `{diff_str}`
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--on-surface-variant); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{act["reason"]}</div>
                         </div>
-                        <div style="font-size: 0.8rem; color: var(--on-surface-variant); min-height: 40px; margin-bottom: 8px;">{act["reason"]}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
-                btn_key = f"home_action_btn_{class_level}_{idx}_{act['chapter']}"
-                btn_type = "primary" if act["priority_rank"] == 1 else "secondary"
-                if st.button(
-                    act["button_text"],
-                    icon=":material/play_arrow:",
-                    key=btn_key,
-                    type=btn_type,
-                    use_container_width=True,
-                    help=f"Practice {act['chapter']} now ({diff_str} difficulty)",
-                ):
-                    st.session_state.quiz_difficulty = act["difficulty"]
-                    navigate_to("quiz")
-                    st.rerun()
+                    btn_key = f"home_action_btn_{class_level}_{idx}_{act['chapter']}"
+                    btn_type = "primary" if act["priority_rank"] == 1 else "secondary"
+                    if st.button(
+                        "Start Practice",
+                        icon=":material/play_arrow:",
+                        key=btn_key,
+                        type=btn_type,
+                        use_container_width=True,
+                        help=f"Practice {act['chapter']} now ({diff_str} difficulty)",
+                    ):
+                        st.session_state.quiz_difficulty = act["difficulty"]
+                        navigate_to("quiz")
+                        st.rerun()
 
     else:
         # Unattempted Student Onboarding State
@@ -228,7 +227,7 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
         """,
         unsafe_allow_html=True,
     )
-    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         if st.button(
@@ -269,6 +268,9 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
         ):
             navigate_to("knowledge_graph")
             st.rerun()
+
+    st.write("")
+    _, col5, col6, col7, _ = st.columns([0.5, 1.0, 1.0, 1.0, 0.5])
 
     with col5:
         if st.button(
@@ -336,22 +338,34 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
                 score = ch_stats["score"]
                 status = ch_stats.get("status", "average")
                 if status == "strong":
-                    indicator = f"{score}% (Strong)"
+                    indicator = f"<span style='color: var(--md-primary); font-weight: 700;'>{score}% (Strong)</span>"
                 elif status == "weak":
-                    indicator = f"{score}% (Weak)"
+                    indicator = f"<span style='color: var(--md-error); font-weight: 700;'>{score}% (Weak)</span>"
                 else:
-                    indicator = f"{score}% (Average)"
+                    indicator = f"<span style='color: var(--md-amber); font-weight: 700;'>{score}% (Average)</span>"
             else:
-                indicator = "Not Attempted"
+                indicator = "<span style='color: var(--on-surface-variant); font-weight: 600;'>Not Attempted</span>"
 
-            btn_label = f"**{ch_num_str}**  {ch_name}  ·  {indicator}"
-            if st.button(
-                btn_label,
-                key=f"home_ch_nav_btn_{class_level}_{ch['chapter_number']}",
-                icon=":material/arrow_forward:",
-                use_container_width=True,
-                help=f"View details and study options for {ch_name}",
-            ):
-                st.session_state.active_chapter_detail = ch
-                navigate_to("chapter")
-                st.rerun()
+            with st.container(border=True):
+                st.markdown(
+                    f"""
+                    <div style="height: 65px; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 5px;">
+                        <div style="font-size: 0.95rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            <span style="color: var(--md-primary); font-size: 0.8rem; text-transform: uppercase;">CH {ch_num_str}</span> &nbsp;{ch_name}
+                        </div>
+                        <div style="font-size: 0.82rem;">{indicator}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                if st.button(
+                    "View Chapter",
+                    key=f"home_ch_nav_btn_{class_level}_{ch['chapter_number']}",
+                    icon=":material/arrow_forward:",
+                    use_container_width=True,
+                    help=f"View details and study options for {ch_name}",
+                ):
+                    st.session_state.active_chapter_detail = ch
+                    navigate_to("chapter")
+                    st.rerun()
