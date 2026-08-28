@@ -14,6 +14,10 @@ from frontend.components.scholarship_official_info import (
 )
 from frontend.components.sidebar import render_sidebar
 from frontend.components.theme_switcher import render_theme_switcher
+from frontend.components.voice_assistant import (
+    render_tts_player_component,
+    render_voice_recorder_component,
+)
 
 __all__ = [
     "render_navbar",
@@ -26,4 +30,7 @@ __all__ = [
     "render_official_scholarship_info",
     "get_canonical_portal_info",
     "render_back_to_home",
+    "render_voice_recorder_component",
+    "render_tts_player_component",
 ]
+

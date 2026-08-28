@@ -42,6 +42,10 @@ def init_session_state() -> None:
         "tutor_needs_refresh": True,
         "tutor_suggested_questions": None,
         "tutor_suggested_class": None,
+        "tutor_input_mode": "keyboard",
+        "voice_transcript": "",
+        "voice_recording_state": "IDLE",
+        "voice_review_pending": False,
     }
 
     for key, val in defaults.items():

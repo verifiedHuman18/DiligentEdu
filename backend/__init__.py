@@ -115,12 +115,35 @@ def delete_study_material(
     return success
 
 
+def get_chapters_with_status(
+    student_id_or_class: Union[str, int],
+    class_level: Optional[int] = None,
+    subject: str = "Science",
+    student_id: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Flexible wrapper supporting both get_chapters_with_status(student_id, class_level=9) and get_chapters_with_status(class_level=9, student_id=...)."""
+    if isinstance(student_id_or_class, int) or (isinstance(student_id_or_class, str) and student_id_or_class.isdigit()):
+        c_level = int(student_id_or_class)
+        s_id = student_id
+    else:
+        s_id = str(student_id_or_class)
+        c_level = int(class_level) if class_level is not None else 10
+
+    return get_available_chapters(
+        class_level=c_level,
+        subject=subject,
+        student_id=s_id,
+        db_path=db_path,
+    )
+
+
 # Aliases for unified contracts
 get_student_action_plan = generate_action_plan
-get_chapters_with_status = get_available_chapters
 get_teacher_swat = get_student_swat
 upload_student_study_material = upload_study_material
 delete_student_study_material_record = delete_study_material
+
 
 __all__ = [
     "config",
