@@ -19,6 +19,7 @@ from frontend.screens import (
     render_scholarships_screen,
     render_settings_screen,
     render_study_material_screen,
+    render_study_twin_screen,
     render_swat_screen,
     render_teacher_screen,
     render_tutor_screen,
@@ -64,4 +65,5 @@ __all__ = [
     "render_settings_screen",
     "render_study_material_screen",
     "render_knowledge_graph_screen",
+    "render_study_twin_screen",
 ]

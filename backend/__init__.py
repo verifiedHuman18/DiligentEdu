@@ -16,6 +16,11 @@ from backend.analytics.knowledge_graph import (
     get_available_knowledge_map_chapters,
     get_chapter_knowledge_graph,
 )
+from backend.analytics.study_twin import (
+    build_study_twin_profile,
+    calculate_twin_similarity,
+    find_study_twin,
+)
 from backend.analytics.swat import (
     format_swat_report,
     get_attempted_chapters,
@@ -155,5 +160,8 @@ __all__ = [
     "get_teacher_student_profile",
     "get_chapter_knowledge_graph",
     "get_available_knowledge_map_chapters",
+    "build_study_twin_profile",
+    "find_study_twin",
+    "calculate_twin_similarity",
 ]
 

@@ -116,6 +116,21 @@ def init_database(db_path: str = None) -> None:
             )
         """)
 
+        # Study Twin matches registry table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS study_twin_matches (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id TEXT NOT NULL,
+                twin_student_id TEXT NOT NULL,
+                class_level INTEGER NOT NULL,
+                subject TEXT NOT NULL,
+                similarity_score REAL NOT NULL,
+                match_data TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                UNIQUE(student_id, class_level, subject)
+            )
+        """)
+
         # Indexes for performance
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_attempts_student ON quiz_attempts(student_id)"
@@ -143,6 +158,9 @@ def init_database(db_path: str = None) -> None:
         )
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_docs_student_class ON uploaded_documents(student_id, class_level)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_twin_matches_student ON study_twin_matches(student_id, class_level, subject)"
         )
 
         conn.commit()

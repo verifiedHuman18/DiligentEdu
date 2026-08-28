@@ -33,6 +33,7 @@ from frontend import (
     render_scholarships_screen,
     render_settings_screen,
     render_study_material_screen,
+    render_study_twin_screen,
     render_swat_screen,
     render_teacher_screen,
     render_tutor_screen,
@@ -162,6 +163,8 @@ async def main():
             render_knowledge_graph_screen(student_id=student_id, user_api_key=user_api_key)
         elif active_screen == "study_material":
             render_study_material_screen(student_id=student_id, user_api_key=user_api_key)
+        elif active_screen == "study_twin":
+            render_study_twin_screen(student_id=student_id)
         elif active_screen == "swat":
             render_swat_screen(student_id, selected_class=selected_class)
         elif active_screen == "scholarships":

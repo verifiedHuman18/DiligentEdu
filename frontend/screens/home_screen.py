@@ -222,17 +222,17 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
         <div class="section-header-bar">
             <div>
                 <h4 class="section-title-text">Core Learning Modules</h4>
-                <div class="section-subtitle-text">Direct shortcuts to interactive tutoring, assessments, study material, analytics, and scholarships.</div>
+                <div class="section-subtitle-text">Direct shortcuts to interactive tutoring, assessments, study twin, study material, analytics, and scholarships.</div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
     with col1:
         if st.button(
-            "**NCERT Tutor**\n\nAsk doubts & citations",
+            "**NCERT Tutor**\n\nAsk doubts",
             key="btn_module_tutor",
             icon=":material/chat:",
             use_container_width=True,
@@ -242,7 +242,7 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
 
     with col2:
         if st.button(
-            "**Practice Quiz**\n\nChapter quizzes",
+            "**Practice Quiz**\n\nQuizzes",
             key="btn_module_quiz",
             icon=":material/quiz:",
             use_container_width=True,
@@ -252,7 +252,17 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
 
     with col3:
         if st.button(
-            "**Knowledge Map**\n\nConcept web & mastery",
+            "**Study Twin**\n\nPeer match",
+            key="btn_module_study_twin",
+            icon=":material/group:",
+            use_container_width=True,
+        ):
+            navigate_to("study_twin")
+            st.rerun()
+
+    with col4:
+        if st.button(
+            "**Knowledge Map**\n\nConcept web",
             key="btn_module_knowledge_graph",
             icon=":material/hub:",
             use_container_width=True,
@@ -260,9 +270,9 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
             navigate_to("knowledge_graph")
             st.rerun()
 
-    with col4:
+    with col5:
         if st.button(
-            "**My Material**\n\nUpload & manage notes",
+            "**My Material**\n\nUpload notes",
             key="btn_module_study_material",
             icon=":material/menu_book:",
             use_container_width=True,
@@ -270,9 +280,9 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
             navigate_to("study_material")
             st.rerun()
 
-    with col5:
+    with col6:
         if st.button(
-            "**Analytics**\n\nSWAT & mastery",
+            "**Analytics**\n\nSWAT metrics",
             key="btn_module_analytics",
             icon=":material/insights:",
             use_container_width=True,
@@ -280,9 +290,9 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
             navigate_to("swat")
             st.rerun()
 
-    with col6:
+    with col7:
         if st.button(
-            "**Scholarships**\n\nDiscovery & Q&A",
+            "**Scholarships**\n\nDiscovery",
             key="btn_module_scholarships",
             icon=":material/verified:",
             use_container_width=True,

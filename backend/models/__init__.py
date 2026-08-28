@@ -32,6 +32,11 @@ from backend.models.study_material import (
     UploadedDocument,
 )
 
+from backend.models.study_twin import (
+    StudyTwinMatch,
+    StudyTwinProfile,
+)
+
 __all__ = [
     "ChapterInfo",
     "ChapterSummaryStatus",
@@ -54,4 +59,6 @@ __all__ = [
     "ChapterKnowledgeGraph",
     "ConceptStatus",
     "EdgeRelationship",
+    "StudyTwinProfile",
+    "StudyTwinMatch",
 ]

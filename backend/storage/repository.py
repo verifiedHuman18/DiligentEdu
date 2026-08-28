@@ -659,3 +659,159 @@ def count_student_study_materials(
         student_id=student_id, class_level=class_level, subject=subject
     )
 
+
+def save_study_twin_match(
+    student_id: str,
+    twin_student_id: str,
+    class_level: int,
+    subject: str,
+    similarity_score: float,
+    match_data: Dict[str, Any],
+    db_path: Optional[str] = None,
+) -> bool:
+    """Persists or updates a computed Study Twin match for a student, class, and subject."""
+    target_path = db_path or str(config.default_db_path)
+    ts = datetime.now(timezone.utc).isoformat()
+    match_json = json.dumps(match_data)
+    try:
+        with get_db_connection(target_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO study_twin_matches (
+                    student_id, twin_student_id, class_level, subject, similarity_score, match_data, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(student_id, class_level, subject) DO UPDATE SET
+                    twin_student_id = excluded.twin_student_id,
+                    similarity_score = excluded.similarity_score,
+                    match_data = excluded.match_data,
+                    created_at = excluded.created_at
+                """,
+                (
+                    str(student_id).strip(),
+                    str(twin_student_id).strip(),
+                    int(class_level),
+                    str(subject).strip(),
+                    float(similarity_score),
+                    match_json,
+                    ts,
+                ),
+            )
+            conn.commit()
+            return True
+    except Exception as e:
+        logger.error(f"Failed to save study twin match: {e}")
+        return False
+
+
+def get_saved_study_twin_match(
+    student_id: str,
+    class_level: int,
+    subject: str,
+    db_path: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Retrieves the cached Study Twin match for a student, class, and subject."""
+    target_path = db_path or str(config.default_db_path)
+    try:
+        with get_db_connection(target_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT student_id, twin_student_id, class_level, subject, similarity_score, match_data, created_at
+                FROM study_twin_matches
+                WHERE student_id = ? AND class_level = ? AND subject = ?
+                """,
+                (str(student_id).strip(), int(class_level), str(subject).strip()),
+            )
+            row = cursor.fetchone()
+            if not row:
+                return None
+            data = dict(row)
+            if data.get("match_data"):
+                try:
+                    data["match_data"] = json.loads(data["match_data"])
+                except Exception:
+                    pass
+            return data
+    except Exception as e:
+        logger.error(f"Failed to retrieve saved study twin match: {e}")
+        return None
+
+
+def clear_study_twin_match(
+    student_id: str,
+    class_level: int,
+    subject: str,
+    db_path: Optional[str] = None,
+) -> bool:
+    """Deletes cached Study Twin match for recalculation."""
+    target_path = db_path or str(config.default_db_path)
+    try:
+        with get_db_connection(target_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                DELETE FROM study_twin_matches
+                WHERE student_id = ? AND class_level = ? AND subject = ?
+                """,
+                (str(student_id).strip(), int(class_level), str(subject).strip()),
+            )
+            conn.commit()
+            return True
+    except Exception as e:
+        logger.error(f"Failed to clear study twin match: {e}")
+        return False
+
+
+def get_all_candidate_student_ids(
+    class_level: int,
+    subject: str,
+    exclude_student_id: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> List[str]:
+    """
+    Discovers all candidate student IDs for a given class level and subject,
+    querying both SQLite quiz history and Prisma user database.
+    """
+    candidates = set()
+    target_path = db_path or str(config.default_db_path)
+    clean_exclude = str(exclude_student_id).strip() if exclude_student_id else None
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+
+    # 1. From SQLite quiz history
+    try:
+        with get_db_connection(target_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT DISTINCT student_id FROM quiz_attempts
+                WHERE class_level = ? AND (subject = ? OR subject IS NULL OR subject = '')
+                """,
+                (int(class_level), subj_clean),
+            )
+            rows = cursor.fetchall()
+            for r in rows:
+                sid = str(r["student_id"]).strip()
+                if sid and sid != clean_exclude:
+                    candidates.add(sid)
+    except Exception as e:
+        logger.warning(f"Could not load candidates from SQLite: {e}")
+
+    # 2. From Prisma DB (if available)
+    try:
+        from prisma import Prisma
+
+        db = Prisma()
+        db.connect()
+        students = db.user.find_many(where={"role": "student"})
+        for s in students:
+            s_class = s.class_level or 10
+            if s_class == int(class_level) and s.id != clean_exclude:
+                candidates.add(s.id)
+        db.disconnect()
+    except Exception:
+        pass
+
+    return sorted(list(candidates))
+
+
