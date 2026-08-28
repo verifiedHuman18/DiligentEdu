@@ -21,22 +21,16 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 # Streamlit Community Cloud: Generate Prisma client if not generated
-try:
-    pass
-except RuntimeError:
+# We do this before ANY imports of prisma to prevent sys.modules poisoning.
+import os
+import subprocess
+import sys
+
+if not os.path.exists("/tmp/.prisma_generated"):
     print("Prisma client not found. Generating...")
-    import os
-    import subprocess
-    import sys
-
-    # Run generation reliably using python -m
     subprocess.check_call([sys.executable, "-m", "prisma", "generate"])
-
-    # Force reload the prisma module so Python sees the newly generated files
-    if "prisma" in sys.modules:
-        del sys.modules["prisma"]
-
-    # Now it should succeed
+    with open("/tmp/.prisma_generated", "w") as f:
+        f.write("done")
 
 from frontend import (
     get_user_role,
