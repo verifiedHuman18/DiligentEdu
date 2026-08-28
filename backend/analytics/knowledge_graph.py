@@ -55,6 +55,7 @@ def calculate_student_concept_telemetry(
     student_id: str,
     class_level: int,
     chapter_name: Optional[str] = None,
+    chapter: Optional[str] = None,
     subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Dict[str, Any]]:
@@ -65,6 +66,7 @@ def calculate_student_concept_telemetry(
     Strictly keeps unassessed concepts as None / unattempted.
     """
     target_db = db_path or str(config.default_db_path)
+    target_ch = chapter_name or chapter
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     concept_stats: Dict[str, Dict[str, float]] = {}
 
@@ -88,9 +90,9 @@ def calculate_student_concept_telemetry(
             """
             params: List[Any] = [str(student_id).strip(), int(class_level), subj_clean]
 
-            if chapter_name:
+            if target_ch:
                 query += " AND qr.chapter = ?"
-                params.append(str(chapter_name).strip())
+                params.append(str(target_ch).strip())
 
             cursor.execute(query, tuple(params))
             rows = cursor.fetchall()
@@ -182,7 +184,8 @@ def calculate_student_concept_telemetry(
 def get_chapter_knowledge_graph(
     student_id: str,
     class_level: int,
-    chapter_name: str,
+    chapter_name: Optional[str] = None,
+    chapter: Optional[str] = None,
     subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -191,20 +194,21 @@ def get_chapter_knowledge_graph(
     Merges authoritative NCERT concepts, dependency edges, student performance telemetry,
     and linked uploaded study materials.
     """
+    effective_ch_name = str(chapter_name or chapter or "Chapter 1").strip()
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     ch_meta = get_chapter_concept_metadata(
-        chapter_name, class_level=class_level, subject=subj_clean
+        effective_ch_name, class_level=class_level, subject=subj_clean
     )
     target_class = int(class_level)
 
     if ch_meta:
-        ch_title = chapter_name
+        ch_title = effective_ch_name
         ch_num = int(ch_meta.get("chapter_number", 1))
         nodes_raw = ch_meta.get("nodes", [])
         edges_raw = ch_meta.get("edges", [])
     else:
         # Fallback dynamic node for unregistered chapter
-        ch_title = chapter_name
+        ch_title = effective_ch_name
         ch_num = 1
         nodes_raw = [
             {
@@ -219,6 +223,7 @@ def get_chapter_knowledge_graph(
             }
         ]
         edges_raw = []
+
 
     # Calculate student concept mastery telemetry
     telemetry = calculate_student_concept_telemetry(

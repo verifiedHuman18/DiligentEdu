@@ -2852,6 +2852,504 @@ CHAPTER_CONCEPTS_REGISTRY: Dict[str, Dict[str, Any]] = {
         ],
         "edges": [],
     },
+    "Exploration: Entering the World of Secondary Science": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 1,
+
+        "nodes": [
+            {
+                "id": "sci9_ch1_scientific_method",
+                "name": "Scientific Method & Inquiry",
+                "section": "1.1",
+                "tier": 1,
+                "description": "Formulating hypotheses, controlled experiments, qualitative and quantitative observations, and scientific inquiry.",
+                "keywords": ["scientific method", "hypothesis", "inquiry", "experimentation", "observation"],
+                "pos_x": 160,
+                "pos_y": 120,
+            },
+            {
+                "id": "sci9_ch1_measurement_units",
+                "name": "SI Units, Dimensions & Accuracy",
+                "section": "1.2",
+                "tier": 2,
+                "description": "Standard SI base and derived units, prefixes, measuring instruments, precision, and error estimation.",
+                "keywords": ["si units", "measurement", "precision", "accuracy", "dimensions"],
+                "pos_x": 400,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch1_lab_safety",
+                "name": "Laboratory Safety & Tools",
+                "section": "1.3",
+                "tier": 2,
+                "description": "Laboratory apparatus, chemical hazard symbols, safety guidelines, and reproducible data recording.",
+                "keywords": ["lab safety", "hazard symbols", "apparatus", "data recording"],
+                "pos_x": 400,
+                "pos_y": 220,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch1_scientific_method",
+                "target": "sci9_ch1_measurement_units",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch1_measurement_units",
+                "target": "sci9_ch1_lab_safety",
+                "relationship": "related",
+            },
+        ],
+    },
+    "Exploring Mixtures and their Separation": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 5,
+        "nodes": [
+            {
+                "id": "sci9_ch5_types_of_mixtures",
+                "name": "Solutions, Suspensions & Colloids",
+                "section": "5.1 - 5.2",
+                "tier": 1,
+                "description": "Homogeneous vs heterogeneous mixtures, particle size distribution, Tyndall effect scattering, and Brownian movement.",
+                "keywords": ["mixture", "solution", "suspension", "colloid", "tyndall effect", "solute", "solvent"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch5_solution_concentration",
+                "name": "Concentration & Solubility",
+                "section": "5.3",
+                "tier": 2,
+                "description": "Mass-by-mass and mass-by-volume percentage calculations, saturated/unsaturated solutions, and temperature solubility curves.",
+                "keywords": ["concentration", "solubility", "saturated solution", "mass percentage"],
+                "pos_x": 400,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch5_physical_separation",
+                "name": "Physical Separation Techniques",
+                "section": "5.4",
+                "tier": 2,
+                "description": "Evaporation, centrifugation, separating funnel density partitioning, and sublimation purification.",
+                "keywords": ["evaporation", "centrifugation", "separating funnel", "sublimation"],
+                "pos_x": 400,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch5_distillation_chromatography",
+                "name": "Distillation & Chromatography",
+                "section": "5.5",
+                "tier": 3,
+                "description": "Simple vs fractional distillation column fractionations and paper chromatography adsorption coefficients.",
+                "keywords": ["simple distillation", "fractional distillation", "chromatography", "crystallization"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch5_types_of_mixtures",
+                "target": "sci9_ch5_solution_concentration",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch5_types_of_mixtures",
+                "target": "sci9_ch5_physical_separation",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch5_physical_separation",
+                "target": "sci9_ch5_distillation_chromatography",
+                "relationship": "derived_from",
+            },
+        ],
+    },
+    "Journey Inside the Atom": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 8,
+        "nodes": [
+            {
+                "id": "sci9_ch8_subatomic_particles",
+                "name": "Electrons, Protons & Neutrons",
+                "section": "8.1",
+                "tier": 1,
+                "description": "Cathode rays (electrons), canal rays (protons), Chadwick's neutron discovery, and subatomic masses/charges.",
+                "keywords": ["electron", "proton", "neutron", "canal rays", "subatomic particles", "jj thomson"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch8_atomic_models",
+                "name": "Thomson & Rutherford Atomic Models",
+                "section": "8.2",
+                "tier": 2,
+                "description": "Plum pudding model vs alpha particle gold foil scattering experiment revealing the dense positive nucleus.",
+                "keywords": ["plum pudding", "rutherford", "gold foil experiment", "nucleus", "scattering"],
+                "pos_x": 390,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch8_bohr_model_shells",
+                "name": "Bohr Model & Energy Shells",
+                "section": "8.3",
+                "tier": 2,
+                "description": "Quantized stationary electron orbits (K, L, M, N), 2n^2 maximum shell capacity, and non-radiating energy states.",
+                "keywords": ["bohr model", "energy levels", "electron shells", "k l m n shells", "quantized orbits"],
+                "pos_x": 390,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch8_valency_isotopes",
+                "name": "Valency, Isotopes & Isobars",
+                "section": "8.4 - 8.5",
+                "tier": 3,
+                "description": "Octet rule, valence electron capacity, atomic numbers (Z), mass numbers (A), isotopes, and isobars.",
+                "keywords": ["valency", "octet rule", "isotopes", "isobars", "atomic number", "mass number"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch8_subatomic_particles",
+                "target": "sci9_ch8_atomic_models",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch8_atomic_models",
+                "target": "sci9_ch8_bohr_model_shells",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch8_bohr_model_shells",
+                "target": "sci9_ch8_valency_isotopes",
+                "relationship": "derived_from",
+            },
+        ],
+    },
+    "Atomic Foundations of Matter": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 9,
+        "nodes": [
+            {
+                "id": "sci9_ch9_laws_chemical_combination",
+                "name": "Laws of Chemical Combination",
+                "section": "9.1",
+                "tier": 1,
+                "description": "Conservation of mass (Lavoisier) and law of constant definite proportions (Proust) in chemical compounds.",
+                "keywords": ["conservation of mass", "definite proportions", "chemical combination", "lavoisier", "proust"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch9_dalton_atomic_theory",
+                "name": "Dalton's Atomic Theory & Atomic Mass",
+                "section": "9.2",
+                "tier": 2,
+                "description": "Postulates of indivisible atoms, relative atomic mass unit (u based on Carbon-12), and atomic symbols.",
+                "keywords": ["dalton atomic theory", "atomic mass unit", "amu", "carbon 12", "chemical symbols"],
+                "pos_x": 390,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch9_molecules_ions",
+                "name": "Molecules & Ionic Compounds",
+                "section": "9.3",
+                "tier": 2,
+                "description": "Molecules of elements and compounds, atomicity, cations, anions, and polyatomic ionic structures.",
+                "keywords": ["molecules", "atomicity", "ions", "cation", "anion", "polyatomic ions"],
+                "pos_x": 390,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch9_chemical_formulae",
+                "name": "Writing Formulae & Molecular Mass",
+                "section": "9.4",
+                "tier": 3,
+                "description": "Valency cross-over method for chemical formulae, calculating molecular mass, and formula unit mass.",
+                "keywords": ["chemical formula", "valency cross over", "molecular mass", "formula unit mass"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch9_laws_chemical_combination",
+                "target": "sci9_ch9_dalton_atomic_theory",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch9_dalton_atomic_theory",
+                "target": "sci9_ch9_molecules_ions",
+                "relationship": "derived_from",
+            },
+            {
+                "source": "sci9_ch9_molecules_ions",
+                "target": "sci9_ch9_chemical_formulae",
+                "relationship": "derived_from",
+            },
+        ],
+    },
+    "Sound Waves: Characteristics and Applications": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 10,
+        "nodes": [
+            {
+                "id": "sci9_ch10_sound_propagation",
+                "name": "Sound Production & Wave Propagation",
+                "section": "10.1 - 10.2",
+                "tier": 1,
+                "description": "Vibrating bodies, mechanical longitudinal waves, compressions, rarefactions, and medium transmission requirements.",
+                "keywords": ["sound production", "vibration", "longitudinal wave", "compression", "rarefaction", "medium"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch10_wave_characteristics",
+                "name": "Wavelength, Frequency, Amplitude & Speed",
+                "section": "10.3",
+                "tier": 2,
+                "description": "Wave relationships v = f x λ, pitch (frequency), loudness (amplitude), quality (timbre), and speed of sound.",
+                "keywords": ["frequency", "wavelength", "amplitude", "pitch", "loudness", "speed of sound", "v = flambda"],
+                "pos_x": 390,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch10_reflection_echo",
+                "name": "Reflection of Sound, Echo & Reverberation",
+                "section": "10.4",
+                "tier": 2,
+                "description": "Laws of sound reflection, minimum 17.2m distance for distinct echo, persistence of hearing (0.1s), and reverberation damping.",
+                "keywords": ["reflection of sound", "echo", "reverberation", "persistence of hearing", "sound absorption"],
+                "pos_x": 390,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch10_ultrasound_sonar",
+                "name": "Ultrasound, SONAR & Human Ear",
+                "section": "10.5 - 10.6",
+                "tier": 3,
+                "description": "Frequencies > 20 kHz, industrial flaw detection, medical echocardiography, SONAR depth calculation, and ear anatomy.",
+                "keywords": ["ultrasound", "sonar", "echocardiography", "infrasound", "audible range", "tympanic membrane"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch10_sound_propagation",
+                "target": "sci9_ch10_wave_characteristics",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch10_wave_characteristics",
+                "target": "sci9_ch10_reflection_echo",
+                "relationship": "derived_from",
+            },
+            {
+                "source": "sci9_ch10_reflection_echo",
+                "target": "sci9_ch10_ultrasound_sonar",
+                "relationship": "derived_from",
+            },
+        ],
+    },
+    "Reproduction: How Life Continues": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 11,
+        "nodes": [
+            {
+                "id": "sci9_ch11_asexual_modes",
+                "name": "Modes of Asexual Reproduction",
+                "section": "11.1 - 11.2",
+                "tier": 1,
+                "description": "Binary/multiple fission (Amoeba/Leishmania), budding (Yeast/Hydra), spore formation, fragmentation, and vegetative propagation.",
+                "keywords": ["asexual reproduction", "binary fission", "budding", "vegetative propagation", "spore formation"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch11_sexual_reproduction_flowering",
+                "name": "Reproduction in Flowering Plants",
+                "section": "11.3",
+                "tier": 2,
+                "description": "Stamen and carpel anatomy, pollination (self/cross), pollen tube fertilization, ovule transformation into seed, and fruit formation.",
+                "keywords": ["flower reproduction", "pollination", "stamen", "carpel", "fertilization", "seed formation"],
+                "pos_x": 390,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch11_human_reproduction",
+                "name": "Human Reproduction & Gametogenesis",
+                "section": "11.4",
+                "tier": 2,
+                "description": "Male and female reproductive systems, puberty hormonal triggers, sperm and egg production, and fertilization in fallopian tube.",
+                "keywords": ["human reproduction", "testes", "ovaries", "puberty", "gametes", "zygote", "fertilization"],
+                "pos_x": 390,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch11_reproductive_health",
+                "name": "Reproductive Health & Contraception",
+                "section": "11.5",
+                "tier": 3,
+                "description": "Menstrual cycle, pregnancy implantation, contraceptive methods (barrier, hormonal, surgical), and STI prevention.",
+                "keywords": ["reproductive health", "menstruation", "contraception", "sti prevention", "family planning"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch11_asexual_modes",
+                "target": "sci9_ch11_sexual_reproduction_flowering",
+                "relationship": "related",
+            },
+            {
+                "source": "sci9_ch11_asexual_modes",
+                "target": "sci9_ch11_human_reproduction",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch11_human_reproduction",
+                "target": "sci9_ch11_reproductive_health",
+                "relationship": "derived_from",
+            },
+        ],
+    },
+    "Patterns in Life: Diversity and Classification": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 12,
+        "nodes": [
+            {
+                "id": "sci9_ch12_classification_hierarchy",
+                "name": "Basis of Classification & Taxonomy",
+                "section": "12.1 - 12.2",
+                "tier": 1,
+                "description": "Need for biological classification, taxonomic hierarchy (Kingdom to Species), and Whittaker's 5-Kingdom system.",
+                "keywords": ["classification", "taxonomy", "five kingdom", "whittaker", "monera", "protista", "fungi"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch12_plantae_divisions",
+                "name": "Kingdom Plantae Divisions",
+                "section": "12.3",
+                "tier": 2,
+                "description": "Thallophyta (Algae), Bryophyta (Amphibians of plants), Pteridophyta, Gymnosperms (naked seeds), and Angiosperms (flowering plants).",
+                "keywords": ["plantae", "thallophyta", "bryophyta", "pteridophyta", "gymnosperms", "angiosperms"],
+                "pos_x": 390,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch12_animalia_invertebrates",
+                "name": "Kingdom Animalia: Invertebrate Phyla",
+                "section": "12.4",
+                "tier": 2,
+                "description": "Porifera, Coelenterata, Platyhelminthes, Nematoda, Annelida, Arthropoda, Mollusca, and Echinodermata.",
+                "keywords": ["animalia", "invertebrates", "arthropoda", "annelida", "mollusca", "coelom", "body symmetry"],
+                "pos_x": 390,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch12_chordata_vertebrates",
+                "name": "Chordata & Vertebrate Classes",
+                "section": "12.5 - 12.6",
+                "tier": 3,
+                "description": "Notochord characteristics, Pisces, Amphibia, Reptilia, Aves, Mammalia, and binomial nomenclature (Linnaeus).",
+                "keywords": ["chordata", "vertebrates", "pisces", "amphibia", "reptilia", "aves", "mammalia", "binomial nomenclature"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch12_classification_hierarchy",
+                "target": "sci9_ch12_plantae_divisions",
+                "relationship": "derived_from",
+            },
+            {
+                "source": "sci9_ch12_classification_hierarchy",
+                "target": "sci9_ch12_animalia_invertebrates",
+                "relationship": "derived_from",
+            },
+            {
+                "source": "sci9_ch12_animalia_invertebrates",
+                "target": "sci9_ch12_chordata_vertebrates",
+                "relationship": "prerequisite",
+            },
+        ],
+    },
+    "Earth as a System: Energy, Matter, and Life": {
+        "class_level": 9,
+        "subject": "Science",
+        "chapter_number": 13,
+        "nodes": [
+            {
+                "id": "sci9_ch13_atmosphere_climate",
+                "name": "Atmosphere, Winds & Rain",
+                "section": "13.1 - 13.2",
+                "tier": 1,
+                "description": "Atmospheric air blanket, differential heating, land/sea breezes, cloud formation, and rainfall patterns.",
+                "keywords": ["atmosphere", "climate", "winds", "rain formation", "convection currents", "air blanket"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "sci9_ch13_biogeochemical_cycles",
+                "name": "Biogeochemical Cycles (N, C, O, H2O)",
+                "section": "13.3",
+                "tier": 2,
+                "description": "Water cycle, nitrogen cycle (nitrogen fixation & nitrification), carbon cycle, and oxygen cycle in the biosphere.",
+                "keywords": ["biogeochemical cycles", "nitrogen cycle", "carbon cycle", "oxygen cycle", "nitrogen fixation", "rhizobium"],
+                "pos_x": 390,
+                "pos_y": 80,
+            },
+            {
+                "id": "sci9_ch13_greenhouse_ozone",
+                "name": "Greenhouse Effect & Ozone Layer",
+                "section": "13.4",
+                "tier": 2,
+                "description": "Greenhouse gases, global warming dynamics, stratospheric ozone (O3) UV shield, and CFC degradation.",
+                "keywords": ["greenhouse effect", "global warming", "ozone layer", "cfcs", "uv radiation"],
+                "pos_x": 390,
+                "pos_y": 240,
+            },
+            {
+                "id": "sci9_ch13_resource_sustainability",
+                "name": "Pollution & Ecosystem Sustainability",
+                "section": "13.5",
+                "tier": 3,
+                "description": "Air, water, and soil pollution causes/effects, topsoil erosion prevention, and ecological equilibrium.",
+                "keywords": ["pollution", "soil erosion", "sustainability", "conservation", "ecosystem balance"],
+                "pos_x": 660,
+                "pos_y": 160,
+            },
+        ],
+        "edges": [
+            {
+                "source": "sci9_ch13_atmosphere_climate",
+                "target": "sci9_ch13_biogeochemical_cycles",
+                "relationship": "prerequisite",
+            },
+            {
+                "source": "sci9_ch13_biogeochemical_cycles",
+                "target": "sci9_ch13_greenhouse_ozone",
+                "relationship": "related",
+            },
+            {
+                "source": "sci9_ch13_greenhouse_ozone",
+                "target": "sci9_ch13_resource_sustainability",
+                "relationship": "derived_from",
+            },
+        ],
+    },
 }
 
 
@@ -2890,25 +3388,35 @@ def get_chapter_concept_metadata(
 def get_all_registered_chapters(
     class_level: Optional[int] = None, subject: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    """Returns list of all chapters with registered concept graphs, filtered by class and subject."""
+    """Returns list of all chapters with registered concept graphs, filtered strictly by class and subject."""
     chapters = []
+    cls_int = int(class_level) if class_level is not None else None
     subj_filter = str(subject).strip().lower() if subject else None
+    is_math = "math" in subj_filter if subj_filter else False
+    subj_canonical = "Mathematics" if is_math else ("Science" if subj_filter else None)
 
     for ch_name, data in CHAPTER_CONCEPTS_REGISTRY.items():
-        data_subj = str(data.get("subject", "Science")).lower()
-        if class_level is not None and int(data["class_level"]) != int(class_level):
+        c_lvl = int(data.get("class_level", 10))
+        data_subj = str(data.get("subject", "Science"))
+        
+        # Strict class segregation
+        if cls_int is not None and c_lvl != cls_int:
             continue
-        if subj_filter is not None and not (subj_filter in data_subj or data_subj in subj_filter):
+            
+        # Strict subject segregation
+        if subj_canonical is not None and data_subj.lower() != subj_canonical.lower():
             continue
 
         chapters.append(
             {
                 "chapter": ch_name,
-                "chapter_number": data["chapter_number"],
-                "class_level": data["class_level"],
-                "subject": data.get("subject", "Science"),
+                "chapter_number": data.get("chapter_number", 1),
+                "class_level": c_lvl,
+                "subject": data_subj,
                 "concept_count": len(data.get("nodes", [])),
                 "edge_count": len(data.get("edges", [])),
             }
         )
+        
     return sorted(chapters, key=lambda x: (x["class_level"], x["subject"], x["chapter_number"]))
+

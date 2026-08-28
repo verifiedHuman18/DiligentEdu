@@ -123,11 +123,16 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
         ch_display_map = {}
         ch_labels = []
         for ch in available_chs:
-            status_tag = f"[{ch['status'].upper()}]" if ch["status"] != "unattempted" else "[NEW]"
+            status_tag = (
+                f"[{ch['status'].upper()}]"
+                if ch["status"] not in ("unattempted", "not_attempted")
+                else "[NEW]"
+            )
             badge = f" ({ch['score']}%)" if ch["score"] is not None else ""
             label = f"{status_tag} Ch {ch['chapter_number']}: {ch['chapter']}{badge}"
             ch_display_map[label] = ch["chapter"]
             ch_labels.append(label)
+
 
         default_idx = 0
         selected_ch_label = st.selectbox(

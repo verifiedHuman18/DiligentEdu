@@ -13,9 +13,11 @@ from backend.analytics.action_plan import (
     save_teacher_action_plan,
 )
 from backend.analytics.knowledge_graph import (
+    calculate_student_concept_telemetry,
     get_available_knowledge_map_chapters,
     get_chapter_knowledge_graph,
 )
+
 from backend.analytics.study_twin import (
     build_study_twin_profile,
     calculate_twin_similarity,
@@ -43,6 +45,9 @@ from backend.curriculum.service import (
 )
 from backend.quiz.adaptive import get_next_quiz_config
 from backend.quiz.evaluator import submit_and_grade_quiz
+
+submit_quiz = submit_and_grade_quiz
+
 from backend.quiz.generator import (
     create_student_quiz,
     generate_quiz,
@@ -183,8 +188,12 @@ __all__ = [
     "get_teacher_student_profile",
     "get_chapter_knowledge_graph",
     "get_available_knowledge_map_chapters",
+    "calculate_student_concept_telemetry",
+    "submit_quiz",
     "build_study_twin_profile",
+
     "find_study_twin",
     "calculate_twin_similarity",
 ]
+
 

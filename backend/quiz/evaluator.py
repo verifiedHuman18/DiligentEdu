@@ -12,17 +12,20 @@ logger = logging.getLogger(__name__)
 def submit_and_grade_quiz(
     student_id: str,
     quiz_data: Dict[str, Any],
-    user_answers: Dict[str, str],
+    user_answers: Optional[Dict[str, str]] = None,
     quiz_id: Optional[str] = None,
     db_path: Optional[str] = None,
+    answers: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     """
     Submits, grades, records attempt in SQLite, and computes SWAT transitions.
     0 LLM calls; instantaneous deterministic evaluation.
     """
+    effective_answers = user_answers if user_answers is not None else (answers or {})
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     clean_student_id = str(student_id).strip()
+
 
     chapter = str(quiz_data.get("chapter", "Science"))
     class_level = int(quiz_data.get("class_level", 10))
@@ -48,7 +51,7 @@ def submit_and_grade_quiz(
     saved_attempt = repo.record_attempt(
         student_id=clean_student_id,
         quiz_data=quiz_data,
-        user_answers=user_answers,
+        user_answers=effective_answers,
         quiz_id=quiz_id,
     )
 
@@ -66,10 +69,11 @@ def submit_and_grade_quiz(
         if len(correct_ans) > 1 and correct_ans.startswith(("A", "B", "C", "D")):
             correct_ans = correct_ans[0]
 
-        u_ans = user_answers.get(
+        u_ans = effective_answers.get(
             f"q_choice_{idx}",
-            user_answers.get(str(idx), user_answers.get(q_identifier, "")),
+            effective_answers.get(str(idx), effective_answers.get(q_identifier, "")),
         )
+
         u_ans_clean = str(u_ans).strip()
 
         is_corr = False
