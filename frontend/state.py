@@ -161,6 +161,7 @@ def navigate_to(screen_name: str) -> None:
     if screen_name != st.session_state.get("current_screen"):
         if screen_name == "tutor":
             st.session_state.tutor_needs_refresh = True
+        st.session_state.is_navigating = True
     st.session_state.current_screen = screen_name
     st.query_params["screen"] = screen_name
 
@@ -179,6 +180,7 @@ def set_user_role(role: Any, restore_screen: bool = False) -> None:
     st.session_state.user_role = role
 
     if not restore_screen:
+        st.session_state.is_navigating = True
         if role == "student":
             st.session_state.current_screen = "home"
             st.query_params["screen"] = "home"
@@ -196,6 +198,7 @@ def logout() -> None:
     """Logs out the current user, clears role, and routes back to the login / role selection screen."""
     st.session_state.clear()
     init_session_state()
+    st.session_state.is_navigating = True
 
     if "uid" in st.query_params:
         del st.query_params["uid"]

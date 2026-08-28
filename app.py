@@ -79,10 +79,72 @@ st.set_page_config(
 )
 
 
+def render_page_loader():
+    """Renders a fullscreen loading animation that automatically fades out after the page loads."""
+    if st.session_state.get("is_navigating", False):
+        st.markdown(
+            """
+        <style>
+        @keyframes page-loader-fade {
+            0% { opacity: 1; visibility: visible; }
+            70% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        .page-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-app);
+            z-index: 9999999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: page-loader-fade 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: none;
+        }
+        .page-loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--surface-container-highest);
+            border-bottom-color: var(--md-primary);
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .page-loader-text {
+            color: var(--md-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        </style>
+        <div class="page-loader-overlay">
+            <div class="page-loader-spinner"></div>
+            <div class="page-loader-text">Loading Workspace...</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        st.session_state.is_navigating = False
+
+
 async def main():
     """Main application orchestrator with role selection portal and segregated routing."""
     init_session_state()
     inject_custom_css()
+    render_page_loader()
 
     user_role = get_user_role()
 
