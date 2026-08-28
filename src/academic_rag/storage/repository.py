@@ -70,6 +70,8 @@ class QuizRepository:
 
             sp = q.get("source_pages", [])
             sp_json = json.dumps(sp)
+            raw_concept = q.get("concept_id") or q.get("concept") or q.get("concepts") or ""
+            concept_str = json.dumps(raw_concept) if isinstance(raw_concept, list) else str(raw_concept).strip()
 
             question_records.append(
                 {
@@ -82,6 +84,7 @@ class QuizRepository:
                     "correct_answer": correct_ans,
                     "is_correct": 1 if is_corr else 0,
                     "source_pages": sp_json,
+                    "concept_id": concept_str,
                 }
             )
 
@@ -118,8 +121,8 @@ class QuizRepository:
                         """
                         INSERT INTO question_responses (
                             quiz_id, question_id, question_text, chapter, difficulty,
-                            user_answer, correct_answer, is_correct, source_pages
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            user_answer, correct_answer, is_correct, source_pages, concept_id
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                         (
                             qr["quiz_id"],
@@ -131,6 +134,7 @@ class QuizRepository:
                             qr["correct_answer"],
                             qr["is_correct"],
                             qr["source_pages"],
+                            qr["concept_id"],
                         ),
                     )
 
@@ -382,8 +386,202 @@ class QuizRepository:
             raise StorageError(f"Failed to delete teacher action plan: {e}")
 
 
-# Default repository instance
+class StudyMaterialRepository:
+    """Provides type-safe CRUD operations for student uploaded study documents."""
+
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or str(config.default_db_path)
+
+    def save_document_record(
+        self,
+        document_id: str,
+        student_id: str,
+        filename: str,
+        material_name: str,
+        class_level: int,
+        subject: str = "Science",
+        chapter: Optional[str] = None,
+        status: Any = "PROCESSING",
+        file_size_bytes: int = 0,
+        uploaded_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Creates or replaces an uploaded document metadata record."""
+        clean_doc_id = str(document_id).strip()
+        clean_student_id = str(student_id).strip()
+        class_int = int(class_level)
+        status_val = status.value if hasattr(status, "value") else str(status)
+        ts = uploaded_at or datetime.now(timezone.utc).isoformat()
+
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO uploaded_documents (
+                        document_id, student_id, filename, material_name, class_level,
+                        subject, chapter, status, error_message, page_count, chunk_count,
+                        file_size_bytes, uploaded_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        clean_doc_id,
+                        clean_student_id,
+                        filename,
+                        material_name,
+                        class_int,
+                        subject,
+                        chapter,
+                        status_val,
+                        None,
+                        0,
+                        0,
+                        file_size_bytes,
+                        ts,
+                    ),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to save document record {clean_doc_id}: {e}")
+            raise StorageError(f"Failed to save document record in database: {e}")
+
+        return {
+            "document_id": clean_doc_id,
+            "student_id": clean_student_id,
+            "filename": filename,
+            "material_name": material_name,
+            "class_level": class_int,
+            "subject": subject,
+            "chapter": chapter,
+            "status": status_val,
+            "file_size_bytes": file_size_bytes,
+            "uploaded_at": ts,
+            "page_count": 0,
+            "chunk_count": 0,
+        }
+
+    def update_document_status(
+        self,
+        document_id: str,
+        status: Any,
+        error_message: Optional[str] = None,
+        page_count: Optional[int] = None,
+        chunk_count: Optional[int] = None,
+    ) -> bool:
+        """Updates the status, counts, and error message of an uploaded document."""
+        clean_doc_id = str(document_id).strip()
+        status_val = status.value if hasattr(status, "value") else str(status)
+
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                updates = ["status = ?"]
+                params: List[Any] = [status_val]
+
+                if error_message is not None:
+                    updates.append("error_message = ?")
+                    params.append(error_message)
+                if page_count is not None:
+                    updates.append("page_count = ?")
+                    params.append(int(page_count))
+                if chunk_count is not None:
+                    updates.append("chunk_count = ?")
+                    params.append(int(chunk_count))
+
+                params.append(clean_doc_id)
+                query = f"UPDATE uploaded_documents SET {', '.join(updates)} WHERE document_id = ?"
+                cursor.execute(query, tuple(params))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Failed to update status for document {clean_doc_id}: {e}")
+            raise StorageError(f"Failed to update document status: {e}")
+
+    def get_student_documents(
+        self,
+        student_id: str,
+        class_level: Optional[int] = None,
+        chapter: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieves all uploaded documents for a student, optionally filtered by class level and chapter.
+        """
+        clean_student_id = str(student_id).strip()
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT * FROM uploaded_documents WHERE student_id = ?"
+                params: List[Any] = [clean_student_id]
+
+                if class_level is not None:
+                    query += " AND class_level = ?"
+                    params.append(int(class_level))
+
+                if chapter is not None and chapter != "All Chapters":
+                    query += " AND (chapter = ? OR chapter IS NULL OR chapter = '')"
+                    params.append(str(chapter))
+
+                query += " ORDER BY uploaded_at DESC"
+                cursor.execute(query, tuple(params))
+                rows = cursor.fetchall()
+                return [dict(r) for r in rows]
+        except Exception as e:
+            logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
+            raise StorageError(f"Failed to fetch uploaded documents: {e}")
+
+    def get_document_by_id(self, document_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves a single uploaded document record by document_id."""
+        clean_doc_id = str(document_id).strip()
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT * FROM uploaded_documents WHERE document_id = ?",
+                    (clean_doc_id,),
+                )
+                row = cursor.fetchone()
+                return dict(row) if row else None
+        except Exception as e:
+            logger.error(f"Failed to fetch document {clean_doc_id}: {e}")
+            return None
+
+    def delete_document_record(
+        self, document_id: str, student_id: Optional[str] = None
+    ) -> bool:
+        """
+        Deletes a document record from the registry database.
+        Optionally validates student_id ownership.
+        """
+        clean_doc_id = str(document_id).strip()
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                if student_id is not None:
+                    cursor.execute(
+                        "DELETE FROM uploaded_documents WHERE document_id = ? AND student_id = ?",
+                        (clean_doc_id, str(student_id).strip()),
+                    )
+                else:
+                    cursor.execute(
+                        "DELETE FROM uploaded_documents WHERE document_id = ?",
+                        (clean_doc_id,),
+                    )
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Failed to delete document {clean_doc_id}: {e}")
+            raise StorageError(f"Failed to delete document record: {e}")
+
+    def count_student_documents(
+        self, student_id: str, class_level: Optional[int] = None
+    ) -> int:
+        """Returns count of READY uploaded documents for a student."""
+        docs = self.get_student_documents(student_id=student_id, class_level=class_level)
+        return len([d for d in docs if d.get("status") == "READY"])
+
+
+# Default repository instances
 quiz_repository = QuizRepository()
+study_material_repository = StudyMaterialRepository()
 
 
 def get_student_class_history(
@@ -399,3 +597,23 @@ def get_student_class_history(
         class_level=class_level,
         include_questions=include_questions,
     )
+
+
+def get_student_study_materials(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Standalone helper for retrieving student study materials."""
+    repo = study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    return repo.get_student_documents(student_id=student_id, class_level=class_level)
+
+
+def delete_student_study_material(
+    document_id: str,
+    student_id: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> bool:
+    """Standalone helper for deleting a student study material record."""
+    repo = study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    return repo.delete_document_record(document_id=document_id, student_id=student_id)

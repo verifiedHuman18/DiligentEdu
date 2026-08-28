@@ -50,9 +50,16 @@ def init_database(db_path: str = None) -> None:
                 correct_answer TEXT,
                 is_correct INTEGER NOT NULL,
                 source_pages TEXT,
+                concept_id TEXT,
                 FOREIGN KEY (quiz_id) REFERENCES quiz_attempts(quiz_id) ON DELETE CASCADE
             )
         """)
+
+        # Migration: ensure concept_id exists in existing databases
+        try:
+            cursor.execute("ALTER TABLE question_responses ADD COLUMN concept_id TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
 
         # Teacher custom action plans table
         cursor.execute("""
@@ -64,6 +71,25 @@ def init_database(db_path: str = None) -> None:
                 teacher_notes TEXT,
                 updated_at TEXT NOT NULL,
                 UNIQUE(student_id, class_level)
+            )
+        """)
+
+        # Student uploaded study materials registry table (Phases 1-9)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS uploaded_documents (
+                document_id TEXT PRIMARY KEY,
+                student_id TEXT NOT NULL,
+                filename TEXT NOT NULL,
+                material_name TEXT NOT NULL,
+                class_level INTEGER NOT NULL,
+                subject TEXT NOT NULL,
+                chapter TEXT,
+                status TEXT NOT NULL,
+                error_message TEXT,
+                page_count INTEGER DEFAULT 0,
+                chunk_count INTEGER DEFAULT 0,
+                file_size_bytes INTEGER DEFAULT 0,
+                uploaded_at TEXT NOT NULL
             )
         """)
 
@@ -85,6 +111,12 @@ def init_database(db_path: str = None) -> None:
         )
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_teacher_plans_student ON teacher_action_plans(student_id, class_level)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_docs_student ON uploaded_documents(student_id)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_docs_student_class ON uploaded_documents(student_id, class_level)"
         )
 
         conn.commit()

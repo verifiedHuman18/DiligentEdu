@@ -68,6 +68,14 @@ class AppConfig:
     strong_threshold: float = 70.0
     average_threshold: float = 50.0
 
+    # Study Material Ingestion Configuration
+    max_upload_size_bytes: int = 25 * 1024 * 1024  # 25 MB
+    pinecone_student_namespace: str = os.getenv("PINECONE_STUDENT_NAMESPACE", "student-materials")
+    min_pdf_extracted_chars_per_page: int = 20
+    student_chunk_size: int = 700
+    student_chunk_overlap: int = 120
+    debug_rag: bool = os.getenv("DEBUG_RAG", "false").lower() in ("true", "1", "yes")
+
     # API Keys resolution
     def get_google_api_key(self, override: Optional[str] = None) -> Optional[str]:
         if override and str(override).strip():
@@ -111,3 +119,8 @@ INDEX_NAME = PINECONE_INDEX_NAME
 DEFAULT_MODEL = config.default_llm_model
 STRONG_THRESHOLD = config.strong_threshold
 AVERAGE_THRESHOLD = config.average_threshold
+MAX_UPLOAD_SIZE_BYTES = config.max_upload_size_bytes
+PINECONE_STUDENT_NAMESPACE = config.pinecone_student_namespace
+STUDENT_CHUNK_SIZE = config.student_chunk_size
+STUDENT_CHUNK_OVERLAP = config.student_chunk_overlap
+DEBUG_RAG = config.debug_rag

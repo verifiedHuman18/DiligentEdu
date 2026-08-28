@@ -143,10 +143,19 @@ def get_student_swat(
             "total_correct": 0,
         }
 
+        docs_count = 0
+        try:
+            from src.academic_rag.storage.repository import StudyMaterialRepository, study_material_repository
+            m_repo = study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+            docs_count = m_repo.count_student_documents(student_id, class_level=target_class)
+        except Exception:
+            pass
+
         return {
             "student_id": student_id,
             "class_level": target_class,
             "has_data": False,
+            "uploaded_materials_count": docs_count,
             "overall": empty_overall,
             "strong": [],
             "strengths": [],
@@ -325,10 +334,19 @@ def get_student_swat(
         "total_correct": total_correct,
     }
 
+    uploaded_count = 0
+    try:
+        from src.academic_rag.storage.repository import StudyMaterialRepository, study_material_repository
+        m_repo = study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+        uploaded_count = m_repo.count_student_documents(student_id, class_level=target_class)
+    except Exception:
+        pass
+
     return {
         "student_id": student_id,
         "class_level": target_class,
         "has_data": True,
+        "uploaded_materials_count": uploaded_count,
         "overall": overall_metrics,
         "strong": strengths,
         "strengths": strengths,

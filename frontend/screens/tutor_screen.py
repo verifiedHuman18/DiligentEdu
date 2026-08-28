@@ -149,15 +149,40 @@ CLASS_10_SUGGESTIONS: List[Tuple[str, str]] = [
 ]
 
 
-def _get_fresh_suggestions(class_level: int) -> List[Tuple[str, str]]:
-    """Samples 4 diverse suggested questions from the active class question pool."""
-    pool = CLASS_9_SUGGESTIONS if class_level == 9 else CLASS_10_SUGGESTIONS
-    sample_k = min(4, len(pool))
-    return random.sample(pool, sample_k)
+def _get_fresh_suggestions(class_level: int, student_id: Optional[str] = None) -> List[Tuple[str, str]]:
+    """Samples 4 diverse suggested questions from active class pool and uploaded reference books."""
+    ncert_pool = list(CLASS_9_SUGGESTIONS if class_level == 9 else CLASS_10_SUGGESTIONS)
+    uploaded_suggestions = []
+
+    # Check for student uploaded materials to inject source-aware suggestions (Phase 14 & 18)
+    if student_id:
+        try:
+            from src.academic_rag.storage.repository import study_material_repository
+            docs = study_material_repository.get_student_documents(student_id=student_id, class_level=class_level)
+            ready_docs = [d for d in docs if d.get("status") == "READY"]
+            for d in ready_docs[:2]:
+                mat_name = d.get("material_name") or d.get("filename", "Reference Book")
+                ch_name = d.get("chapter") or "Science"
+                uploaded_suggestions.append((
+                    f"Ref: {mat_name[:18]}",
+                    f"Explain concepts and examples from my uploaded reference material '{mat_name}' relating to {ch_name} in Class {class_level} Science.",
+                ))
+        except Exception:
+            pass
+
+    if uploaded_suggestions:
+        k_up = min(len(uploaded_suggestions), 2)
+        k_ncert = max(0, 4 - k_up)
+        return uploaded_suggestions[:k_up] + random.sample(ncert_pool, min(k_ncert, len(ncert_pool)))
+    else:
+        return random.sample(ncert_pool, min(4, len(ncert_pool)))
 
 
 async def render_tutor_screen(
-    selected_model: str, user_api_key: str, selected_class: Optional[str] = None
+    selected_model: str,
+    user_api_key: str,
+    selected_class: Optional[str] = None,
+    student_id: Optional[str] = None,
 ) -> None:
     """Renders the conversational NCERT Science Q&A Tutor screen bound to master profile class."""
     streaming_speed = 0.025
@@ -166,12 +191,35 @@ async def render_tutor_screen(
     render_back_to_home("tutor")
 
     class_level = get_student_class_level()
+    active_student_id = student_id or st.session_state.get("student_id", "student_001")
+
+    # Fetch student uploaded reference materials for current class
+    mat_count = 0
+    try:
+        from src.academic_rag.storage.repository import study_material_repository
+        mat_count = study_material_repository.count_student_documents(
+            student_id=active_student_id, class_level=class_level
+        )
+    except Exception:
+        pass
 
     st.write("")
     st.markdown(f"### Ask a Doubt — Class {class_level} · Science")
     st.caption(
-        f"Ask conceptual science questions with verified textbook citations grounded strictly in **NCERT Class {class_level} Science**."
+        f"Ask conceptual science questions with verified citations grounded in **NCERT Class {class_level} Science** and your uploaded study materials."
     )
+
+    # Active Sources Bar (M3 Chip Group)
+    sources_chips = [
+        f'<div class="m3-chips-group" style="margin-bottom: 12px;">',
+        f'<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.05rem;">menu_book</span> NCERT Class {class_level} Science (Authoritative)</span>',
+    ]
+    if mat_count > 0:
+        sources_chips.append(
+            f'<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.05rem;">auto_stories</span> {mat_count} Uploaded Reference Book(s) (Supplementary)</span>'
+        )
+    sources_chips.append("</div>")
+    st.markdown("".join(sources_chips), unsafe_allow_html=True)
     st.write("")
 
     # Auto-update suggested questions on page navigation or class switch
@@ -180,7 +228,7 @@ async def render_tutor_screen(
     stored_class = st.session_state.get("tutor_suggested_class")
 
     if needs_refresh or stored_suggestions is None or stored_class != class_level:
-        stored_suggestions = _get_fresh_suggestions(class_level)
+        stored_suggestions = _get_fresh_suggestions(class_level, student_id=active_student_id)
         st.session_state.tutor_suggested_questions = stored_suggestions
         st.session_state.tutor_suggested_class = class_level
         st.session_state.tutor_needs_refresh = False
@@ -207,7 +255,7 @@ async def render_tutor_screen(
             st.markdown(message["content"])
 
     # Chat Input
-    prompt_input = st.chat_input(f"Ask any question from NCERT Class {class_level} Science...")
+    prompt_input = st.chat_input(f"Ask any question from NCERT Class {class_level} Science or your notes...")
     prompt = prompt_input or st.session_state.pop("active_prompt", None)
 
     if prompt:
@@ -221,7 +269,7 @@ async def render_tutor_screen(
             with st.chat_message("user"):
                 st.markdown(clean_prompt)
 
-            # Generate Assistant Response with strict class isolation
+            # Generate Assistant Response with strict class and student isolation
             with st.chat_message("assistant"):
                 message_placeholder = st.empty()
                 full_response = ""
@@ -236,6 +284,7 @@ async def render_tutor_screen(
                     async for chunk in stream_ncert_rag_response(
                         query=clean_prompt,
                         class_filter=class_level,
+                        student_id=active_student_id,
                         api_key=user_api_key,
                         model_name=selected_model,
                         chat_history=st.session_state.messages[:-1],

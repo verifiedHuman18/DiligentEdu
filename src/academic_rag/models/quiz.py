@@ -16,6 +16,8 @@ class QuizQuestion:
     chapter: str
     source_pages: List[int] = field(default_factory=list)
     question_id: Optional[str] = None
+    concept_id: Optional[str] = None
+    concepts: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         data = {
@@ -29,6 +31,10 @@ class QuizQuestion:
         }
         if self.question_id:
             data["question_id"] = self.question_id
+        if self.concept_id:
+            data["concept_id"] = self.concept_id
+        if self.concepts:
+            data["concepts"] = self.concepts
         return data
 
 

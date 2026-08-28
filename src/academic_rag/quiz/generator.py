@@ -11,7 +11,11 @@ from src.academic_rag.exceptions import (
     QuizGenerationError,
 )
 from src.academic_rag.rag.prompts import QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE
-from src.academic_rag.rag.retriever import get_embeddings, get_pinecone_index
+from src.academic_rag.rag.retriever import (
+    get_embeddings,
+    get_pinecone_index,
+    retrieve_student_material_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +24,12 @@ def retrieve_chapter_context_for_quiz(
     class_level: int,
     chapter_number: int,
     chapter_title: str,
+    student_id: Optional[str] = None,
     top_k: int = 8,
     pinecone_api_key: Optional[str] = None,
     api_key: Optional[str] = None,
 ) -> str:
-    """Retrieves representative NCERT textbook chunks across the chapter."""
+    """Retrieves representative NCERT textbook chunks and supplementary student reference material across the chapter."""
     embeddings = get_embeddings()
     effective_pinecone_key = pinecone_api_key or (
         api_key if api_key and not api_key.startswith("AIza") else None
@@ -71,6 +76,24 @@ def retrieve_chapter_context_for_quiz(
         chunk_header = f"[SOURCE: NCERT Class {cls_num} Science | CHAPTER {ch_num}: {ch_name} | PAGE: {page_num}]"
         formatted_chunks.append(f"{chunk_header}\n{text}")
 
+    # Retrieve Supplementary Student Uploaded Material if present (Phase 13)
+    if student_id:
+        try:
+            student_ref = retrieve_student_material_context(
+                query=f"{chapter_title} concepts examples formulas",
+                student_id=student_id,
+                class_filter=class_level,
+                chapter_filter=chapter_title,
+                top_k=3,
+                api_key=effective_pinecone_key,
+            )
+            if student_ref and student_ref.strip():
+                formatted_chunks.append(
+                    f"[SUPPLEMENTARY STUDENT REFERENCE MATERIAL]\n{student_ref}"
+                )
+        except Exception as e:
+            logger.warning(f"Could not retrieve student reference for quiz: {e}")
+
     return "\n\n---\n\n".join(formatted_chunks)
 
 
@@ -79,6 +102,7 @@ def generate_quiz(
     chapter: Union[str, int] = "Electricity",
     difficulty: str = "medium",
     num_questions: int = 5,
+    student_id: Optional[str] = None,
     api_key: Optional[str] = None,
     model: Optional[str] = None,
     model_name: Optional[str] = None,
@@ -92,14 +116,15 @@ def generate_quiz(
     ch_number, ch_title = curriculum_service.resolve_chapter(class_level, chapter)
     logger.info(
         f"Generating Quiz: Class {class_level} | Ch {ch_number}: {ch_title} | "
-        f"Difficulty: {difficulty} | Qs: {num_questions}"
+        f"Difficulty: {difficulty} | Qs: {num_questions} | Student: {student_id}"
     )
 
-    # 2. Retrieve chapter context from Pinecone
+    # 2. Retrieve chapter context from Pinecone (NCERT + Student Material)
     context = retrieve_chapter_context_for_quiz(
         class_level=class_level,
         chapter_number=ch_number,
         chapter_title=ch_title,
+        student_id=student_id,
         top_k=8,
         pinecone_api_key=pinecone_api_key,
     )
@@ -236,6 +261,9 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
         else:
             source_pages = default_pages[:2] if default_pages else []
 
+        concept_tag = str(q.get("concept_id") or q.get("concept") or "").strip()
+        concepts_list = q.get("concepts") if isinstance(q.get("concepts"), list) else ([concept_tag] if concept_tag else [])
+
         validated_questions.append(
             {
                 "question": q_text,
@@ -245,6 +273,8 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
                 "difficulty": difficulty,
                 "chapter": ch_title,
                 "source_pages": source_pages,
+                "concept_id": concept_tag,
+                "concepts": concepts_list,
             }
         )
 
@@ -300,6 +330,7 @@ def create_student_quiz(
         chapter=ch_title,
         difficulty=clean_diff,
         num_questions=num_q_int,
+        student_id=clean_student_id,
         api_key=api_key,
         model=chosen_model,
         pinecone_api_key=pinecone_api_key,

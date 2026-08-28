@@ -55,7 +55,7 @@ def render_chapter_screen(
         """,
         unsafe_allow_html=True,
     )
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     # Prepare PDF Data for New Tab Link & Download
     pdf_bytes = b""
@@ -71,7 +71,7 @@ def render_chapter_screen(
     with col1:
         if file_exists:
             st.link_button(
-                "Open in New Tab",
+                "Open PDF",
                 url=static_url,
                 type="primary",
                 icon=":material/open_in_new:",
@@ -83,7 +83,7 @@ def render_chapter_screen(
                 "external_url", "https://ncert.nic.in/textbook.php?iesc1=1-13"
             )
             st.link_button(
-                "Open NCERT Portal",
+                "NCERT Portal",
                 url=online_url,
                 type="primary",
                 icon=":material/public:",
@@ -109,6 +109,18 @@ def render_chapter_screen(
 
     with col3:
         if st.button(
+            "Knowledge Map",
+            icon=":material/hub:",
+            key=f"ch_screen_kg_btn_{ch_num}",
+            use_container_width=True,
+            help="Explore concept hierarchy and mastery for this chapter",
+        ):
+            st.session_state.selected_graph_chapter = ch_title
+            navigate_to("knowledge_graph")
+            st.rerun()
+
+    with col4:
+        if st.button(
             "Ask a Doubt",
             icon=":material/chat:",
             key=f"ch_screen_doubt_btn_{ch_num}",
@@ -119,7 +131,7 @@ def render_chapter_screen(
             navigate_to("tutor")
             st.rerun()
 
-    with col4:
+    with col5:
         if st.button(
             "Practice Quiz",
             type="primary",

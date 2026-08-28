@@ -19,6 +19,20 @@ from src.academic_rag.models.quiz import (
     QuizSubmissionResult,
 )
 
+from src.academic_rag.models.knowledge_graph import (
+    ChapterKnowledgeGraph,
+    ConceptEdge,
+    ConceptNode,
+    ConceptStatus,
+    EdgeRelationship,
+)
+from src.academic_rag.models.study_material import (
+    DocumentChunk,
+    DocumentStatus,
+    DocumentValidationResult,
+    UploadedDocument,
+)
+
 __all__ = [
     "ChapterInfo",
     "ChapterSummaryStatus",
@@ -32,4 +46,13 @@ __all__ = [
     "StudentSWATReport",
     "EarlyWarningAlert",
     "TeacherStudentStatus",
+    "UploadedDocument",
+    "DocumentChunk",
+    "DocumentStatus",
+    "DocumentValidationResult",
+    "ConceptNode",
+    "ConceptEdge",
+    "ChapterKnowledgeGraph",
+    "ConceptStatus",
+    "EdgeRelationship",
 ]

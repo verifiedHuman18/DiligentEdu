@@ -448,6 +448,151 @@ def clear_student_data(
     repo.clear_student_data(str(student_id).strip())
 
 
+# =====================================================================
+# STUDENT STUDY MATERIAL CONTRACTS (Phases 1-23)
+# =====================================================================
+
+
+def upload_study_material(
+    student_id: str,
+    file_data: Any,
+    filename: str,
+    material_name: Optional[str] = None,
+    class_level: int = 10,
+    subject: str = "Science",
+    chapter: Optional[str] = None,
+    pinecone_api_key: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Ingests and registers an uploaded PDF study material for a student.
+    Validates, extracts text, generates 384-dim local MiniLM embeddings (0 Gemini calls),
+    and indexes into student-isolated vector storage.
+    """
+    from src.academic_rag.ingestion.pdf_ingester import ingest_study_material_pdf
+
+    return ingest_study_material_pdf(
+        student_id=student_id,
+        file_data=file_data,
+        filename=filename,
+        material_name=material_name,
+        class_level=class_level,
+        subject=subject,
+        chapter=chapter,
+        pinecone_api_key=pinecone_api_key,
+        db_path=db_path,
+    )
+
+
+def get_student_study_materials(
+    student_id: str,
+    class_level: Optional[int] = None,
+    chapter: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Retrieves the list of uploaded study materials for a student.
+    """
+    from src.academic_rag.storage.repository import study_material_repository
+
+    repo = study_material_repository if db_path is None else type(study_material_repository)(db_path=db_path)
+    return repo.get_student_documents(student_id=student_id, class_level=class_level, chapter=chapter)
+
+
+def delete_study_material(
+    document_id: str,
+    student_id: Optional[str] = None,
+    api_key: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> bool:
+    """
+    Completely deletes an uploaded study material:
+    Removes SQLite database metadata record + deletes Pinecone vector embeddings.
+    """
+    from src.academic_rag.rag.retriever import delete_student_material_vectors
+    from src.academic_rag.storage.repository import study_material_repository
+
+    repo = study_material_repository if db_path is None else type(study_material_repository)(db_path=db_path)
+    # 1. Delete vectors from Pinecone
+    delete_student_material_vectors(document_id=document_id, student_id=student_id, api_key=api_key)
+    # 2. Delete database record
+    return repo.delete_document_record(document_id=document_id, student_id=student_id)
+
+
+def validate_study_material_file(
+    file_data: Any,
+    filename: str,
+) -> Dict[str, Any]:
+    """
+    Validates PDF file type, size, readability, and scanned PDF detection.
+    """
+    from src.academic_rag.ingestion.validator import validate_pdf_file
+
+    res = validate_pdf_file(file_data=file_data, filename=filename)
+    return {
+        "is_valid": res.is_valid,
+        "error_message": res.error_message,
+        "file_size_bytes": res.file_size_bytes,
+        "detected_pages": res.detected_pages,
+        "is_scanned_pdf": res.is_scanned_pdf,
+    }
+
+
+# =============================================================================
+# Knowledge Graph / Knowledge Map Contracts (Phases 1-31)
+# =============================================================================
+
+
+def get_chapter_knowledge_graph(
+    student_id: str,
+    class_level: int,
+    chapter: str,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Constructs the concept-level knowledge graph for a chapter and student,
+    incorporating mastery calculations, unattempted concept safety, and linked study resources.
+    """
+    from src.academic_rag.analytics.knowledge_graph import (
+        get_chapter_knowledge_graph as _internal_get_chapter_knowledge_graph,
+    )
+
+    return _internal_get_chapter_knowledge_graph(
+        student_id=student_id,
+        class_level=class_level,
+        chapter_name=chapter,
+        db_path=db_path,
+    )
+
+
+def get_available_knowledge_map_chapters(class_level: int) -> List[Dict[str, Any]]:
+    """Returns chapters available for concept knowledge mapping in the given class."""
+    from src.academic_rag.analytics.knowledge_graph import (
+        get_available_knowledge_map_chapters as _internal_get_avail_km_chapters,
+    )
+
+    return _internal_get_avail_km_chapters(class_level=class_level)
+
+
+def calculate_student_concept_telemetry(
+    student_id: str,
+    class_level: int,
+    chapter: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Calculates granular concept-level performance telemetry for a student."""
+    from src.academic_rag.analytics.knowledge_graph import (
+        calculate_student_concept_telemetry as _internal_calc_concept_telemetry,
+    )
+
+    return _internal_calc_concept_telemetry(
+        student_id=student_id,
+        class_level=class_level,
+        chapter_name=chapter,
+        db_path=db_path,
+    )
+
+
 # Backward compatibility aliases
 generate_student_quiz = generate_quiz
 generate_action_plan = get_student_action_plan
@@ -462,6 +607,11 @@ __all__ = [
     "get_chapters_with_status",
     "generate_quiz",
     "submit_quiz",
+    # Study Material Contracts (Phases 1-23)
+    "upload_study_material",
+    "get_student_study_materials",
+    "delete_study_material",
+    "validate_study_material_file",
     # Phase 21 Teacher Contracts
     "get_teacher_student_overview",
     "get_teacher_swat",
@@ -479,6 +629,10 @@ __all__ = [
     "set_user_fallback_api_key",
     "remove_user_fallback_api_key",
     "test_gemini_api_key",
+    # Knowledge Graph / Knowledge Map Contracts (Phases 1-31)
+    "get_chapter_knowledge_graph",
+    "get_available_knowledge_map_chapters",
+    "calculate_student_concept_telemetry",
     # Additional Facades & Helpers
     "get_student_quiz_history",
     "get_student_class_history",

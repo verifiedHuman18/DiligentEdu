@@ -9,6 +9,11 @@ from src.academic_rag.analytics.swat import (
     get_student_swat,
     get_unattempted_chapters,
 )
+from src.academic_rag.analytics.knowledge_graph import (
+    calculate_student_concept_telemetry,
+    get_available_knowledge_map_chapters,
+    get_chapter_knowledge_graph,
+)
 from src.academic_rag.analytics.teacher import (
     get_student_status,
     get_teacher_chapter_statistics,
@@ -32,4 +37,7 @@ __all__ = [
     "get_teacher_swat_summary",
     "get_student_status",
     "get_teacher_student_profile",
+    "get_chapter_knowledge_graph",
+    "calculate_student_concept_telemetry",
+    "get_available_knowledge_map_chapters",
 ]

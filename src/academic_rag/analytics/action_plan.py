@@ -43,6 +43,7 @@ def generate_action_plan(
             target_class=target_class,
             swat=swat,
             custom_record=custom_record,
+            db_path=db_path,
         )
 
     # 2. Build Automated SWAT Action Plan
@@ -50,6 +51,7 @@ def generate_action_plan(
         student_id=student_id,
         target_class=target_class,
         swat=swat,
+        db_path=db_path,
     )
 
 
@@ -57,14 +59,45 @@ def _build_automated_swat_action_plan(
     student_id: str,
     target_class: int,
     swat: Dict[str, Any],
+    db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generates standard rule-based action plan purely from SWAT analytics."""
     actions: List[Dict[str, Any]] = []
+
+    # Check student's uploaded materials for recommended resources (Phase 17)
+    uploaded_docs: List[Dict[str, Any]] = []
+    try:
+        from src.academic_rag.storage.repository import StudyMaterialRepository, study_material_repository
+        m_repo = study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+        uploaded_docs = m_repo.get_student_documents(
+            student_id=student_id, class_level=target_class
+        )
+        uploaded_docs = [d for d in uploaded_docs if d.get("status") == "READY"]
+    except Exception:
+        pass
+
+    def _find_matching_materials(ch_name: str) -> List[Dict[str, Any]]:
+        matches = []
+        for doc in uploaded_docs:
+            d_ch = doc.get("chapter")
+            if not d_ch or d_ch == "All Chapters" or d_ch.lower() == ch_name.lower():
+                matches.append(
+                    {
+                        "document_id": doc.get("document_id"),
+                        "material_name": doc.get("material_name"),
+                        "filename": doc.get("filename"),
+                        "page_count": doc.get("page_count", 0),
+                    }
+                )
+        return matches
 
     # Priority 1 — Weak chapters (HIGH PRIORITY)
     for item in swat.get("weak", []):
         score_val = item["score"]
         diff = "medium" if score_val >= 30 else "easy"
+        matched_res = _find_matching_materials(item["chapter"])
+        res_reason = f" Revise using your uploaded '{matched_res[0]['material_name']}' material." if matched_res else ""
+
         actions.append(
             {
                 "chapter": item["chapter"],
@@ -78,16 +111,20 @@ def _build_automated_swat_action_plan(
                 "action_label": f"Practice {item['chapter']}",
                 "button_text": f"Practice {item['chapter']}",
                 "difficulty": diff,
-                "reason": f"Your performance is below target ({score_val}%).",
+                "reason": f"Your performance is below target ({score_val}%).{res_reason}",
                 "priority_rank": 1,
                 "priority_label": "HIGH PRIORITY",
                 "priority_icon": "",
                 "is_teacher_assigned": False,
+                "recommended_resources": matched_res,
             }
         )
 
     # Priority 2 — Unattempted chapters (NEW TOPIC)
     for item in swat.get("unattempted", []):
+        matched_res = _find_matching_materials(item["chapter"])
+        res_reason = f" Consult your uploaded '{matched_res[0]['material_name']}' notes." if matched_res else ""
+
         actions.append(
             {
                 "chapter": item["chapter"],
@@ -101,17 +138,19 @@ def _build_automated_swat_action_plan(
                 "action_label": "Take Diagnostic Quiz",
                 "button_text": "Take Diagnostic Quiz",
                 "difficulty": "easy",
-                "reason": "Not attempted yet. Take a diagnostic quiz to establish baseline mastery.",
+                "reason": f"Not attempted yet. Take a diagnostic quiz to establish baseline mastery.{res_reason}",
                 "priority_rank": 2,
                 "priority_label": "NEW TOPIC",
                 "priority_icon": "",
                 "is_teacher_assigned": False,
+                "recommended_resources": matched_res,
             }
         )
 
     # Priority 3 — Average chapters (CONTINUE PRACTICE)
     for item in swat.get("average", []):
         score_val = item["score"]
+        matched_res = _find_matching_materials(item["chapter"])
         actions.append(
             {
                 "chapter": item["chapter"],
@@ -130,12 +169,14 @@ def _build_automated_swat_action_plan(
                 "priority_label": "CONTINUE PRACTICE",
                 "priority_icon": "",
                 "is_teacher_assigned": False,
+                "recommended_resources": matched_res,
             }
         )
 
     # Priority 4 — Strong chapters (ADVANCED PRACTICE)
     for item in swat.get("strong", []):
         score_val = item["score"]
+        matched_res = _find_matching_materials(item["chapter"])
         actions.append(
             {
                 "chapter": item["chapter"],
@@ -154,6 +195,7 @@ def _build_automated_swat_action_plan(
                 "priority_label": "ADVANCED PRACTICE",
                 "priority_icon": "",
                 "is_teacher_assigned": False,
+                "recommended_resources": matched_res,
             }
         )
 
@@ -198,6 +240,7 @@ def _build_custom_teacher_action_plan(
     target_class: int,
     swat: Dict[str, Any],
     custom_record: Dict[str, Any],
+    db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Constructs an enriched action plan incorporating Teacher-assigned priority chapters,
@@ -267,7 +310,7 @@ def _build_custom_teacher_action_plan(
         seen_chapters.add(ch_title)
 
     # Append standard SWAT actions for non-customized chapters to ensure complete coverage
-    auto_plan = _build_automated_swat_action_plan(student_id, target_class, swat)
+    auto_plan = _build_automated_swat_action_plan(student_id, target_class, swat, db_path=db_path)
     remaining_actions = []
     current_rank = len(enriched_custom_actions) + 1
 
