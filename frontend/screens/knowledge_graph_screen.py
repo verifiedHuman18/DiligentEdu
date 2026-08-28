@@ -603,7 +603,9 @@ def render_knowledge_graph_screen(
     pct_weak = (weak_c / total_c * 100) if total_c > 0 else 0
     pct_unatt = (unatt_c / total_c * 100) if total_c > 0 else 100
 
-    mastery_badge = f"{overall_m:.1f}% Active Mastery" if overall_m is not None else "Unassessed Chapter"
+    mastery_badge = (
+        f"{overall_m:.1f}% Active Mastery" if overall_m is not None else "Unassessed Chapter"
+    )
 
     st.markdown(
         f"""
@@ -629,123 +631,4 @@ def render_knowledge_graph_screen(
 
     st.write("")
 
-    # Concept Inspector & Learning Action Panel
-    st.markdown("####  Concept Inspector & Target Practice")
-    nodes = graph_data.get("nodes", [])
-
-    if not nodes:
-        st.info("No concept nodes found for this chapter.")
-        return
-
-    node_dict = {n["name"]: n for n in nodes}
-    node_names = list(node_dict.keys())
-
-    selected_concept_name = st.selectbox(
-        "Select Subtopic to Inspect & Practice:",
-        options=node_names,
-        key="kg_concept_inspector_select",
-    )
-
-    selected_node = node_dict.get(selected_concept_name, nodes[0])
-
-    # Card layout for selected node
-    stat_val = selected_node.get("status", "unattempted")
-    if stat_val == "strong":
-        badge_html = '<span style="background:#064e3b; color:#34d399; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #10b981;"> STRONG</span>'
-    elif stat_val == "moderate":
-        badge_html = '<span style="background:#451a03; color:#fbbf24; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #f59e0b;"> MODERATE</span>'
-    elif stat_val == "weak":
-        badge_html = '<span style="background:#450a0a; color:#f87171; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #ef4444;"> WEAK GAP</span>'
-    else:
-        badge_html = '<span style="background:#1e293b; color:#94a3b8; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #64748b;"> UNATTEMPTED</span>'
-
-    col_details, col_action = st.columns([3.2, 1.8])
-
-    with col_details:
-        mastery_display = (
-            f"**{selected_node.get('mastery')}%**"
-            if selected_node.get("mastery") is not None
-            else "*Unassessed (No quiz taken yet)*"
-        )
-        sec_display = (
-            f"Section {selected_node.get('section')}"
-            if selected_node.get("section")
-            else "Core Concept"
-        )
-
-        card_html = textwrap.dedent(f"""\
-<div style="background: var(--surface-container); border-radius: 12px; padding: 18px 20px; border: 1px solid var(--outline-variant); margin-bottom: 12px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <div style="font-size: 1.15rem; font-weight: 700; color: var(--on-surface);">
-            {selected_node.get('name')} <span style="font-size: 0.82rem; color: var(--on-surface-variant); font-weight: 500;">· {sec_display}</span>
-        </div>
-        <div>{badge_html}</div>
-    </div>
-    <div style="font-size: 0.88rem; color: var(--on-surface-variant); margin-bottom: 12px; line-height: 1.5;">
-        {selected_node.get('description')}
-    </div>
-    <div style="display: flex; gap: 18px; font-size: 0.82rem; color: var(--on-surface); font-weight: 600; border-top: 1px solid var(--outline-variant); padding-top: 10px;">
-        <div> Mastery: {mastery_display}</div>
-        <div> Attempts: {selected_node.get('attempts', 0)}</div>
-        <div> Correct: {selected_node.get('correct', 0)}</div>
-        <div> Confidence: {selected_node.get('confidence', 'Unassessed')}</div>
-    </div>
-</div>
-""")
-        st.markdown(card_html, unsafe_allow_html=True)
-
-        # Linked Resources
-        resources = selected_node.get("recommended_resources", [])
-        if resources:
-            st.markdown("##### :material/library_books: Recommended Study Materials")
-            res_chips = []
-            for r in resources:
-                if r.get("source_type") == "ncert":
-                    res_chips.append(
-                        f'<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1rem;">menu_book</span> {r.get("title")}</span>'
-                    )
-                else:
-                    res_chips.append(
-                        f'<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1rem;">auto_stories</span> {r.get("title")} (Uploaded)</span>'
-                    )
-            st.markdown(
-                f'<div class="m3-chips-group" style="margin-bottom: 12px;">{"".join(res_chips)}</div>',
-                unsafe_allow_html=True,
-            )
-
-    with col_action:
-        st.write("")
-        st.markdown(
-            f"""
-            <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 16px; text-align: center;">
-                <div style="font-size: 0.88rem; font-weight: 700; color: var(--on-surface); margin-bottom: 6px;">Targeted Practice</div>
-                <div style="font-size: 0.78rem; color: var(--on-surface-variant); margin-bottom: 14px;">
-                    Take a focused quiz on <strong>{selected_node.get('name')}</strong> to strengthen mastery and update your knowledge graph.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.write("")
-
-        if st.button(
-            f" Practice '{selected_node.get('name')}'",
-            type="primary",
-            use_container_width=True,
-            key=f"btn_practice_kg_{selected_node.get('id')}",
-        ):
-            st.session_state["quiz_chapter"] = selected_chapter
-            st.session_state["active_nav"] = "quiz"
-            st.rerun()
-
-        if st.button(
-            f" Ask Tutor About '{selected_node.get('name')}'",
-            type="secondary",
-            use_container_width=True,
-            key=f"btn_ask_tutor_kg_{selected_node.get('id')}",
-        ):
-            st.session_state["tutor_prefilled_prompt"] = (
-                f"Explain {selected_node.get('name')} from Class {class_level} Science chapter {selected_chapter} with examples and key formulas."
-            )
-            st.session_state["active_nav"] = "tutor"
-            st.rerun()
+    # Concept Inspector & Target Practice removed per user request

@@ -6,10 +6,8 @@ multi-concept telemetry weighting, unattempted concept isolation, and recommende
 
 import json
 import logging
-import sqlite3
 from typing import Any, Dict, List, Optional
 
-from backend.config import config
 from backend.curriculum.concepts import (
     get_all_registered_chapters,
     get_chapter_concept_metadata,
@@ -21,7 +19,6 @@ from backend.models.knowledge_graph import (
     ConceptStatus,
     EdgeRelationship,
 )
-from backend.storage.database import get_db_connection
 
 logger = logging.getLogger(__name__)
 
@@ -65,43 +62,30 @@ def calculate_student_concept_telemetry(
     Handles multi-concept questions via equal weighting (w = 1/n).
     Strictly keeps unassessed concepts as None / unattempted.
     """
-    target_db = db_path or str(config.default_db_path)
     target_ch = chapter_name or chapter
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     concept_stats: Dict[str, Dict[str, float]] = {}
 
     try:
-        with get_db_connection(target_db) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+        from backend.storage.repository import QuizRepository
 
-            query = """
-                SELECT
-                    qr.question_id,
-                    qr.question_text,
-                    qr.chapter,
-                    qr.is_correct,
-                    qr.concept_id,
-                    qa.class_level,
-                    qa.subject
-                FROM question_responses qr
-                JOIN quiz_attempts qa ON qr.quiz_id = qa.quiz_id
-                WHERE qa.student_id = ? AND qa.class_level = ? AND qa.subject = ?
-            """
-            params: List[Any] = [str(student_id).strip(), int(class_level), subj_clean]
+        repo = QuizRepository(db_path=db_path if db_path else None)
+        history = repo.get_student_history(
+            student_id=student_id,
+            class_level=class_level,
+            subject=subj_clean,
+            include_questions=True,
+        )
 
-            if target_ch:
-                query += " AND qr.chapter = ?"
-                params.append(str(target_ch).strip())
+        for attempt in history:
+            ch_name = attempt.get("chapter", "")
+            if target_ch and ch_name != target_ch:
+                continue
 
-            cursor.execute(query, tuple(params))
-            rows = cursor.fetchall()
-
-            for row in rows:
-                q_text = row["question_text"] or ""
-                ch_name = row["chapter"] or ""
-                is_correct = int(row["is_correct"]) == 1
-                raw_concept = row["concept_id"]
+            for q in attempt.get("questions", []):
+                q_text = q.get("question_text", "") or ""
+                is_correct = bool(q.get("is_correct", False))
+                raw_concept = q.get("concept_id")
 
                 target_concepts: List[str] = []
 
@@ -119,14 +103,15 @@ def calculate_student_concept_telemetry(
                             target_concepts = [str(raw_concept).strip()]
 
                 # If no explicit concept tag stored, match dynamically
-                if not target_concepts:
-                    ch_meta = get_chapter_concept_metadata(
-                        ch_name, class_level=class_level, subject=subj_clean
-                    )
-                    if ch_meta:
-                        target_concepts = _match_question_to_concepts(
-                            q_text, ch_meta.get("nodes", [])
-                        )
+                ch_meta = get_chapter_concept_metadata(
+                    ch_name, class_level=class_level, subject=subj_clean
+                )
+                if not target_concepts and ch_meta:
+                    target_concepts = _match_question_to_concepts(q_text, ch_meta.get("nodes", []))
+
+                # Ultimate fallback: distribute across all concepts in chapter
+                if not target_concepts and ch_meta and ch_meta.get("nodes"):
+                    target_concepts = [n["id"] for n in ch_meta.get("nodes", [])]
 
                 if not target_concepts:
                     continue
@@ -223,7 +208,6 @@ def get_chapter_knowledge_graph(
             }
         ]
         edges_raw = []
-
 
     # Calculate student concept mastery telemetry
     telemetry = calculate_student_concept_telemetry(

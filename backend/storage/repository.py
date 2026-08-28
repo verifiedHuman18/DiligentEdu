@@ -20,6 +20,7 @@ class QuizRepository:
         if self.db_path:
             try:
                 from backend.storage.database import init_database
+
                 init_database(self.db_path)
             except Exception:
                 pass
@@ -28,7 +29,6 @@ class QuizRepository:
     def _ensure_connected(self):
         if not self.db.is_connected():
             self.db.connect()
-
 
     def record_attempt(
         self,
@@ -56,7 +56,7 @@ class QuizRepository:
 
         for idx, q in enumerate(questions, 1):
             q_identifier = q.get("question_id", f"{q_id}_q{idx}")
-            q_text = q.get("question", "")
+            q_text = q.get("question", q.get("question_text", ""))
             correct_ans = str(q.get("correct_answer", "A")).strip().upper()
             if len(correct_ans) > 1 and correct_ans.startswith(("A", "B", "C", "D")):
                 correct_ans = correct_ans[0]
@@ -108,22 +108,52 @@ class QuizRepository:
         if self.db_path:
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO quiz_attempts (
                         quiz_id, student_id, class_level, subject, chapter, chapter_number,
                         difficulty, score, total_questions, percentage, timestamp
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (q_id, clean_student_id, class_level, subject, chapter, chapter_number, difficulty, score, total_questions, round(percentage, 2), ts))
+                """,
+                    (
+                        q_id,
+                        clean_student_id,
+                        class_level,
+                        subject,
+                        chapter,
+                        chapter_number,
+                        difficulty,
+                        score,
+                        total_questions,
+                        round(percentage, 2),
+                        ts,
+                    ),
+                )
                 cursor.execute("DELETE FROM question_responses WHERE quiz_id = ?", (q_id,))
                 for r in responses_data:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         INSERT INTO question_responses (
                             quiz_id, question_id, question_text, chapter, difficulty,
                             user_answer, correct_answer, is_correct, source_pages, concept_id
                         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (q_id, r["question_id"], r["question_text"], r["chapter"], r["difficulty"], r["user_answer"], r["correct_answer"], r["is_correct"], r["source_pages"], r["concept_id"]))
+                    """,
+                        (
+                            q_id,
+                            r["question_id"],
+                            r["question_text"],
+                            r["chapter"],
+                            r["difficulty"],
+                            r["user_answer"],
+                            r["correct_answer"],
+                            r["is_correct"],
+                            r["source_pages"],
+                            r["concept_id"],
+                        ),
+                    )
                 conn.commit()
                 conn.close()
             except Exception as sq_err:
@@ -215,6 +245,7 @@ class QuizRepository:
         if self.db_path:
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(self.db_path)
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
@@ -232,7 +263,9 @@ class QuizRepository:
                 attempts = [dict(row) for row in cursor.fetchall()]
                 if include_questions:
                     for att in attempts:
-                        cursor.execute("SELECT * FROM question_responses WHERE quiz_id = ?", (att["quiz_id"],))
+                        cursor.execute(
+                            "SELECT * FROM question_responses WHERE quiz_id = ?", (att["quiz_id"],)
+                        )
                         q_rows = [dict(r) for r in cursor.fetchall()]
                         for qd in q_rows:
                             try:
@@ -428,6 +461,7 @@ class StudyMaterialRepository:
         if self.db_path:
             try:
                 from backend.storage.database import init_database
+
                 init_database(self.db_path)
             except Exception:
                 pass
@@ -459,14 +493,31 @@ class StudyMaterialRepository:
         if self.db_path:
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO uploaded_documents (
                         document_id, student_id, filename, material_name, class_level,
                         subject, chapter, status, file_size_bytes, uploaded_at, page_count, chunk_count
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (clean_doc_id, clean_student_id, filename, material_name, class_int, subject, chapter, status_val, file_size_bytes, ts, 0, 0))
+                """,
+                    (
+                        clean_doc_id,
+                        clean_student_id,
+                        filename,
+                        material_name,
+                        class_int,
+                        subject,
+                        chapter,
+                        status_val,
+                        file_size_bytes,
+                        ts,
+                        0,
+                        0,
+                    ),
+                )
                 conn.commit()
                 conn.close()
             except Exception:
@@ -487,7 +538,6 @@ class StudyMaterialRepository:
             }
 
         self._ensure_connected()
-
 
         try:
             existing = self.db.uploadeddocument.find_unique(where={"document_id": clean_doc_id})
@@ -582,6 +632,7 @@ class StudyMaterialRepository:
         if self.db_path:
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(self.db_path)
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
@@ -638,10 +689,13 @@ class StudyMaterialRepository:
         if self.db_path:
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(self.db_path)
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM uploaded_documents WHERE document_id = ?", (clean_doc_id,))
+                cursor.execute(
+                    "SELECT * FROM uploaded_documents WHERE document_id = ?", (clean_doc_id,)
+                )
                 row = cursor.fetchone()
                 conn.close()
                 return dict(row) if row else None
@@ -662,15 +716,17 @@ class StudyMaterialRepository:
         if self.db_path:
             try:
                 import sqlite3
+
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM uploaded_documents WHERE document_id = ?", (clean_doc_id,))
+                cursor.execute(
+                    "DELETE FROM uploaded_documents WHERE document_id = ?", (clean_doc_id,)
+                )
                 conn.commit()
                 conn.close()
                 return True
             except Exception:
                 return False
-
 
         self._ensure_connected()
         try:
@@ -687,7 +743,6 @@ class StudyMaterialRepository:
                 logger.error(f"Failed to delete document {clean_doc_id}: {e}")
                 raise StorageError(f"Failed to delete document record: {e}")
             return False
-
 
     def count_student_documents(self, student_id: str, class_level: Optional[int] = None) -> int:
         docs = self.get_student_documents(student_id=student_id, class_level=class_level)
@@ -710,7 +765,6 @@ def get_student_class_history(
         class_level=class_level,
         include_questions=include_questions,
     )
-
 
 
 def get_student_study_materials(
