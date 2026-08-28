@@ -23,6 +23,7 @@ model QuizAttempt {
   quiz_id         String             @id
   student_id      String
   class_level     Int
+  subject         String?            @default("Science")
   chapter         String
   chapter_number  Int?
   difficulty      String
@@ -44,6 +45,7 @@ model QuestionResponse {
   correct_answer String?
   is_correct     Int
   source_pages   String?
+  concept_id     String?
   quiz           QuizAttempt  @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
 }
 
@@ -51,9 +53,39 @@ model TeacherActionPlan {
   id            Int      @id @default(autoincrement())
   student_id    String
   class_level   Int
+  subject       String?  @default("Science")
   plan_data     String
   teacher_notes String?
   updated_at    String
 
-  @@unique([student_id, class_level])
+  @@unique([student_id, class_level, subject])
+}
+
+model UploadedDocument {
+  document_id     String  @id
+  student_id      String
+  filename        String
+  material_name   String
+  class_level     Int
+  subject         String
+  chapter         String?
+  status          String
+  error_message   String?
+  page_count      Int     @default(0)
+  chunk_count     Int     @default(0)
+  file_size_bytes Int     @default(0)
+  uploaded_at     String
+}
+
+model StudyTwinMatch {
+  id               Int     @id @default(autoincrement())
+  student_id       String
+  twin_student_id  String
+  class_level      Int
+  subject          String
+  similarity_score Float
+  match_data       String
+  created_at       String
+
+  @@unique([student_id, class_level, subject])
 }

@@ -1,4 +1,4 @@
-"""Repository for quiz attempts, question responses, and student history persistence."""
+"""Repository for quiz attempts, question responses, and student history persistence (Prisma implementation)."""
 
 import json
 import logging
@@ -6,18 +6,21 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from backend.config import config
 from backend.exceptions import StorageError
-from backend.storage.database import get_db_connection
+from prisma import Prisma
 
 logger = logging.getLogger(__name__)
 
 
 class QuizRepository:
-    """Provides type-safe CRUD operations for student quiz data."""
+    """Provides type-safe CRUD operations for student quiz data using Prisma."""
 
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path or str(config.default_db_path)
+        self.db = Prisma()
+
+    def _ensure_connected(self):
+        if not self.db.is_connected():
+            self.db.connect()
 
     def record_attempt(
         self,
@@ -26,9 +29,7 @@ class QuizRepository:
         user_answers: Dict[str, str],
         quiz_id: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """
-        Persists a completed quiz attempt and each question's response record.
-        """
+        self._ensure_connected()
         clean_student_id = str(student_id).strip()
         q_id = (
             quiz_id
@@ -43,7 +44,7 @@ class QuizRepository:
         total_questions = len(questions)
 
         score = 0
-        question_records = []
+        responses_data = []
 
         for idx, q in enumerate(questions, 1):
             q_identifier = q.get("question_id", f"{q_id}_q{idx}")
@@ -78,9 +79,8 @@ class QuizRepository:
                 else str(raw_concept).strip()
             )
 
-            question_records.append(
+            responses_data.append(
                 {
-                    "quiz_id": q_id,
                     "question_id": q_identifier,
                     "question_text": q_text,
                     "chapter": chapter,
@@ -97,54 +97,43 @@ class QuizRepository:
         ts = datetime.now(timezone.utc).isoformat()
 
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-
-                cursor.execute(
-                    """
-                    INSERT OR REPLACE INTO quiz_attempts (
-                        quiz_id, student_id, class_level, subject, chapter, chapter_number,
-                        difficulty, score, total_questions, percentage, timestamp
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                    (
-                        q_id,
-                        clean_student_id,
-                        class_level,
-                        subject,
-                        chapter,
-                        chapter_number,
-                        difficulty,
-                        score,
-                        total_questions,
-                        round(percentage, 2),
-                        ts,
-                    ),
+            existing = self.db.quizattempt.find_unique(where={"quiz_id": q_id})
+            if existing:
+                self.db.questionresponse.delete_many(where={"quiz_id": q_id})
+                self.db.quizattempt.update(
+                    where={"quiz_id": q_id},
+                    data={
+                        "student_id": clean_student_id,
+                        "class_level": class_level,
+                        "subject": subject,
+                        "chapter": chapter,
+                        "chapter_number": chapter_number,
+                        "difficulty": difficulty,
+                        "score": score,
+                        "total_questions": total_questions,
+                        "percentage": round(percentage, 2),
+                        "timestamp": ts,
+                        "responses": {"create": responses_data},
+                    },
+                )
+            else:
+                self.db.quizattempt.create(
+                    data={
+                        "quiz_id": q_id,
+                        "student_id": clean_student_id,
+                        "class_level": class_level,
+                        "subject": subject,
+                        "chapter": chapter,
+                        "chapter_number": chapter_number,
+                        "difficulty": difficulty,
+                        "score": score,
+                        "total_questions": total_questions,
+                        "percentage": round(percentage, 2),
+                        "timestamp": ts,
+                        "responses": {"create": responses_data},
+                    }
                 )
 
-                for qr in question_records:
-                    cursor.execute(
-                        """
-                        INSERT INTO question_responses (
-                            quiz_id, question_id, question_text, chapter, difficulty,
-                            user_answer, correct_answer, is_correct, source_pages, concept_id
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                        (
-                            qr["quiz_id"],
-                            qr["question_id"],
-                            qr["question_text"],
-                            qr["chapter"],
-                            qr["difficulty"],
-                            qr["user_answer"],
-                            qr["correct_answer"],
-                            qr["is_correct"],
-                            qr["source_pages"],
-                            qr["concept_id"],
-                        ),
-                    )
-
-                conn.commit()
         except Exception as e:
             logger.error(f"Failed to record quiz attempt: {e}")
             raise StorageError(f"Failed to record quiz attempt in database: {e}")
@@ -161,7 +150,7 @@ class QuizRepository:
             "total_questions": total_questions,
             "percentage": round(percentage, 2),
             "timestamp": ts,
-            "question_count": len(question_records),
+            "question_count": len(responses_data),
         }
 
     def get_student_history(
@@ -171,63 +160,41 @@ class QuizRepository:
         subject: Optional[str] = None,
         include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
-        """
-        Retrieves chronological quiz attempts for a student, optionally filtered by class_level and subject.
-        Directly filters by class_level and subject at the query level when specified.
-        """
+        self._ensure_connected()
         clean_id = str(student_id).strip()
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                query = "SELECT * FROM quiz_attempts WHERE student_id = ?"
-                params: List[Any] = [clean_id]
+            where_clause = {"student_id": clean_id}
 
-                if class_level is not None:
-                    try:
-                        class_int = int(class_level)
-                    except (ValueError, TypeError):
-                        raise ValueError(f"Invalid class_level: {class_level}")
-                    query += " AND class_level = ?"
-                    params.append(class_int)
+            if class_level is not None:
+                where_clause["class_level"] = int(class_level)
 
-                if subject is not None:
-                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
-                    query += " AND subject = ?"
-                    params.append(subj_clean)
+            if subject is not None:
+                subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                where_clause["subject"] = subj_clean
 
-                query += " ORDER BY timestamp ASC"
-                cursor.execute(query, tuple(params))
+            attempts = self.db.quizattempt.find_many(
+                where=where_clause,
+                include={"responses": True} if include_questions else None,
+                order={"timestamp": "asc"},
+            )
 
-                rows = cursor.fetchall()
-                history = [dict(row) for row in rows]
+            history = []
+            for attempt in attempts:
+                item = attempt.model_dump()
+                if include_questions and attempt.responses:
+                    q_list = []
+                    for qr in attempt.responses:
+                        qd = qr.model_dump()
+                        try:
+                            qd["source_pages"] = json.loads(qd.get("source_pages") or "[]")
+                        except Exception:
+                            qd["source_pages"] = []
+                        qd["is_correct"] = bool(qd.get("is_correct", 0))
+                        q_list.append(qd)
+                    item["questions"] = sorted(q_list, key=lambda x: x["id"])
+                history.append(item)
 
-                if include_questions and history:
-                    for item in history:
-                        q_cursor = conn.cursor()
-                        q_cursor.execute(
-                            """
-                            SELECT question_id, question_text, chapter, difficulty,
-                                   user_answer, correct_answer, is_correct, source_pages
-                            FROM question_responses
-                            WHERE quiz_id = ?
-                            ORDER BY id ASC
-                        """,
-                            (item["quiz_id"],),
-                        )
-
-                        q_rows = q_cursor.fetchall()
-                        q_list = []
-                        for qr in q_rows:
-                            qd = dict(qr)
-                            try:
-                                qd["source_pages"] = json.loads(qd["source_pages"])
-                            except Exception:
-                                qd["source_pages"] = []
-                            qd["is_correct"] = bool(qd["is_correct"])
-                            q_list.append(qd)
-                        item["questions"] = q_list
-
-                return history
+            return history
         except Exception as e:
             logger.error(f"Failed to fetch student history for {student_id}: {e}")
             raise StorageError(f"Database query failed: {e}")
@@ -239,10 +206,6 @@ class QuizRepository:
         subject: Optional[str] = None,
         include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
-        """
-        Dedicated class- and subject-scoped retrieval function.
-        Guarantees that attempts outside the requested class_level and subject are never fetched.
-        """
         if class_level is None:
             raise ValueError("class_level is required for get_student_class_history")
         return self.get_student_history(
@@ -253,35 +216,20 @@ class QuizRepository:
         )
 
     def clear_student_data(self, student_id: str) -> None:
-        """Deletes all attempts, question responses, and custom action plans for a student."""
+        self._ensure_connected()
         clean_id = str(student_id).strip()
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    DELETE FROM question_responses
-                    WHERE quiz_id IN (SELECT quiz_id FROM quiz_attempts WHERE student_id = ?)
-                """,
-                    (clean_id,),
-                )
-                cursor.execute("DELETE FROM quiz_attempts WHERE student_id = ?", (clean_id,))
-                cursor.execute("DELETE FROM teacher_action_plans WHERE student_id = ?", (clean_id,))
-                conn.commit()
+            self.db.quizattempt.delete_many(where={"student_id": clean_id})
+            self.db.teacheractionplan.delete_many(where={"student_id": clean_id})
         except Exception as e:
             logger.error(f"Failed to clear data for {student_id}: {e}")
             raise StorageError(f"Failed to delete student records: {e}")
 
     def get_all_student_ids(self) -> List[str]:
-        """Returns a distinct list of student IDs who have quiz attempt records."""
+        self._ensure_connected()
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT DISTINCT student_id FROM quiz_attempts ORDER BY student_id ASC"
-                )
-                rows = cursor.fetchall()
-                return [r["student_id"] for r in rows if r["student_id"]]
+            attempts = self.db.quizattempt.find_many(distinct=["student_id"])
+            return [a.student_id for a in attempts if a.student_id]
         except Exception:
             return []
 
@@ -293,9 +241,7 @@ class QuizRepository:
         teacher_notes: Optional[str] = None,
         subject: str = "Science",
     ) -> Dict[str, Any]:
-        """
-        Saves or updates a customized teacher action plan for a student, class level, and subject.
-        """
+        self._ensure_connected()
         clean_id = str(student_id).strip()
         class_int = int(class_level)
         subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
@@ -304,20 +250,25 @@ class QuizRepository:
         ts = datetime.now(timezone.utc).isoformat()
 
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    INSERT INTO teacher_action_plans (student_id, class_level, subject, plan_data, teacher_notes, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(student_id, class_level, subject) DO UPDATE SET
-                        plan_data = excluded.plan_data,
-                        teacher_notes = excluded.teacher_notes,
-                        updated_at = excluded.updated_at
-                """,
-                    (clean_id, class_int, subj_clean, plan_json, notes, ts),
+            existing = self.db.teacheractionplan.find_first(
+                where={"student_id": clean_id, "class_level": class_int, "subject": subj_clean}
+            )
+            if existing:
+                self.db.teacheractionplan.update(
+                    where={"id": existing.id},
+                    data={"plan_data": plan_json, "teacher_notes": notes, "updated_at": ts},
                 )
-                conn.commit()
+            else:
+                self.db.teacheractionplan.create(
+                    data={
+                        "student_id": clean_id,
+                        "class_level": class_int,
+                        "subject": subj_clean,
+                        "plan_data": plan_json,
+                        "teacher_notes": notes,
+                        "updated_at": ts,
+                    }
+                )
         except Exception as e:
             logger.error(
                 f"Failed to save teacher action plan for {student_id} Class {class_level} {subj_clean}: {e}"
@@ -336,36 +287,24 @@ class QuizRepository:
     def get_teacher_custom_plan(
         self, student_id: str, class_level: int, subject: str = "Science"
     ) -> Optional[Dict[str, Any]]:
-        """
-        Retrieves active custom teacher action plan for a student, class level, and subject if present.
-        """
+        self._ensure_connected()
         clean_id = str(student_id).strip()
         class_int = int(class_level)
         subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    SELECT plan_data, teacher_notes, updated_at
-                    FROM teacher_action_plans
-                    WHERE student_id = ? AND class_level = ? AND subject = ?
-                """,
-                    (clean_id, class_int, subj_clean),
-                )
-                row = cursor.fetchone()
-                if not row:
-                    return None
-
-                plan_content = json.loads(row["plan_data"])
-                return {
-                    "student_id": clean_id,
-                    "class_level": class_int,
-                    "subject": subj_clean,
-                    "plan_data": plan_content,
-                    "teacher_notes": row["teacher_notes"],
-                    "updated_at": row["updated_at"],
-                }
+            plan = self.db.teacheractionplan.find_first(
+                where={"student_id": clean_id, "class_level": class_int, "subject": subj_clean}
+            )
+            if not plan:
+                return None
+            return {
+                "student_id": clean_id,
+                "class_level": class_int,
+                "subject": subj_clean,
+                "plan_data": json.loads(plan.plan_data),
+                "teacher_notes": plan.teacher_notes,
+                "updated_at": plan.updated_at,
+            }
         except Exception as e:
             logger.error(
                 f"Failed to fetch teacher custom plan for {student_id} Class {class_level} {subj_clean}: {e}"
@@ -375,24 +314,18 @@ class QuizRepository:
     def delete_teacher_action_plan(
         self, student_id: str, class_level: int, subject: str = "Science"
     ) -> bool:
-        """
-        Deletes custom action plan for a student, class level, and subject, resetting to default SWAT recommendations.
-        """
+        self._ensure_connected()
         clean_id = str(student_id).strip()
         class_int = int(class_level)
         subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    DELETE FROM teacher_action_plans
-                    WHERE student_id = ? AND class_level = ? AND subject = ?
-                """,
-                    (clean_id, class_int, subj_clean),
-                )
-                conn.commit()
-                return cursor.rowcount > 0
+            plan = self.db.teacheractionplan.find_first(
+                where={"student_id": clean_id, "class_level": class_int, "subject": subj_clean}
+            )
+            if plan:
+                self.db.teacheractionplan.delete(where={"id": plan.id})
+                return True
+            return False
         except Exception as e:
             logger.error(
                 f"Failed to delete teacher action plan for {student_id} Class {class_level} {subj_clean}: {e}"
@@ -401,10 +334,12 @@ class QuizRepository:
 
 
 class StudyMaterialRepository:
-    """Provides type-safe CRUD operations for student uploaded study documents."""
-
     def __init__(self, db_path: Optional[str] = None):
-        self.db_path = db_path or str(config.default_db_path)
+        self.db = Prisma()
+
+    def _ensure_connected(self):
+        if not self.db.is_connected():
+            self.db.connect()
 
     def save_document_record(
         self,
@@ -419,7 +354,7 @@ class StudyMaterialRepository:
         file_size_bytes: int = 0,
         uploaded_at: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Creates or replaces an uploaded document metadata record."""
+        self._ensure_connected()
         clean_doc_id = str(document_id).strip()
         clean_student_id = str(student_id).strip()
         class_int = int(class_level)
@@ -427,33 +362,40 @@ class StudyMaterialRepository:
         ts = uploaded_at or datetime.now(timezone.utc).isoformat()
 
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    INSERT INTO uploaded_documents (
-                        document_id, student_id, filename, material_name, class_level,
-                        subject, chapter, status, error_message, page_count, chunk_count,
-                        file_size_bytes, uploaded_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                    (
-                        clean_doc_id,
-                        clean_student_id,
-                        filename,
-                        material_name,
-                        class_int,
-                        subject,
-                        chapter,
-                        status_val,
-                        None,
-                        0,
-                        0,
-                        file_size_bytes,
-                        ts,
-                    ),
+            existing = self.db.uploadeddocument.find_unique(where={"document_id": clean_doc_id})
+            if existing:
+                self.db.uploadeddocument.update(
+                    where={"document_id": clean_doc_id},
+                    data={
+                        "student_id": clean_student_id,
+                        "filename": filename,
+                        "material_name": material_name,
+                        "class_level": class_int,
+                        "subject": subject,
+                        "chapter": chapter,
+                        "status": status_val,
+                        "file_size_bytes": file_size_bytes,
+                        "uploaded_at": ts,
+                    },
                 )
-                conn.commit()
+            else:
+                self.db.uploadeddocument.create(
+                    data={
+                        "document_id": clean_doc_id,
+                        "student_id": clean_student_id,
+                        "filename": filename,
+                        "material_name": material_name,
+                        "class_level": class_int,
+                        "subject": subject,
+                        "chapter": chapter,
+                        "status": status_val,
+                        "error_message": None,
+                        "page_count": 0,
+                        "chunk_count": 0,
+                        "file_size_bytes": file_size_bytes,
+                        "uploaded_at": ts,
+                    }
+                )
         except Exception as e:
             logger.error(f"Failed to save document record {clean_doc_id}: {e}")
             raise StorageError(f"Failed to save document record in database: {e}")
@@ -481,31 +423,21 @@ class StudyMaterialRepository:
         page_count: Optional[int] = None,
         chunk_count: Optional[int] = None,
     ) -> bool:
-        """Updates the status, counts, and error message of an uploaded document."""
+        self._ensure_connected()
         clean_doc_id = str(document_id).strip()
         status_val = status.value if hasattr(status, "value") else str(status)
 
+        data = {"status": status_val}
+        if error_message is not None:
+            data["error_message"] = error_message
+        if page_count is not None:
+            data["page_count"] = int(page_count)
+        if chunk_count is not None:
+            data["chunk_count"] = int(chunk_count)
+
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                updates = ["status = ?"]
-                params: List[Any] = [status_val]
-
-                if error_message is not None:
-                    updates.append("error_message = ?")
-                    params.append(error_message)
-                if page_count is not None:
-                    updates.append("page_count = ?")
-                    params.append(int(page_count))
-                if chunk_count is not None:
-                    updates.append("chunk_count = ?")
-                    params.append(int(chunk_count))
-
-                params.append(clean_doc_id)
-                query = f"UPDATE uploaded_documents SET {', '.join(updates)} WHERE document_id = ?"
-                cursor.execute(query, tuple(params))
-                conn.commit()
-                return cursor.rowcount > 0
+            self.db.uploadeddocument.update(where={"document_id": clean_doc_id}, data=data)
+            return True
         except Exception as e:
             logger.error(f"Failed to update status for document {clean_doc_id}: {e}")
             raise StorageError(f"Failed to update document status: {e}")
@@ -517,88 +449,63 @@ class StudyMaterialRepository:
         chapter: Optional[str] = None,
         subject: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Retrieves all uploaded documents for a student, optionally filtered by class level, chapter, and subject.
-        """
+        self._ensure_connected()
         clean_student_id = str(student_id).strip()
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                query = "SELECT * FROM uploaded_documents WHERE student_id = ?"
-                params: List[Any] = [clean_student_id]
+            where_clause = {"student_id": clean_student_id}
+            if class_level is not None:
+                where_clause["class_level"] = int(class_level)
 
-                if class_level is not None:
-                    query += " AND class_level = ?"
-                    params.append(int(class_level))
+            if subject is not None:
+                subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                where_clause["subject"] = {"in": [subj_clean, ""]}
 
-                if subject is not None:
-                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
-                    query += " AND (subject = ? OR subject = '')"
-                    params.append(subj_clean)
+            docs = self.db.uploadeddocument.find_many(
+                where=where_clause, order={"uploaded_at": "desc"}
+            )
 
-                if chapter is not None and chapter != "All Chapters":
-                    query += " AND (chapter = ? OR chapter IS NULL OR chapter = '')"
-                    params.append(str(chapter))
+            results = [d.model_dump() for d in docs]
+            if chapter is not None and chapter != "All Chapters":
+                results = [
+                    d for d in results if d.get("chapter") == chapter or not d.get("chapter")
+                ]
 
-                query += " ORDER BY uploaded_at DESC"
-                cursor.execute(query, tuple(params))
-                rows = cursor.fetchall()
-                return [dict(r) for r in rows]
-        except Exception as e:
-            logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
-            raise StorageError(f"Failed to fetch uploaded documents: {e}")
+            return results
         except Exception as e:
             logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
             raise StorageError(f"Failed to fetch uploaded documents: {e}")
 
     def get_document_by_id(self, document_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieves a single uploaded document record by document_id."""
+        self._ensure_connected()
         clean_doc_id = str(document_id).strip()
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT * FROM uploaded_documents WHERE document_id = ?",
-                    (clean_doc_id,),
-                )
-                row = cursor.fetchone()
-                return dict(row) if row else None
+            doc = self.db.uploadeddocument.find_unique(where={"document_id": clean_doc_id})
+            return doc.model_dump() if doc else None
         except Exception as e:
             logger.error(f"Failed to fetch document {clean_doc_id}: {e}")
             return None
 
     def delete_document_record(self, document_id: str, student_id: Optional[str] = None) -> bool:
-        """
-        Deletes a document record from the registry database.
-        Optionally validates student_id ownership.
-        """
+        self._ensure_connected()
         clean_doc_id = str(document_id).strip()
         try:
-            with get_db_connection(self.db_path) as conn:
-                cursor = conn.cursor()
-                if student_id is not None:
-                    cursor.execute(
-                        "DELETE FROM uploaded_documents WHERE document_id = ? AND student_id = ?",
-                        (clean_doc_id, str(student_id).strip()),
-                    )
-                else:
-                    cursor.execute(
-                        "DELETE FROM uploaded_documents WHERE document_id = ?",
-                        (clean_doc_id,),
-                    )
-                conn.commit()
-                return cursor.rowcount > 0
+            where_clause = {"document_id": clean_doc_id}
+            doc = self.db.uploadeddocument.find_unique(where=where_clause)
+            if not doc:
+                return False
+            if student_id is not None and doc.student_id != str(student_id).strip():
+                return False
+            self.db.uploadeddocument.delete(where={"document_id": clean_doc_id})
+            return True
         except Exception as e:
             logger.error(f"Failed to delete document {clean_doc_id}: {e}")
             raise StorageError(f"Failed to delete document record: {e}")
 
     def count_student_documents(self, student_id: str, class_level: Optional[int] = None) -> int:
-        """Returns count of READY uploaded documents for a student."""
         docs = self.get_student_documents(student_id=student_id, class_level=class_level)
         return len([d for d in docs if d.get("status") == "READY"])
 
 
-# Default repository instances
 quiz_repository = QuizRepository()
 study_material_repository = StudyMaterialRepository()
 
@@ -609,9 +516,7 @@ def get_student_class_history(
     include_questions: bool = False,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Standalone helper for class-scoped student history retrieval."""
-    repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
-    return repo.get_student_class_history(
+    return quiz_repository.get_student_class_history(
         student_id=student_id,
         class_level=class_level,
         include_questions=include_questions,
@@ -624,11 +529,7 @@ def get_student_study_materials(
     subject: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Standalone helper for retrieving student study materials."""
-    repo = (
-        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
-    )
-    return repo.get_student_documents(
+    return study_material_repository.get_student_documents(
         student_id=student_id, class_level=class_level, subject=subject
     )
 
@@ -638,11 +539,9 @@ def delete_student_study_material(
     student_id: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> bool:
-    """Standalone helper for deleting a student study material record."""
-    repo = (
-        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    return study_material_repository.delete_document_record(
+        document_id=document_id, student_id=student_id
     )
-    return repo.delete_document_record(document_id=document_id, student_id=student_id)
 
 
 def count_student_study_materials(
@@ -651,11 +550,7 @@ def count_student_study_materials(
     subject: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> int:
-    """Standalone helper for counting student study materials."""
-    repo = (
-        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
-    )
-    return repo.count_student_documents(
+    return study_material_repository.count_student_documents(
         student_id=student_id, class_level=class_level, subject=subject
     )
 
@@ -669,36 +564,42 @@ def save_study_twin_match(
     match_data: Dict[str, Any],
     db_path: Optional[str] = None,
 ) -> bool:
-    """Persists or updates a computed Study Twin match for a student, class, and subject."""
-    target_path = db_path or str(config.default_db_path)
     ts = datetime.now(timezone.utc).isoformat()
     match_json = json.dumps(match_data)
     try:
-        with get_db_connection(target_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                INSERT INTO study_twin_matches (
-                    student_id, twin_student_id, class_level, subject, similarity_score, match_data, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(student_id, class_level, subject) DO UPDATE SET
-                    twin_student_id = excluded.twin_student_id,
-                    similarity_score = excluded.similarity_score,
-                    match_data = excluded.match_data,
-                    created_at = excluded.created_at
-                """,
-                (
-                    str(student_id).strip(),
-                    str(twin_student_id).strip(),
-                    int(class_level),
-                    str(subject).strip(),
-                    float(similarity_score),
-                    match_json,
-                    ts,
-                ),
+        db = Prisma()
+        if not db.is_connected():
+            db.connect()
+        existing = db.studytwinmatch.find_first(
+            where={
+                "student_id": str(student_id).strip(),
+                "class_level": int(class_level),
+                "subject": str(subject).strip(),
+            }
+        )
+        if existing:
+            db.studytwinmatch.update(
+                where={"id": existing.id},
+                data={
+                    "twin_student_id": str(twin_student_id).strip(),
+                    "similarity_score": float(similarity_score),
+                    "match_data": match_json,
+                    "created_at": ts,
+                },
             )
-            conn.commit()
-            return True
+        else:
+            db.studytwinmatch.create(
+                data={
+                    "student_id": str(student_id).strip(),
+                    "twin_student_id": str(twin_student_id).strip(),
+                    "class_level": int(class_level),
+                    "subject": str(subject).strip(),
+                    "similarity_score": float(similarity_score),
+                    "match_data": match_json,
+                    "created_at": ts,
+                }
+            )
+        return True
     except Exception as e:
         logger.error(f"Failed to save study twin match: {e}")
         return False
@@ -710,29 +611,26 @@ def get_saved_study_twin_match(
     subject: str,
     db_path: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
-    """Retrieves the cached Study Twin match for a student, class, and subject."""
-    target_path = db_path or str(config.default_db_path)
     try:
-        with get_db_connection(target_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT student_id, twin_student_id, class_level, subject, similarity_score, match_data, created_at
-                FROM study_twin_matches
-                WHERE student_id = ? AND class_level = ? AND subject = ?
-                """,
-                (str(student_id).strip(), int(class_level), str(subject).strip()),
-            )
-            row = cursor.fetchone()
-            if not row:
-                return None
-            data = dict(row)
-            if data.get("match_data"):
-                try:
-                    data["match_data"] = json.loads(data["match_data"])
-                except Exception:
-                    pass
-            return data
+        db = Prisma()
+        if not db.is_connected():
+            db.connect()
+        match = db.studytwinmatch.find_first(
+            where={
+                "student_id": str(student_id).strip(),
+                "class_level": int(class_level),
+                "subject": str(subject).strip(),
+            }
+        )
+        if not match:
+            return None
+        data = match.model_dump()
+        if data.get("match_data"):
+            try:
+                data["match_data"] = json.loads(data["match_data"])
+            except Exception:
+                pass
+        return data
     except Exception as e:
         logger.error(f"Failed to retrieve saved study twin match: {e}")
         return None
@@ -744,20 +642,21 @@ def clear_study_twin_match(
     subject: str,
     db_path: Optional[str] = None,
 ) -> bool:
-    """Deletes cached Study Twin match for recalculation."""
-    target_path = db_path or str(config.default_db_path)
     try:
-        with get_db_connection(target_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                DELETE FROM study_twin_matches
-                WHERE student_id = ? AND class_level = ? AND subject = ?
-                """,
-                (str(student_id).strip(), int(class_level), str(subject).strip()),
-            )
-            conn.commit()
+        db = Prisma()
+        if not db.is_connected():
+            db.connect()
+        match = db.studytwinmatch.find_first(
+            where={
+                "student_id": str(student_id).strip(),
+                "class_level": int(class_level),
+                "subject": str(subject).strip(),
+            }
+        )
+        if match:
+            db.studytwinmatch.delete(where={"id": match.id})
             return True
+        return False
     except Exception as e:
         logger.error(f"Failed to clear study twin match: {e}")
         return False
@@ -769,49 +668,29 @@ def get_all_candidate_student_ids(
     exclude_student_id: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> List[str]:
-    """
-    Discovers all candidate student IDs for a given class level and subject,
-    querying both SQLite quiz history and Prisma user database.
-    """
     candidates = set()
-    target_path = db_path or str(config.default_db_path)
     clean_exclude = str(exclude_student_id).strip() if exclude_student_id else None
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
 
-    # 1. From SQLite quiz history
     try:
-        with get_db_connection(target_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT DISTINCT student_id FROM quiz_attempts
-                WHERE class_level = ? AND (subject = ? OR subject IS NULL OR subject = '')
-                """,
-                (int(class_level), subj_clean),
-            )
-            rows = cursor.fetchall()
-            for r in rows:
-                sid = str(r["student_id"]).strip()
-                if sid and sid != clean_exclude:
-                    candidates.add(sid)
-    except Exception as e:
-        logger.warning(f"Could not load candidates from SQLite: {e}")
-
-    # 2. From Prisma DB (if available)
-    try:
-        from prisma import Prisma
-
         db = Prisma()
-        db.connect()
+        if not db.is_connected():
+            db.connect()
+
+        attempts = db.quizattempt.find_many(
+            where={"class_level": int(class_level), "subject": {"in": [subj_clean, ""]}},
+            distinct=["student_id"],
+        )
+        for a in attempts:
+            if a.student_id and a.student_id != clean_exclude:
+                candidates.add(a.student_id)
+
         students = db.user.find_many(where={"role": "student"})
         for s in students:
             s_class = s.class_level or 10
             if s_class == int(class_level) and s.id != clean_exclude:
                 candidates.add(s.id)
-        db.disconnect()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Could not load candidates: {e}")
 
     return sorted(list(candidates))
-
-
