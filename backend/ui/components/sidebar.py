@@ -48,17 +48,6 @@ def render_sidebar():
             if selected_class != st.session_state.selected_class:
                 st.session_state.selected_class = selected_class
 
-            # Focus Chapter
-            chapter_options = ["All Chapters"]
-            if selected_class in ("Class 9", "Class 10"):
-                cls_int = 9 if selected_class == "Class 9" else 10
-                chs = curriculum_service.get_chapters_for_grade(cls_int)
-                for ch in chs:
-                    chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
-
-            selected_chapter = st.selectbox("Focus Chapter (Optional)", chapter_options)
-            st.session_state.selected_chapter = selected_chapter
-
             st.divider()
 
             st.markdown("#### LLM Model")

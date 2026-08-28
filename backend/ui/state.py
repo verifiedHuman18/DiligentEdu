@@ -11,8 +11,6 @@ def init_session_state() -> None:
         st.session_state.messages = []
     if "selected_class" not in st.session_state:
         st.session_state.selected_class = "All Classes"
-    if "selected_chapter" not in st.session_state:
-        st.session_state.selected_chapter = "All Chapters"
     if "student_id" not in st.session_state:
         st.session_state.student_id = "student_001"
     if "model" not in st.session_state:

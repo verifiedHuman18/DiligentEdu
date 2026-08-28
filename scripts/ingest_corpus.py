@@ -107,7 +107,7 @@ def process_corpus(
     )
 
     all_chunks = []
-    
+
     # Define targets to process
     corpus_targets = [
         ("class9_science", 9, "Science", "class9_sci"),
@@ -246,7 +246,9 @@ def embed_and_upsert(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="NCERT Science & Mathematics Ingestion & Indexing Pipeline")
+    parser = argparse.ArgumentParser(
+        description="NCERT Science & Mathematics Ingestion & Indexing Pipeline"
+    )
     parser.add_argument("--chunk-size", type=int, default=800, help="Chunk character length")
     parser.add_argument(
         "--chunk-overlap", type=int, default=100, help="Chunk overlap character length"

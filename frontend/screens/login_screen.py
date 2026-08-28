@@ -68,7 +68,10 @@ def render_login_screen() -> None:
 
                 # 3. Set Session State
                 st.session_state.firebase_token = auth_data["idToken"]
-                st.session_state.user_name = auth_data.get("displayName") or uid
+                db_name = user.name if user and user.name else None
+                st.session_state.user_name = (
+                    db_name or auth_data.get("displayName") or email.split("@")[0]
+                )
 
                 if role == "teacher":
                     st.session_state.teacher_id = student_id

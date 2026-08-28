@@ -1,6 +1,5 @@
 """Tests for Study Material File Validation and Sanitization (Phases 1-3, 20)."""
 
-import io
 import unittest
 
 import fitz  # PyMuPDF
@@ -33,9 +32,7 @@ class TestStudyMaterialValidation(unittest.TestCase):
     def test_sanitize_filename(self):
         """Test sanitization of potentially unsafe or weird filenames."""
         self.assertEqual(sanitize_filename("valid_notes.pdf"), "valid_notes.pdf")
-        self.assertEqual(
-            sanitize_filename("../../etc/passwd.pdf"), "passwd.pdf"
-        )
+        self.assertEqual(sanitize_filename("../../etc/passwd.pdf"), "passwd.pdf")
         self.assertEqual(
             sanitize_filename("Physics Reference & Notes (Class 10)!.pdf"),
             "Physics Reference _ Notes (Class 10)_.pdf",

@@ -38,7 +38,6 @@ def render_home_screen(
 
     swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     has_data = swat.get("has_data", False)
-    selected_chapter = st.session_state.get("selected_chapter", "All Chapters")
     class_display = f"Class {class_level}"
     student_name = st.session_state.get("user_name", student_id)
 
@@ -64,7 +63,6 @@ Welcome, <span style="color: var(--md-primary);">{student_name}</span>
 <div class="m3-chips-group">
 <span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.1rem;">school</span> Class: {class_display}</span>
 <span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Subject: {subject}</span>
-<span class="m3-chip m3-chip-purple"><span class="material-symbols-outlined" style="font-size: 1.1rem;">auto_stories</span> Focus: {selected_chapter}</span>
 <span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">description</span> Material: {uploaded_count} Active</span>
 </div>
 <div class="m3-stats-grid">
@@ -96,7 +94,6 @@ Welcome, <span style="color: var(--md-primary);">{student_name}</span>
 <div class="m3-chips-group" style="margin-bottom: 0.8rem;">
 <span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.1rem;">school</span> Class: {class_display}</span>
 <span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Subject: {subject}</span>
-<span class="m3-chip m3-chip-purple"><span class="material-symbols-outlined" style="font-size: 1.1rem;">auto_stories</span> Focus: {selected_chapter}</span>
 <span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">description</span> Material: {uploaded_count} Active</span>
 </div>
 <div style="font-size: 1.0rem; color: var(--text-secondary); line-height: 1.5; max-width: 650px;">
@@ -187,7 +184,6 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
                     use_container_width=True,
                     help=f"Practice {act['chapter']} now ({diff_str} difficulty)",
                 ):
-                    st.session_state.selected_chapter = act["chapter"]
                     st.session_state.quiz_difficulty = act["difficulty"]
                     navigate_to("quiz")
                     st.rerun()

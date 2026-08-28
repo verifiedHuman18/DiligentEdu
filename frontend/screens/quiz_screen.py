@@ -129,14 +129,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
             ch_display_map[label] = ch["chapter"]
             ch_labels.append(label)
 
-        default_ch = st.session_state.get("selected_chapter")
         default_idx = 0
-        if default_ch:
-            for idx, lbl in enumerate(ch_labels):
-                if default_ch in lbl:
-                    default_idx = idx
-                    break
-
         selected_ch_label = st.selectbox(
             f"Chapter ({subject})", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
         )

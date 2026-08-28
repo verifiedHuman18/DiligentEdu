@@ -23,7 +23,6 @@ def init_session_state() -> None:
         "selected_class": "Class 10",
         "subject": "Science",
         "selected_subject": "Science",
-        "selected_chapter": "All Chapters",
         "student_id": "student_001",
         "model": config.default_llm_model
         if hasattr(config, "default_llm_model")
@@ -91,7 +90,6 @@ def set_student_class_level(class_level: int) -> None:
         st.session_state.quiz_submitted = False
         st.session_state.quiz_user_answers = {}
         st.session_state.last_submission_result = None
-        st.session_state.selected_chapter = "All Chapters"
         st.session_state.socrates_active_q = 1
         st.session_state.socrates_hints_revealed = {}
         st.session_state.socrates_chat_history = {}
@@ -128,7 +126,6 @@ def set_student_subject(subject: str) -> None:
         st.session_state.quiz_submitted = False
         st.session_state.quiz_user_answers = {}
         st.session_state.last_submission_result = None
-        st.session_state.selected_chapter = "All Chapters"
         st.session_state.socrates_active_q = 1
         st.session_state.socrates_hints_revealed = {}
         st.session_state.socrates_chat_history = {}
@@ -145,7 +142,6 @@ def get_student_profile() -> Dict[str, Any]:
         "student_id": st.session_state.get("student_id", "student_001"),
         "class_level": get_student_class_level(),
         "subject": get_student_subject(),
-        "selected_chapter": st.session_state.get("selected_chapter", "All Chapters"),
         "model": st.session_state.get("model", "gemini-3.5-flash-lite"),
     }
 

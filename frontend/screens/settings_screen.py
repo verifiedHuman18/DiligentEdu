@@ -2,7 +2,6 @@
 
 import streamlit as st
 
-from backend.curriculum.service import curriculum_service
 from frontend.components.navigation import render_back_to_home
 from frontend.state import navigate_to
 
@@ -211,11 +210,12 @@ def render_settings_screen() -> None:
                 )
                 st.write("")
 
-                teacher_id = st.text_input(
-                    "Teacher Name / ID",
-                    value=st.session_state.get("teacher_id", "teacher_001"),
-                    help="Unique identifier for educator diagnostic session.",
-                    key="settings_teacher_id_input",
+                st.text_input(
+                    "Teacher Name",
+                    value=st.session_state.get("user_name", "Teacher"),
+                    disabled=True,
+                    help="Your registered educator name.",
+                    key="settings_teacher_name_input",
                 )
 
                 st.write("")
@@ -248,7 +248,6 @@ def render_settings_screen() -> None:
                 ):
                     set_student_class_level(new_cls_int)
                     set_student_subject(selected_subj)
-                    st.session_state.teacher_id = teacher_id.strip() or "teacher_001"
                     st.success("Teacher profile saved successfully!")
                     st.rerun()
             else:
@@ -258,11 +257,12 @@ def render_settings_screen() -> None:
                 )
                 st.write("")
 
-                student_id = st.text_input(
-                    "Student Name / ID",
-                    value=st.session_state.get("student_id", "student_001"),
-                    help="Unique identifier for tracking your analytics and quiz attempts.",
-                    key="settings_student_id_input",
+                st.text_input(
+                    "Student Name",
+                    value=st.session_state.get("user_name", "Student"),
+                    disabled=True,
+                    help="Your registered name.",
+                    key="settings_student_name_input",
                 )
 
                 st.write("")
@@ -280,20 +280,6 @@ def render_settings_screen() -> None:
                 )
 
                 st.write("")
-                chapter_options = ["All Chapters"]
-                chs = curriculum_service.get_chapters_for_grade(new_cls_int, subject=selected_subj)
-                for ch in chs:
-                    chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
-
-                curr_chapter = st.session_state.get("selected_chapter", "All Chapters")
-                curr_ch_idx = (
-                    chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
-                )
-                selected_chapter = st.selectbox(
-                    f"Default Focus Chapter ({selected_subj})", chapter_options, index=curr_ch_idx
-                )
-
-                st.write("")
                 if st.button(
                     "Save Changes",
                     type="primary",
@@ -302,8 +288,6 @@ def render_settings_screen() -> None:
                 ):
                     set_student_class_level(new_cls_int)
                     set_student_subject(selected_subj)
-                    st.session_state.student_id = student_id.strip() or "student_001"
-                    st.session_state.selected_chapter = selected_chapter
                     st.success(
                         f"Profile saved successfully! Master Standard set to Class {new_cls_int} ({selected_subj})."
                     )

@@ -36,12 +36,10 @@ class TestClassStateInvalidation(unittest.TestCase):
         st.session_state.quiz_submitted = True
         st.session_state.quiz_user_answers = {"q1": "A"}
         st.session_state.last_submission_result = {"score": 100}
-        st.session_state.selected_chapter = "Electricity"
 
         # Verify state is populated
         self.assertIsNotNone(st.session_state.current_quiz)
         self.assertTrue(st.session_state.quiz_submitted)
-        self.assertEqual(st.session_state.selected_chapter, "Electricity")
 
         # 2. Switch master profile standard from Class 10 to Class 9
         set_student_class_level(9)
@@ -52,20 +50,17 @@ class TestClassStateInvalidation(unittest.TestCase):
         self.assertFalse(st.session_state.quiz_submitted)
         self.assertEqual(st.session_state.quiz_user_answers, {})
         self.assertIsNone(st.session_state.last_submission_result)
-        self.assertEqual(st.session_state.selected_chapter, "All Chapters")
 
     def test_reasserting_same_class_level_does_not_clear_quiz(self):
         """Setting the same class level (e.g. 10 -> 10) does not clear in-progress quiz."""
         set_student_class_level(10)
         st.session_state.current_quiz = {"quiz_id": "q_active_10"}
-        st.session_state.selected_chapter = "Electricity"
 
         # Reassert Class 10
         set_student_class_level(10)
 
         # In-progress quiz remains intact
         self.assertIsNotNone(st.session_state.current_quiz)
-        self.assertEqual(st.session_state.selected_chapter, "Electricity")
 
     def test_strict_teacher_binary_view(self):
         """Phase 17: Teacher view contracts strictly support only class_level 9 or 10."""

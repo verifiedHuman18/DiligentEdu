@@ -65,17 +65,6 @@ def render_sidebar() -> Tuple[str, str, str, str]:
                 set_student_class_level(target_cls_int)
                 st.rerun()
 
-            # Focus Chapter
-            chapter_options = ["All Chapters"]
-            chs = curriculum_service.get_chapters_for_grade(target_cls_int)
-            for ch in chs:
-                chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
-
-            selected_chapter = st.selectbox(
-                "Focus Chapter (Optional)", chapter_options, key="sidebar_ch_select"
-            )
-            st.session_state.selected_chapter = selected_chapter
-
             st.divider()
 
             # 4. LLM Model Selection
