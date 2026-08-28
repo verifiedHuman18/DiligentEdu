@@ -27,18 +27,18 @@ class TestNCERTBookViewer(unittest.TestCase):
         init_session_state()
 
     def test_class_10_electricity_pdf_resolution(self):
-        """Class 10 Electricity resolves to data/class10/jesc111.pdf and exists on disk."""
+        """Class 10 Electricity resolves to data/class10_sci/jesc111.pdf and exists on disk."""
         pdf_info = get_chapter_pdf(10, "Electricity")
         self.assertEqual(pdf_info["class_level"], 10)
         self.assertEqual(pdf_info["chapter_number"], 11)
         self.assertEqual(pdf_info["chapter_name"], "Electricity")
         self.assertEqual(pdf_info["filename"], "jesc111.pdf")
-        self.assertEqual(pdf_info["pdf_path"], "data/class10/jesc111.pdf")
+        self.assertEqual(pdf_info["pdf_path"], "data/class10_sci/jesc111.pdf")
         self.assertTrue(pdf_info["exists"])
         self.assertTrue(os.path.isfile(pdf_info["pdf_path"]))
 
     def test_class_10_chapter_1_pdf_resolution(self):
-        """Class 10 Chapter 1 resolves to data/class10/jesc101.pdf and exists on disk."""
+        """Class 10 Chapter 1 resolves to data/class10_sci/jesc101.pdf and exists on disk."""
         pdf_info = get_chapter_pdf(10, 1)
         self.assertEqual(pdf_info["class_level"], 10)
         self.assertEqual(pdf_info["chapter_number"], 1)
@@ -47,18 +47,18 @@ class TestNCERTBookViewer(unittest.TestCase):
         self.assertTrue(pdf_info["exists"])
 
     def test_class_9_motion_pdf_resolution(self):
-        """Class 9 Describing Motion resolves to data/class9/iesc104.pdf and exists on disk."""
+        """Class 9 Describing Motion resolves to data/class9_sci/iesc104.pdf and exists on disk."""
         pdf_info = get_chapter_pdf(9, "Describing Motion Around Us")
         self.assertEqual(pdf_info["class_level"], 9)
         self.assertEqual(pdf_info["chapter_number"], 4)
         self.assertEqual(pdf_info["chapter_name"], "Describing Motion Around Us")
         self.assertEqual(pdf_info["filename"], "iesc104.pdf")
-        self.assertEqual(pdf_info["pdf_path"], "data/class9/iesc104.pdf")
+        self.assertEqual(pdf_info["pdf_path"], "data/class9_sci/iesc104.pdf")
         self.assertTrue(pdf_info["exists"])
         self.assertTrue(os.path.isfile(pdf_info["pdf_path"]))
 
     def test_class_9_chapter_2_cell_pdf_resolution(self):
-        """Class 9 Chapter 2 resolves to data/class9/iesc102.pdf and exists on disk."""
+        """Class 9 Chapter 2 resolves to data/class9_sci/iesc102.pdf and exists on disk."""
         pdf_info = get_chapter_pdf(9, 2)
         self.assertEqual(pdf_info["class_level"], 9)
         self.assertEqual(pdf_info["chapter_number"], 2)
@@ -77,14 +77,14 @@ class TestNCERTBookViewer(unittest.TestCase):
         self.assertEqual(len(c10), 13)
         for ch in c10:
             self.assertIn("pdf_path", ch)
-            self.assertTrue(ch["pdf_path"].startswith("data/class10/"))
+            self.assertTrue(ch["pdf_path"].startswith("data/class10_sci/"))
             self.assertTrue(os.path.isfile(ch["pdf_path"]))
 
         c9 = backend.get_ncert_curriculum(9)
         self.assertEqual(len(c9), 13)
         for ch in c9:
             self.assertIn("pdf_path", ch)
-            self.assertTrue(ch["pdf_path"].startswith("data/class9/"))
+            self.assertTrue(ch["pdf_path"].startswith("data/class9_sci/"))
             self.assertTrue(os.path.isfile(ch["pdf_path"]))
 
     def test_render_chapter_screen_with_pdf_viewer(self):

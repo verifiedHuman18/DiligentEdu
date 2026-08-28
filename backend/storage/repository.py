@@ -35,6 +35,7 @@ class QuizRepository:
             or f"quiz_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         )
         class_level = int(quiz_data.get("class_level", 10))
+        subject = str(quiz_data.get("subject", "Science"))
         chapter = str(quiz_data.get("chapter", "Science"))
         chapter_number = int(quiz_data.get("chapter_number", 0))
         difficulty = str(quiz_data.get("difficulty", "medium")).lower()
@@ -70,6 +71,12 @@ class QuizRepository:
 
             sp = q.get("source_pages", [])
             sp_json = json.dumps(sp)
+            raw_concept = q.get("concept_id") or q.get("concept") or q.get("concepts") or ""
+            concept_str = (
+                json.dumps(raw_concept)
+                if isinstance(raw_concept, list)
+                else str(raw_concept).strip()
+            )
 
             question_records.append(
                 {
@@ -82,6 +89,7 @@ class QuizRepository:
                     "correct_answer": correct_ans,
                     "is_correct": 1 if is_corr else 0,
                     "source_pages": sp_json,
+                    "concept_id": concept_str,
                 }
             )
 
@@ -95,14 +103,15 @@ class QuizRepository:
                 cursor.execute(
                     """
                     INSERT OR REPLACE INTO quiz_attempts (
-                        quiz_id, student_id, class_level, chapter, chapter_number,
+                        quiz_id, student_id, class_level, subject, chapter, chapter_number,
                         difficulty, score, total_questions, percentage, timestamp
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         q_id,
                         clean_student_id,
                         class_level,
+                        subject,
                         chapter,
                         chapter_number,
                         difficulty,
@@ -118,8 +127,8 @@ class QuizRepository:
                         """
                         INSERT INTO question_responses (
                             quiz_id, question_id, question_text, chapter, difficulty,
-                            user_answer, correct_answer, is_correct, source_pages
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            user_answer, correct_answer, is_correct, source_pages, concept_id
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                         (
                             qr["quiz_id"],
@@ -131,6 +140,7 @@ class QuizRepository:
                             qr["correct_answer"],
                             qr["is_correct"],
                             qr["source_pages"],
+                            qr["concept_id"],
                         ),
                     )
 
@@ -143,6 +153,7 @@ class QuizRepository:
             "quiz_id": q_id,
             "student_id": clean_student_id,
             "class_level": class_level,
+            "subject": subject,
             "chapter": chapter,
             "chapter_number": chapter_number,
             "difficulty": difficulty,
@@ -157,38 +168,35 @@ class QuizRepository:
         self,
         student_id: str,
         class_level: Optional[int] = None,
+        subject: Optional[str] = None,
         include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
         """
-        Retrieves chronological quiz attempts for a student, optionally filtered by class_level.
-        Directly filters by class_level at the query level when specified.
+        Retrieves chronological quiz attempts for a student, optionally filtered by class_level and subject.
+        Directly filters by class_level and subject at the query level when specified.
         """
         clean_id = str(student_id).strip()
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
+                query = "SELECT * FROM quiz_attempts WHERE student_id = ?"
+                params: List[Any] = [clean_id]
+
                 if class_level is not None:
                     try:
                         class_int = int(class_level)
                     except (ValueError, TypeError):
                         raise ValueError(f"Invalid class_level: {class_level}")
-                    cursor.execute(
-                        """
-                        SELECT * FROM quiz_attempts
-                        WHERE student_id = ? AND class_level = ?
-                        ORDER BY timestamp ASC
-                    """,
-                        (clean_id, class_int),
-                    )
-                else:
-                    cursor.execute(
-                        """
-                        SELECT * FROM quiz_attempts
-                        WHERE student_id = ?
-                        ORDER BY timestamp ASC
-                    """,
-                        (clean_id,),
-                    )
+                    query += " AND class_level = ?"
+                    params.append(class_int)
+
+                if subject is not None:
+                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                    query += " AND subject = ?"
+                    params.append(subj_clean)
+
+                query += " ORDER BY timestamp ASC"
+                cursor.execute(query, tuple(params))
 
                 rows = cursor.fetchall()
                 history = [dict(row) for row in rows]
@@ -228,17 +236,19 @@ class QuizRepository:
         self,
         student_id: str,
         class_level: int,
+        subject: Optional[str] = None,
         include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
         """
-        Dedicated class-scoped retrieval function.
-        Guarantees that attempts outside the requested class_level are never fetched.
+        Dedicated class- and subject-scoped retrieval function.
+        Guarantees that attempts outside the requested class_level and subject are never fetched.
         """
         if class_level is None:
             raise ValueError("class_level is required for get_student_class_history")
         return self.get_student_history(
             student_id=student_id,
             class_level=int(class_level),
+            subject=subject,
             include_questions=include_questions,
         )
 
@@ -281,12 +291,14 @@ class QuizRepository:
         class_level: int,
         plan_data: Dict[str, Any],
         teacher_notes: Optional[str] = None,
+        subject: str = "Science",
     ) -> Dict[str, Any]:
         """
-        Saves or updates a customized teacher action plan for a student and class level.
+        Saves or updates a customized teacher action plan for a student, class level, and subject.
         """
         clean_id = str(student_id).strip()
         class_int = int(class_level)
+        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         plan_json = json.dumps(plan_data)
         notes = (str(teacher_notes).strip()) if teacher_notes is not None else None
         ts = datetime.now(timezone.utc).isoformat()
@@ -296,38 +308,40 @@ class QuizRepository:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    INSERT INTO teacher_action_plans (student_id, class_level, plan_data, teacher_notes, updated_at)
-                    VALUES (?, ?, ?, ?, ?)
-                    ON CONFLICT(student_id, class_level) DO UPDATE SET
+                    INSERT INTO teacher_action_plans (student_id, class_level, subject, plan_data, teacher_notes, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(student_id, class_level, subject) DO UPDATE SET
                         plan_data = excluded.plan_data,
                         teacher_notes = excluded.teacher_notes,
                         updated_at = excluded.updated_at
                 """,
-                    (clean_id, class_int, plan_json, notes, ts),
+                    (clean_id, class_int, subj_clean, plan_json, notes, ts),
                 )
                 conn.commit()
         except Exception as e:
             logger.error(
-                f"Failed to save teacher action plan for {student_id} Class {class_level}: {e}"
+                f"Failed to save teacher action plan for {student_id} Class {class_level} {subj_clean}: {e}"
             )
             raise StorageError(f"Failed to save teacher action plan: {e}")
 
         return {
             "student_id": clean_id,
             "class_level": class_int,
+            "subject": subj_clean,
             "plan_data": plan_data,
             "teacher_notes": notes,
             "updated_at": ts,
         }
 
     def get_teacher_custom_plan(
-        self, student_id: str, class_level: int
+        self, student_id: str, class_level: int, subject: str = "Science"
     ) -> Optional[Dict[str, Any]]:
         """
-        Retrieves active custom teacher action plan for a student and class level if present.
+        Retrieves active custom teacher action plan for a student, class level, and subject if present.
         """
         clean_id = str(student_id).strip()
         class_int = int(class_level)
+        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -335,9 +349,9 @@ class QuizRepository:
                     """
                     SELECT plan_data, teacher_notes, updated_at
                     FROM teacher_action_plans
-                    WHERE student_id = ? AND class_level = ?
+                    WHERE student_id = ? AND class_level = ? AND subject = ?
                 """,
-                    (clean_id, class_int),
+                    (clean_id, class_int, subj_clean),
                 )
                 row = cursor.fetchone()
                 if not row:
@@ -347,43 +361,246 @@ class QuizRepository:
                 return {
                     "student_id": clean_id,
                     "class_level": class_int,
+                    "subject": subj_clean,
                     "plan_data": plan_content,
                     "teacher_notes": row["teacher_notes"],
                     "updated_at": row["updated_at"],
                 }
         except Exception as e:
             logger.error(
-                f"Failed to fetch teacher custom plan for {student_id} Class {class_level}: {e}"
+                f"Failed to fetch teacher custom plan for {student_id} Class {class_level} {subj_clean}: {e}"
             )
             return None
 
-    def delete_teacher_action_plan(self, student_id: str, class_level: int) -> bool:
+    def delete_teacher_action_plan(
+        self, student_id: str, class_level: int, subject: str = "Science"
+    ) -> bool:
         """
-        Deletes custom action plan for a student and class level, resetting to default SWAT recommendations.
+        Deletes custom action plan for a student, class level, and subject, resetting to default SWAT recommendations.
         """
         clean_id = str(student_id).strip()
         class_int = int(class_level)
+        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
                     DELETE FROM teacher_action_plans
-                    WHERE student_id = ? AND class_level = ?
+                    WHERE student_id = ? AND class_level = ? AND subject = ?
                 """,
-                    (clean_id, class_int),
+                    (clean_id, class_int, subj_clean),
                 )
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
             logger.error(
-                f"Failed to delete teacher action plan for {student_id} Class {class_level}: {e}"
+                f"Failed to delete teacher action plan for {student_id} Class {class_level} {subj_clean}: {e}"
             )
             raise StorageError(f"Failed to delete teacher action plan: {e}")
 
 
-# Default repository instance
+class StudyMaterialRepository:
+    """Provides type-safe CRUD operations for student uploaded study documents."""
+
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or str(config.default_db_path)
+
+    def save_document_record(
+        self,
+        document_id: str,
+        student_id: str,
+        filename: str,
+        material_name: str,
+        class_level: int,
+        subject: str = "Science",
+        chapter: Optional[str] = None,
+        status: Any = "PROCESSING",
+        file_size_bytes: int = 0,
+        uploaded_at: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Creates or replaces an uploaded document metadata record."""
+        clean_doc_id = str(document_id).strip()
+        clean_student_id = str(student_id).strip()
+        class_int = int(class_level)
+        status_val = status.value if hasattr(status, "value") else str(status)
+        ts = uploaded_at or datetime.now(timezone.utc).isoformat()
+
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO uploaded_documents (
+                        document_id, student_id, filename, material_name, class_level,
+                        subject, chapter, status, error_message, page_count, chunk_count,
+                        file_size_bytes, uploaded_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        clean_doc_id,
+                        clean_student_id,
+                        filename,
+                        material_name,
+                        class_int,
+                        subject,
+                        chapter,
+                        status_val,
+                        None,
+                        0,
+                        0,
+                        file_size_bytes,
+                        ts,
+                    ),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to save document record {clean_doc_id}: {e}")
+            raise StorageError(f"Failed to save document record in database: {e}")
+
+        return {
+            "document_id": clean_doc_id,
+            "student_id": clean_student_id,
+            "filename": filename,
+            "material_name": material_name,
+            "class_level": class_int,
+            "subject": subject,
+            "chapter": chapter,
+            "status": status_val,
+            "file_size_bytes": file_size_bytes,
+            "uploaded_at": ts,
+            "page_count": 0,
+            "chunk_count": 0,
+        }
+
+    def update_document_status(
+        self,
+        document_id: str,
+        status: Any,
+        error_message: Optional[str] = None,
+        page_count: Optional[int] = None,
+        chunk_count: Optional[int] = None,
+    ) -> bool:
+        """Updates the status, counts, and error message of an uploaded document."""
+        clean_doc_id = str(document_id).strip()
+        status_val = status.value if hasattr(status, "value") else str(status)
+
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                updates = ["status = ?"]
+                params: List[Any] = [status_val]
+
+                if error_message is not None:
+                    updates.append("error_message = ?")
+                    params.append(error_message)
+                if page_count is not None:
+                    updates.append("page_count = ?")
+                    params.append(int(page_count))
+                if chunk_count is not None:
+                    updates.append("chunk_count = ?")
+                    params.append(int(chunk_count))
+
+                params.append(clean_doc_id)
+                query = f"UPDATE uploaded_documents SET {', '.join(updates)} WHERE document_id = ?"
+                cursor.execute(query, tuple(params))
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Failed to update status for document {clean_doc_id}: {e}")
+            raise StorageError(f"Failed to update document status: {e}")
+
+    def get_student_documents(
+        self,
+        student_id: str,
+        class_level: Optional[int] = None,
+        chapter: Optional[str] = None,
+        subject: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieves all uploaded documents for a student, optionally filtered by class level, chapter, and subject.
+        """
+        clean_student_id = str(student_id).strip()
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                query = "SELECT * FROM uploaded_documents WHERE student_id = ?"
+                params: List[Any] = [clean_student_id]
+
+                if class_level is not None:
+                    query += " AND class_level = ?"
+                    params.append(int(class_level))
+
+                if subject is not None:
+                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                    query += " AND (subject = ? OR subject = '')"
+                    params.append(subj_clean)
+
+                if chapter is not None and chapter != "All Chapters":
+                    query += " AND (chapter = ? OR chapter IS NULL OR chapter = '')"
+                    params.append(str(chapter))
+
+                query += " ORDER BY uploaded_at DESC"
+                cursor.execute(query, tuple(params))
+                rows = cursor.fetchall()
+                return [dict(r) for r in rows]
+        except Exception as e:
+            logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
+            raise StorageError(f"Failed to fetch uploaded documents: {e}")
+        except Exception as e:
+            logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
+            raise StorageError(f"Failed to fetch uploaded documents: {e}")
+
+    def get_document_by_id(self, document_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieves a single uploaded document record by document_id."""
+        clean_doc_id = str(document_id).strip()
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT * FROM uploaded_documents WHERE document_id = ?",
+                    (clean_doc_id,),
+                )
+                row = cursor.fetchone()
+                return dict(row) if row else None
+        except Exception as e:
+            logger.error(f"Failed to fetch document {clean_doc_id}: {e}")
+            return None
+
+    def delete_document_record(self, document_id: str, student_id: Optional[str] = None) -> bool:
+        """
+        Deletes a document record from the registry database.
+        Optionally validates student_id ownership.
+        """
+        clean_doc_id = str(document_id).strip()
+        try:
+            with get_db_connection(self.db_path) as conn:
+                cursor = conn.cursor()
+                if student_id is not None:
+                    cursor.execute(
+                        "DELETE FROM uploaded_documents WHERE document_id = ? AND student_id = ?",
+                        (clean_doc_id, str(student_id).strip()),
+                    )
+                else:
+                    cursor.execute(
+                        "DELETE FROM uploaded_documents WHERE document_id = ?",
+                        (clean_doc_id,),
+                    )
+                conn.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            logger.error(f"Failed to delete document {clean_doc_id}: {e}")
+            raise StorageError(f"Failed to delete document record: {e}")
+
+    def count_student_documents(self, student_id: str, class_level: Optional[int] = None) -> int:
+        """Returns count of READY uploaded documents for a student."""
+        docs = self.get_student_documents(student_id=student_id, class_level=class_level)
+        return len([d for d in docs if d.get("status") == "READY"])
+
+
+# Default repository instances
 quiz_repository = QuizRepository()
+study_material_repository = StudyMaterialRepository()
 
 
 def get_student_class_history(
@@ -399,3 +616,27 @@ def get_student_class_history(
         class_level=class_level,
         include_questions=include_questions,
     )
+
+
+def get_student_study_materials(
+    student_id: str,
+    class_level: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Standalone helper for retrieving student study materials."""
+    repo = (
+        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    )
+    return repo.get_student_documents(student_id=student_id, class_level=class_level)
+
+
+def delete_student_study_material(
+    document_id: str,
+    student_id: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> bool:
+    """Standalone helper for deleting a student study material record."""
+    repo = (
+        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    )
+    return repo.delete_document_record(document_id=document_id, student_id=student_id)

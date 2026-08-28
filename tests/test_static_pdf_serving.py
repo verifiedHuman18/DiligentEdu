@@ -43,10 +43,10 @@ class TestStaticPDFServing(unittest.TestCase):
     def test_resolver_returns_static_url(self):
         """Phase 5: get_chapter_pdf returns static_url accessible by Streamlit."""
         info_c10 = get_chapter_pdf(10, "Electricity")
-        self.assertEqual(info_c10["static_url"], "app/static/class10/jesc111.pdf")
+        self.assertEqual(info_c10["static_url"], "app/static/class10_sci/jesc111.pdf")
 
         info_c9 = get_chapter_pdf(9, "Describing Motion Around Us")
-        self.assertEqual(info_c9["static_url"], "app/static/class9/iesc104.pdf")
+        self.assertEqual(info_c9["static_url"], "app/static/class9_sci/iesc104.pdf")
 
     def test_render_chapter_screen_with_link_button(self):
         """Phase 4 & 8: Chapter screen executes cleanly with st.link_button and actions."""
@@ -56,8 +56,8 @@ class TestStaticPDFServing(unittest.TestCase):
             "chapter_number": 11,
             "chapter": "Electricity",
             "filename": "jesc111.pdf",
-            "pdf_path": "data/class10/jesc111.pdf",
-            "static_url": "app/static/class10/jesc111.pdf",
+            "pdf_path": "data/class10_sci/jesc111.pdf",
+            "static_url": "app/static/class10_sci/jesc111.pdf",
         }
         try:
             render_chapter_screen(student_id="student_001")

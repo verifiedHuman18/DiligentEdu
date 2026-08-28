@@ -1,23 +1,45 @@
-"""Teacher Analytics & Early-Warning Diagnostic Engine (Zero LLM calls)."""
+"""Teacher Diagnostics and Master Analytics Service (Phase 13, 20 & Cross-Subject Support).
+
+Aggregates student performance across class levels and subjects, provides categorized SWAT summaries,
+real-time status engines, chapter-level metrics, and full action-plan supporting statistics.
+"""
 
 import logging
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from backend.analytics.swat import get_student_swat
-from backend.curriculum.service import curriculum_service
 from backend.storage.repository import quiz_repository
 
 logger = logging.getLogger(__name__)
 
 
-def _format_date(iso_timestamp: str) -> str:
-    """Formats ISO timestamp into short date like 'Aug 19'."""
+def _format_date(iso_str: Optional[str]) -> str:
+    """Formats ISO timestamp (YYYY-MM-DDTHH:MM:SS) into readable date format (DD Mon YYYY)."""
+    if not iso_str:
+        return "N/A"
     try:
-        dt = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
-        return dt.strftime("%b %d")
+        parts = iso_str.split("T")[0].split("-")
+        if len(parts) == 3:
+            months = [
+                "",
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+            ]
+            y, m, d = parts[0], int(parts[1]), int(parts[2])
+            return f"{d} {months[m]} {y}"
     except Exception:
-        return iso_timestamp[:10] if iso_timestamp else "N/A"
+        pass
+    return iso_str[:10] if len(iso_str) >= 10 else iso_str
 
 
 def get_all_students_from_db() -> List[Dict[str, Any]]:
@@ -47,97 +69,108 @@ def promote_student_in_db(student_id: str, new_class_level: int) -> None:
 def get_teacher_student_overview(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """13.1 Overall Student Statistics (Class-Isolated)."""
+    """13.1 Master Diagnostic Overview for Teacher View (Class- and Subject-Isolated)."""
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
-
-    resolved_class = (
-        int(class_level)
-        if class_level is not None
-        else (history[-1].get("class_level", 10) if history else 10)
+    history = repo.get_student_history(
+        student_id, class_level=class_level, subject=subj_clean, include_questions=False
     )
-    total_chapters_count = (
-        len(curriculum_service.get_chapters_for_grade(resolved_class))
-        if resolved_class in [9, 10]
-        else 13
+    swat = get_student_swat(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
     )
 
-    if not history:
+    if not history or not swat.get("has_data"):
         return {
             "student_id": student_id,
+            "class": class_level,
+            "class_level": class_level,
+            "subject": subj_clean,
             "has_data": False,
-            "class": resolved_class,
-            "class_level": resolved_class,
             "overall_average": 0,
             "total_quizzes": 0,
-            "questions_attempted": 0,
-            "questions_correct": 0,
+            "total_quizzes_taken": 0,
+            "total_questions_attempted": 0,
+            "total_questions_correct": 0,
             "accuracy": 0,
-            "attempted_chapters": 0,
-            "total_chapters": total_chapters_count,
+            "last_active": None,
+            "syllabus_coverage_pct": 0,
+            "attempted_chapters_count": 0,
+            "total_chapters_count": swat.get("overall", {}).get("total_chapters", 13),
         }
 
     total_quizzes = len(history)
-    total_questions = sum(att["total_questions"] for att in history)
-    total_correct = sum(att["score"] for att in history)
-    attempted_chapters_count = len(set(att["chapter"] for att in history))
+    total_q = sum(att["total_questions"] for att in history)
+    total_corr = sum(att["score"] for att in history)
+    overall_acc = int(round((total_corr / total_q * 100))) if total_q > 0 else 0
 
-    overall_avg = (
-        int(round(sum(att["percentage"] for att in history) / total_quizzes))
-        if total_quizzes > 0
-        else 0
-    )
-    accuracy = (
-        int(round((float(total_correct) / float(total_questions)) * 100.0))
-        if total_questions > 0
-        else 0
-    )
+    sorted_by_time = sorted(history, key=lambda x: x["timestamp"], reverse=True)
+    last_ts = sorted_by_time[0]["timestamp"] if sorted_by_time else None
+
+    att_count = swat["overall"].get("attempted_chapters", 0)
+    total_chs = swat["overall"].get("total_chapters", 13)
+    cov_pct = int(round((att_count / total_chs * 100))) if total_chs > 0 else 0
 
     return {
         "student_id": student_id,
+        "class": class_level,
+        "class_level": class_level,
+        "subject": subj_clean,
         "has_data": True,
-        "class": resolved_class,
-        "class_level": resolved_class,
-        "overall_average": overall_avg,
+        "overall_average": swat["overall"]["average"],
         "total_quizzes": total_quizzes,
-        "questions_attempted": total_questions,
-        "questions_correct": total_correct,
-        "accuracy": accuracy,
-        "attempted_chapters": attempted_chapters_count,
-        "total_chapters": total_chapters_count,
+        "total_quizzes_taken": total_quizzes,
+        "total_questions_attempted": total_q,
+        "total_questions_correct": total_corr,
+        "accuracy": overall_acc,
+        "last_active": _format_date(last_ts),
+        "syllabus_coverage_pct": cov_pct,
+        "attempted_chapters_count": att_count,
+        "total_chapters_count": total_chs,
     }
 
 
 def get_teacher_chapter_statistics(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """13.2 Chapter Statistics for Teacher View (Class-Isolated)."""
-    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
-    if not swat.get("has_data"):
-        return []
-
+    """13.2 Chapter-Level Diagnostic Statistics for Teacher View (Class- and Subject-Isolated)."""
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    swat = get_student_swat(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
     breakdown = swat.get("chapter_breakdown", {})
-    chapter_stats = []
 
-    for ch_name, data in breakdown.items():
-        if data.get("category") == "unattempted" or data.get("attempts", 0) == 0:
-            continue
-        acc_val = int(round(data["accuracy"])) if data.get("accuracy") is not None else 0
-        chapter_stats.append(
-            {
-                "chapter": ch_name,
-                "average": data["score"],
-                "attempts": data["attempts"],
-                "questions_attempted": data["questions"],
-                "questions_correct": data["correct"],
-                "accuracy": acc_val,
-                "status": data["category"],
-            }
-        )
+    chapter_stats = []
+    for ch_title, data in breakdown.items():
+        if data.get("attempts", 0) > 0:
+            ch_num = data.get("chapter_number")
+            total_q = data.get("total_questions", data.get("questions", 0))
+            corr_q = data.get("questions_correct", data.get("correct", 0))
+            acc_val = data.get("accuracy")
+            score_val = data.get("score")
+            attempts_val = data.get("attempts", 0)
+            status_val = data.get("category", data.get("status", "average"))
+
+            chapter_stats.append(
+                {
+                    "chapter_number": ch_num,
+                    "chapter": ch_title,
+                    "average": score_val,
+                    "score": score_val,
+                    "attempts": attempts_val,
+                    "total_questions": total_q,
+                    "questions": total_q,
+                    "questions_correct": corr_q,
+                    "correct": corr_q,
+                    "accuracy": acc_val,
+                    "status": status_val,
+                }
+            )
 
     chapter_stats.sort(key=lambda x: (x["average"] is not None, x["average"]), reverse=True)
     return chapter_stats
@@ -146,13 +179,18 @@ def get_teacher_chapter_statistics(
 def get_teacher_quiz_history(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
+    limit: int = 10,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """13.3 Chronological Quiz History formatted for tables and plots (Class-Isolated)."""
+    """13.3 Recent Quiz History for Teacher View (Class- and Subject-Isolated)."""
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
-    if not history:
-        return []
+    history = repo.get_student_history(
+        student_id, class_level=class_level, subject=subj_clean, include_questions=False
+    )
+    if limit and len(history) > limit:
+        history = history[-limit:]
 
     formatted = []
     for att in history:
@@ -162,6 +200,7 @@ def get_teacher_quiz_history(
                 "date": _format_date(att["timestamp"]),
                 "timestamp": att["timestamp"],
                 "class_level": att["class_level"],
+                "subject": att.get("subject", subj_clean),
                 "chapter": att["chapter"],
                 "difficulty": att["difficulty"].capitalize(),
                 "score": att["score"],
@@ -177,13 +216,18 @@ def get_teacher_quiz_history(
 def get_teacher_swat_summary(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """13.4 Categorized SWAT Summary for Teacher View (Class-Isolated)."""
-    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
+    """13.4 Categorized SWAT Summary for Teacher View (Class- and Subject-Isolated)."""
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    swat = get_student_swat(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
     return {
         "student_id": student_id,
         "class_level": class_level,
+        "subject": subj_clean,
         "has_data": swat.get("has_data", False),
         "strengths": swat.get("strengths", []),
         "average_topics": swat.get("average_topics", []),
@@ -196,23 +240,30 @@ def get_teacher_swat_summary(
 def get_student_status(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Early-Warning Status Engine (Class-Isolated).
+    Early-Warning Status Engine (Class- and Subject-Isolated).
     Evaluates transparent pedagogical rules to diagnose student standing:
     - Overall Standing (Performing Well 🟢, Monitor 🟡, Needs Attention 🔴)
     - Weak-Topic Alerts (< 50%)
     - Trend Diagnosis (Declining alert vs. Improving recognition)
     """
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
-    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
+    history = repo.get_student_history(
+        student_id, class_level=class_level, subject=subj_clean, include_questions=False
+    )
+    swat = get_student_swat(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
 
     if not history or not swat.get("has_data"):
         return {
             "student_id": student_id,
             "class_level": class_level,
+            "subject": subj_clean,
             "has_data": False,
             "overall_status": "No Data",
             "status_code": "no_data",
@@ -315,6 +366,7 @@ def get_student_status(
     return {
         "student_id": student_id,
         "class_level": class_level,
+        "subject": subj_clean,
         "has_data": True,
         "overall_status": overall_status,
         "status_code": status_code,
@@ -337,25 +389,43 @@ def get_student_status(
 def get_teacher_student_profile(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Unified Master Profile for Teacher View (Class-Isolated)."""
+    """Unified Master Profile for Teacher View (Class- and Subject-Isolated)."""
     from backend.analytics.action_plan import generate_action_plan
 
-    overview = get_teacher_student_overview(student_id, class_level=class_level, db_path=db_path)
-    chapters = get_teacher_chapter_statistics(student_id, class_level=class_level, db_path=db_path)
-    history = get_teacher_quiz_history(student_id, class_level=class_level, db_path=db_path)
-    swat = get_teacher_swat_summary(student_id, class_level=class_level, db_path=db_path)
-    status = get_student_status(student_id, class_level=class_level, db_path=db_path)
-    action_plan = generate_action_plan(student_id, class_level=class_level, db_path=db_path)
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    overview = get_teacher_student_overview(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
+    chapters = get_teacher_chapter_statistics(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
+    history = get_teacher_quiz_history(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
+    swat = get_teacher_swat_summary(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
+    status = get_student_status(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
+    action_plan = generate_action_plan(
+        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    )
 
     return {
         "student_id": student_id,
         "class_level": class_level,
+        "subject": subj_clean,
         "has_data": overview["has_data"],
         "overview": overview,
+        "chapters": chapters,
         "chapter_statistics": chapters,
+        "history": history,
         "quiz_history": history,
+        "swat": swat,
         "swat_summary": swat,
         "status": status,
         "action_plan": action_plan,

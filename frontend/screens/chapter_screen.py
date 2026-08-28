@@ -24,7 +24,10 @@ def render_chapter_screen(
     # Top Navigation Back to Home (Phases 1-19)
     render_back_to_home("chapter")
 
+    from frontend.state import get_student_subject
+
     class_level = get_student_class_level()
+    subject = get_student_subject()
 
     # 1. Retrieve & Resolve Chapter Metadata (Phase 1)
     active_info = st.session_state.get("active_chapter_detail")
@@ -32,7 +35,7 @@ def render_chapter_screen(
         active_info.get("chapter") if isinstance(active_info, dict) else (active_info or 1)
     )
 
-    pdf_info = get_chapter_pdf(class_level, target_ident)
+    pdf_info = get_chapter_pdf(class_level, target_ident, subject=subject)
     ch_num = pdf_info["chapter_number"]
     ch_title = pdf_info["chapter_name"]
     filename = pdf_info["filename"]
@@ -41,7 +44,7 @@ def render_chapter_screen(
 
     st.write("")
     st.markdown(f"### Chapter {ch_num}: {ch_title}")
-    st.caption(f"Class {class_level} NCERT Science Textbook Module")
+    st.caption(f"Class {class_level} NCERT {subject} Textbook Module")
 
     # SECTION 1: Action Buttons & Textbook Access
     st.markdown(
@@ -55,7 +58,7 @@ def render_chapter_screen(
         """,
         unsafe_allow_html=True,
     )
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     # Prepare PDF Data for New Tab Link & Download
     pdf_bytes = b""
@@ -71,7 +74,7 @@ def render_chapter_screen(
     with col1:
         if file_exists:
             st.link_button(
-                "Open in New Tab",
+                "Open PDF",
                 url=static_url,
                 type="primary",
                 icon=":material/open_in_new:",
@@ -83,7 +86,7 @@ def render_chapter_screen(
                 "external_url", "https://ncert.nic.in/textbook.php?iesc1=1-13"
             )
             st.link_button(
-                "Open NCERT Portal",
+                "NCERT Portal",
                 url=online_url,
                 type="primary",
                 icon=":material/public:",
@@ -109,17 +112,29 @@ def render_chapter_screen(
 
     with col3:
         if st.button(
+            "Knowledge Map",
+            icon=":material/hub:",
+            key=f"ch_screen_kg_btn_{ch_num}",
+            use_container_width=True,
+            help="Explore concept hierarchy and mastery for this chapter",
+        ):
+            st.session_state.selected_graph_chapter = ch_title
+            navigate_to("knowledge_graph")
+            st.rerun()
+
+    with col4:
+        if st.button(
             "Ask a Doubt",
             icon=":material/chat:",
             key=f"ch_screen_doubt_btn_{ch_num}",
             use_container_width=True,
             help="Ask questions about this chapter in NCERT Tutor",
         ):
-            st.session_state.active_prompt = f"Explain the key concepts, laws, and important formulas of Chapter {ch_num}: {ch_title} in NCERT Class {class_level} Science."
+            st.session_state.active_prompt = f"Explain the key concepts, theorems, laws, and important formulas of Chapter {ch_num}: {ch_title} in NCERT Class {class_level} {subject}."
             navigate_to("tutor")
             st.rerun()
 
-    with col4:
+    with col5:
         if st.button(
             "Practice Quiz",
             type="primary",
@@ -148,7 +163,7 @@ def render_chapter_screen(
         unsafe_allow_html=True,
     )
 
-    swat = get_student_swat(student_id, class_level=class_level)
+    swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     breakdown = swat.get("chapter_breakdown", {})
     ch_stats = breakdown.get(ch_title)
 
@@ -224,7 +239,9 @@ def render_chapter_screen(
         """,
         unsafe_allow_html=True,
     )
-    all_history = quiz_repository.get_student_class_history(student_id, class_level)
+    all_history = quiz_repository.get_student_class_history(
+        student_id, class_level, subject=subject
+    )
     ch_history = [h for h in all_history if h.get("chapter") == ch_title]
 
     if ch_history:

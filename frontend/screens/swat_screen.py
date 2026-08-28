@@ -12,26 +12,29 @@ from frontend.state import get_student_class_level
 
 
 def render_swat_screen(student_id: str, selected_class: Optional[str] = None) -> None:
-    """Renders the Student Analytics and SWAT dashboard strictly bound to master profile class."""
+    """Renders the Student Analytics and SWAT dashboard strictly bound to master profile class and subject."""
     # Top Navigation Back to Home (Phases 1-19)
     render_back_to_home("swat")
 
+    from frontend.state import get_student_subject
+
     class_level = get_student_class_level()
+    subject = get_student_subject()
 
     st.write("")
-    st.markdown(f"### Performance & Topic Mastery — Class {class_level} · Science")
+    st.markdown(f"### Performance & Topic Mastery — Class {class_level} · {subject}")
     st.caption(
-        "Comprehensive SWAT analysis and chapter-wise mastery based on your student profile."
+        f"Comprehensive SWAT analysis and chapter-wise mastery based on your Class {class_level} {subject} profile."
     )
 
-    swat = get_student_swat(student_id, class_level=class_level)
+    swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     history = quiz_repository.get_student_history(
-        student_id, class_level=class_level, include_questions=True
+        student_id, class_level=class_level, subject=subject, include_questions=True
     )
 
     if not swat.get("has_data"):
         st.info(
-            f"No quiz attempts recorded yet for Class {class_level}. Take a quiz in the Practice Quiz module to view your mastery data."
+            f"No quiz attempts recorded yet for Class {class_level} {subject}. Take a quiz in the Practice Quiz module to view your mastery data."
         )
         return
 

@@ -1,6 +1,11 @@
 """Analytics package."""
 
 from backend.analytics.action_plan import generate_action_plan
+from backend.analytics.knowledge_graph import (
+    calculate_student_concept_telemetry,
+    get_available_knowledge_map_chapters,
+    get_chapter_knowledge_graph,
+)
 from backend.analytics.swat import (
     calculate_student_swat,
     format_swat_report,
@@ -32,4 +37,7 @@ __all__ = [
     "get_teacher_swat_summary",
     "get_student_status",
     "get_teacher_student_profile",
+    "get_chapter_knowledge_graph",
+    "calculate_student_concept_telemetry",
+    "get_available_knowledge_map_chapters",
 ]

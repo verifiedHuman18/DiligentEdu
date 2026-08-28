@@ -96,6 +96,8 @@ class TestBackendFacade(unittest.TestCase):
                 chapter="Electricity",
                 difficulty="medium",
                 num_questions=5,
+                subject="Science",
+                student_id="test_student",
                 api_key="test_key",
                 model="gemini-2.5-flash",
                 pinecone_api_key=None,

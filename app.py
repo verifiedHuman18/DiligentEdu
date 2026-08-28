@@ -26,11 +26,13 @@ from frontend import (
     inject_custom_css,
     render_chapter_screen,
     render_home_screen,
+    render_knowledge_graph_screen,
     render_login_screen,
     render_navbar,
     render_quiz_screen,
     render_scholarships_screen,
     render_settings_screen,
+    render_study_material_screen,
     render_swat_screen,
     render_teacher_screen,
     render_tutor_screen,
@@ -151,9 +153,15 @@ async def main():
         if active_screen == "home":
             render_home_screen(selected_class=selected_class, student_id=student_id)
         elif active_screen == "tutor":
-            await render_tutor_screen(selected_model, user_api_key, selected_class)
+            await render_tutor_screen(
+                selected_model, user_api_key, selected_class, student_id=student_id
+            )
         elif active_screen == "quiz":
             await render_quiz_screen(student_id, user_api_key, selected_model)
+        elif active_screen == "knowledge_graph":
+            render_knowledge_graph_screen(student_id=student_id, user_api_key=user_api_key)
+        elif active_screen == "study_material":
+            render_study_material_screen(student_id=student_id, user_api_key=user_api_key)
         elif active_screen == "swat":
             render_swat_screen(student_id, selected_class=selected_class)
         elif active_screen == "scholarships":

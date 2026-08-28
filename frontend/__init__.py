@@ -13,10 +13,12 @@ from frontend.components import (
 from frontend.screens import (
     render_chapter_screen,
     render_home_screen,
+    render_knowledge_graph_screen,
     render_login_screen,
     render_quiz_screen,
     render_scholarships_screen,
     render_settings_screen,
+    render_study_material_screen,
     render_swat_screen,
     render_teacher_screen,
     render_tutor_screen,
@@ -60,4 +62,6 @@ __all__ = [
     "render_teacher_screen",
     "render_scholarships_screen",
     "render_settings_screen",
+    "render_study_material_screen",
+    "render_knowledge_graph_screen",
 ]

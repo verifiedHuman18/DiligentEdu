@@ -149,40 +149,188 @@ CLASS_10_SUGGESTIONS: List[Tuple[str, str]] = [
 ]
 
 
-def _get_fresh_suggestions(class_level: int) -> List[Tuple[str, str]]:
-    """Samples 4 diverse suggested questions from the active class question pool."""
-    pool = CLASS_9_SUGGESTIONS if class_level == 9 else CLASS_10_SUGGESTIONS
-    sample_k = min(4, len(pool))
-    return random.sample(pool, sample_k)
+CLASS_9_MATH_SUGGESTIONS: List[Tuple[str, str]] = [
+    (
+        "Coordinate Geometry",
+        "How do Cartesian coordinates work and how do you plot points on the coordinate plane in Class 9 Mathematics?",
+    ),
+    (
+        "Linear Polynomials",
+        "What is a linear polynomial and how do you find its zeroes and graph in Class 9 Mathematics?",
+    ),
+    (
+        "World of Numbers",
+        "Explain rational vs irrational numbers, decimal expansions, and real numbers in Class 9 Mathematics.",
+    ),
+    (
+        "Algebraic Identities",
+        "Explain key algebraic identities like (a+b)², (a-b)², (a+b)³, and (x+y+z)² with examples.",
+    ),
+    (
+        "Perimeter & Area",
+        "How do you calculate the perimeter and area of triangles, quadrilaterals, and circles in Class 9 Mathematics?",
+    ),
+    (
+        "Introduction to Probability",
+        "How is experimental probability defined and calculated using the formula P(E) = m/n?",
+    ),
+    (
+        "Sequences & Progressions",
+        "What is a mathematical sequence and how do you predict patterns and subsequent terms?",
+    ),
+    (
+        "Shapes, Lines & Angles",
+        "What are complementary, supplementary, and vertically opposite angles in geometry?",
+    ),
+]
+
+CLASS_10_MATH_SUGGESTIONS: List[Tuple[str, str]] = [
+    (
+        "Real Numbers & HCF",
+        "Explain the Fundamental Theorem of Arithmetic and how to find HCF and LCM by prime factorization.",
+    ),
+    (
+        "Quadratic Equations",
+        "Explain the quadratic formula, the discriminant D = b² - 4ac, and nature of roots in Class 10 Mathematics.",
+    ),
+    (
+        "Arithmetic Progressions",
+        "How do you derive the nth term a_n = a + (n-1)d and sum of n terms S_n in an Arithmetic Progression?",
+    ),
+    (
+        "Trigonometric Identities",
+        "State and prove fundamental trigonometric identities like sin²θ + cos²θ = 1 and 1 + tan²θ = sec²θ.",
+    ),
+    (
+        "Similar Triangles & BPT",
+        "State the Basic Proportionality Theorem (Thales Theorem) and criteria for similarity of triangles.",
+    ),
+    (
+        "Pair of Linear Equations",
+        "How do you solve a pair of linear equations in two variables using substitution and elimination methods?",
+    ),
+    (
+        "Surface Areas & Volumes",
+        "How do you find the volume and surface area of combination of solids (cylinder, cone, hemisphere)?",
+    ),
+    (
+        "Statistics & Mean/Median",
+        "How is the mean, median, and mode calculated for grouped frequency distribution data in Class 10?",
+    ),
+]
+
+
+def _get_fresh_suggestions(
+    class_level: int, subject: str = "Science", student_id: Optional[str] = None
+) -> List[Tuple[str, str]]:
+    """Samples 4 diverse suggested questions from active class/subject pool and uploaded reference books."""
+    is_math = "math" in subject.lower()
+    if is_math:
+        ncert_pool = list(
+            CLASS_9_MATH_SUGGESTIONS if class_level == 9 else CLASS_10_MATH_SUGGESTIONS
+        )
+    else:
+        ncert_pool = list(CLASS_9_SUGGESTIONS if class_level == 9 else CLASS_10_SUGGESTIONS)
+
+    uploaded_suggestions = []
+
+    # Check for student uploaded materials to inject source-aware suggestions (Phase 14 & 18)
+    if student_id:
+        try:
+            from src.academic_rag.storage.repository import study_material_repository
+
+            docs = study_material_repository.get_student_documents(
+                student_id=student_id, class_level=class_level, subject=subject
+            )
+            ready_docs = [d for d in docs if d.get("status") == "READY"]
+            for d in ready_docs[:2]:
+                mat_name = d.get("material_name") or d.get("filename", "Reference Book")
+                ch_name = d.get("chapter") or subject
+                uploaded_suggestions.append(
+                    (
+                        f"Ref: {mat_name[:18]}",
+                        f"Explain concepts and examples from my uploaded reference material '{mat_name}' relating to {ch_name} in Class {class_level} {subject}.",
+                    )
+                )
+        except Exception:
+            pass
+
+    if uploaded_suggestions:
+        k_up = min(len(uploaded_suggestions), 2)
+        k_ncert = max(0, 4 - k_up)
+        return uploaded_suggestions[:k_up] + random.sample(
+            ncert_pool, min(k_ncert, len(ncert_pool))
+        )
+    else:
+        return random.sample(ncert_pool, min(4, len(ncert_pool)))
 
 
 async def render_tutor_screen(
-    selected_model: str, user_api_key: str, selected_class: Optional[str] = None
+    selected_model: str,
+    user_api_key: str,
+    selected_class: Optional[str] = None,
+    student_id: Optional[str] = None,
 ) -> None:
-    """Renders the conversational NCERT Science Q&A Tutor screen bound to master profile class."""
+    """Renders the conversational NCERT Q&A Tutor screen bound to master profile class and subject."""
     streaming_speed = 0.025
 
     # Top Navigation Back to Home (Phases 1-19)
     render_back_to_home("tutor")
 
+    from frontend.state import get_student_subject
+
     class_level = get_student_class_level()
+    subject = get_student_subject()
+    active_student_id = student_id or st.session_state.get("student_id", "student_001")
+
+    # Fetch student uploaded reference materials for current class and subject
+    mat_count = 0
+    try:
+        from src.academic_rag.storage.repository import study_material_repository
+
+        mat_count = study_material_repository.count_student_documents(
+            student_id=active_student_id, class_level=class_level, subject=subject
+        )
+    except Exception:
+        pass
 
     st.write("")
-    st.markdown(f"### Ask a Doubt — Class {class_level} · Science")
+    st.markdown(f"### Ask a Doubt — Class {class_level} · {subject}")
     st.caption(
-        f"Ask conceptual science questions with verified textbook citations grounded strictly in **NCERT Class {class_level} Science**."
+        f"Ask conceptual {subject.lower()} questions with verified citations grounded in **NCERT Class {class_level} {subject}** and your uploaded study materials."
     )
+
+    # Active Sources Bar (M3 Chip Group)
+    sources_chips = [
+        '<div class="m3-chips-group" style="margin-bottom: 12px;">',
+        f'<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.05rem;">menu_book</span> NCERT Class {class_level} {subject} (Authoritative)</span>',
+    ]
+    if mat_count > 0:
+        sources_chips.append(
+            f'<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.05rem;">auto_stories</span> {mat_count} Uploaded Reference Book(s) (Supplementary)</span>'
+        )
+    sources_chips.append("</div>")
+    st.markdown("".join(sources_chips), unsafe_allow_html=True)
     st.write("")
 
-    # Auto-update suggested questions on page navigation or class switch
+    # Auto-update suggested questions on page navigation or class/subject switch
     needs_refresh = st.session_state.get("tutor_needs_refresh", True)
     stored_suggestions = st.session_state.get("tutor_suggested_questions")
     stored_class = st.session_state.get("tutor_suggested_class")
+    stored_subject = st.session_state.get("tutor_suggested_subject")
 
-    if needs_refresh or stored_suggestions is None or stored_class != class_level:
-        stored_suggestions = _get_fresh_suggestions(class_level)
+    if (
+        needs_refresh
+        or stored_suggestions is None
+        or stored_class != class_level
+        or stored_subject != subject
+    ):
+        stored_suggestions = _get_fresh_suggestions(
+            class_level, subject=subject, student_id=active_student_id
+        )
         st.session_state.tutor_suggested_questions = stored_suggestions
         st.session_state.tutor_suggested_class = class_level
+        st.session_state.tutor_suggested_subject = subject
         st.session_state.tutor_needs_refresh = False
 
     # Suggested Prompts tailored to active standard
@@ -194,7 +342,7 @@ async def render_tutor_screen(
         if cols[idx].button(
             label,
             icon=":material/lightbulb:",
-            key=f"qp_{class_level}_{idx}_{label[:12]}",
+            key=f"qp_{class_level}_{subject}_{idx}_{label[:12]}",
             use_container_width=True,
         ):
             st.session_state.active_prompt = prompt_text
@@ -207,7 +355,9 @@ async def render_tutor_screen(
             st.markdown(message["content"])
 
     # Chat Input
-    prompt_input = st.chat_input(f"Ask any question from NCERT Class {class_level} Science...")
+    prompt_input = st.chat_input(
+        f"Ask any question from NCERT Class {class_level} {subject} or your notes..."
+    )
     prompt = prompt_input or st.session_state.pop("active_prompt", None)
 
     if prompt:
@@ -221,7 +371,7 @@ async def render_tutor_screen(
             with st.chat_message("user"):
                 st.markdown(clean_prompt)
 
-            # Generate Assistant Response with strict class isolation
+            # Generate Assistant Response with strict class and student isolation
             with st.chat_message("assistant"):
                 message_placeholder = st.empty()
                 full_response = ""
@@ -236,6 +386,8 @@ async def render_tutor_screen(
                     async for chunk in stream_ncert_rag_response(
                         query=clean_prompt,
                         class_filter=class_level,
+                        subject=subject,
+                        student_id=active_student_id,
                         api_key=user_api_key,
                         model_name=selected_model,
                         chat_history=st.session_state.messages[:-1],

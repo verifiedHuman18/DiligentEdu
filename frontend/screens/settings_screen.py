@@ -199,12 +199,17 @@ def render_settings_screen() -> None:
 
         # Tab 2: Profile (Student or Teacher)
         elif active_tab in ("Profile", "Student Profile", "Teacher Profile"):
-            from frontend.state import get_student_class_level, set_student_class_level
+            from frontend.state import (
+                get_student_class_level,
+                get_student_subject,
+                set_student_class_level,
+                set_student_subject,
+            )
 
             if role == "teacher":
                 st.markdown("#### Teacher Profile & Diagnostic Settings")
                 st.caption(
-                    "Manage your educator identity and default class level for telemetry inspection."
+                    "Manage your educator identity and default class level/subject for telemetry inspection."
                 )
                 st.write("")
 
@@ -216,14 +221,25 @@ def render_settings_screen() -> None:
                 )
 
                 st.write("")
-                curr_cls = get_student_class_level()
-                selected_cls_label = st.radio(
-                    "Default Inspection Class",
-                    options=["Class 10", "Class 9"],
-                    index=0 if curr_cls == 10 else 1,
-                    key="settings_teacher_class_radio",
-                )
-                new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+                col_cls, col_subj = st.columns(2)
+                with col_cls:
+                    curr_cls = get_student_class_level()
+                    selected_cls_label = st.radio(
+                        "Default Inspection Class",
+                        options=["Class 10", "Class 9"],
+                        index=0 if curr_cls == 10 else 1,
+                        key="settings_teacher_class_radio",
+                    )
+                    new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+
+                with col_subj:
+                    curr_subj = get_student_subject()
+                    selected_subj = st.radio(
+                        "Default Inspection Subject",
+                        options=["Science", "Mathematics"],
+                        index=0 if curr_subj == "Science" else 1,
+                        key="settings_teacher_subject_radio",
+                    )
 
                 st.write("")
                 if st.button(
@@ -233,13 +249,14 @@ def render_settings_screen() -> None:
                     icon=":material/save:",
                 ):
                     set_student_class_level(new_cls_int)
+                    set_student_subject(selected_subj)
                     st.session_state.teacher_id = teacher_id.strip() or "teacher_001"
                     st.success("Teacher profile saved successfully!")
                     st.rerun()
             else:
                 st.markdown("#### Student Profile & Standard Settings")
                 st.caption(
-                    "This is the master configuration for your student identity and NCERT textbook grade level."
+                    "This is the master configuration for your student identity, NCERT textbook grade level, and active subject."
                 )
                 st.write("")
 
@@ -251,19 +268,31 @@ def render_settings_screen() -> None:
                 )
 
                 st.write("")
-                curr_cls = get_student_class_level()
-                selected_cls_label = st.radio(
-                    "Class / Standard",
-                    options=["Class 10", "Class 9"],
-                    index=0 if curr_cls == 10 else 1,
-                    help="Master standard setting (Class 10 or Class 9). Only one standard is active at a time.",
-                    key="settings_class_radio",
-                )
-                new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+                col_cls, col_subj = st.columns(2)
+                with col_cls:
+                    curr_cls = get_student_class_level()
+                    selected_cls_label = st.radio(
+                        "Class / Standard",
+                        options=["Class 10", "Class 9"],
+                        index=0 if curr_cls == 10 else 1,
+                        help="Master standard setting (Class 10 or Class 9). Only one standard is active at a time.",
+                        key="settings_class_radio",
+                    )
+                    new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+
+                with col_subj:
+                    curr_subj = get_student_subject()
+                    selected_subj = st.radio(
+                        "Subject",
+                        options=["Science", "Mathematics"],
+                        index=0 if curr_subj == "Science" else 1,
+                        help="Active subject for NCERT chapters, quizzes, SWAT analytics, and AI Tutor.",
+                        key="settings_subject_radio",
+                    )
 
                 st.write("")
                 chapter_options = ["All Chapters"]
-                chs = curriculum_service.get_chapters_for_grade(new_cls_int)
+                chs = curriculum_service.get_chapters_for_grade(new_cls_int, subject=selected_subj)
                 for ch in chs:
                     chapter_options.append(f"Ch {ch.chapter_number}: {ch.chapter_title}")
 
@@ -272,7 +301,7 @@ def render_settings_screen() -> None:
                     chapter_options.index(curr_chapter) if curr_chapter in chapter_options else 0
                 )
                 selected_chapter = st.selectbox(
-                    "Default Focus Chapter (Optional)", chapter_options, index=curr_ch_idx
+                    f"Default Focus Chapter ({selected_subj})", chapter_options, index=curr_ch_idx
                 )
 
                 st.write("")
@@ -283,10 +312,11 @@ def render_settings_screen() -> None:
                     icon=":material/save:",
                 ):
                     set_student_class_level(new_cls_int)
+                    set_student_subject(selected_subj)
                     st.session_state.student_id = student_id.strip() or "student_001"
                     st.session_state.selected_chapter = selected_chapter
                     st.success(
-                        f"Profile saved successfully! Master Standard set to Class {new_cls_int}."
+                        f"Profile saved successfully! Master Standard set to Class {new_cls_int} ({selected_subj})."
                     )
                     st.rerun()
 
