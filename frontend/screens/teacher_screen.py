@@ -16,6 +16,7 @@ from backend.analytics.teacher import (
 from backend.curriculum.service import curriculum_service
 from frontend.components.cards import render_metric_card, render_swat_columns
 from frontend.components.navigation import render_back_to_home
+from frontend.components.performance_trend_chart import render_performance_trend_section
 from frontend.state import get_user_role
 
 
@@ -196,6 +197,19 @@ def render_teacher_screen(
         with m5:
             dir_str = st_status.get("trend", {}).get("direction", "stable").capitalize()
             render_metric_card("Trend", dir_str)
+
+        st.write("")
+        st.write("")
+
+        # SECTION: Performance Over Time & Trend Analytics
+        render_performance_trend_section(
+            student_id=target_student_id,
+            class_level=cls_int,
+            subject=subject,
+        )
+
+        st.write("")
+        st.write("")
 
     # SECTION 2: Recommended Action Plan & Teacher Customization
     st.markdown(

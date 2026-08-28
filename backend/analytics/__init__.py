@@ -14,6 +14,11 @@ from backend.analytics.swat import (
     get_student_swat,
     get_unattempted_chapters,
 )
+from backend.analytics.performance_trend import (
+    calculate_linear_regression,
+    classify_trend_from_scores,
+    get_student_performance_trend,
+)
 from backend.analytics.teacher import (
     get_student_status,
     get_teacher_chapter_statistics,
@@ -40,4 +45,7 @@ __all__ = [
     "get_chapter_knowledge_graph",
     "calculate_student_concept_telemetry",
     "get_available_knowledge_map_chapters",
+    "get_student_performance_trend",
+    "classify_trend_from_scores",
+    "calculate_linear_regression",
 ]

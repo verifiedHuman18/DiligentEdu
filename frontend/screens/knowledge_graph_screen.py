@@ -23,10 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str = "dark") -> str:
-    """Generates a high-tech interactive SVG/Canvas graph visualization with boundary-aware tooltips and locked node coordinates."""
+    """Generates a clean high-tech interactive SVG/Canvas graph visualization with glowing pathways, tier headers, and boundary-aware tooltips."""
     nodes = graph_data.get("nodes", [])
     edges = graph_data.get("edges", [])
-    ch_title = graph_data.get("chapter", "")
 
     nodes_json = json.dumps(nodes)
     edges_json = json.dumps(edges)
@@ -43,23 +42,26 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             padding: 0;
             width: 100%;
             height: 100%;
-            background: #0f172a;
+            background: #090d16;
             overflow: hidden;
             user-select: none;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }}
-        /* Authoritative Single Viewport for Graph & Background - Seamless Continuous Dark Slate */
+        /* Authoritative Single Viewport for Graph & Background - High-Tech Slate Glass */
         .graph-viewport {{
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 520px;
-            background: #0f172a;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 12px;
+            min-height: 560px;
+            background: radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.07) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
+                        #090d16;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 14px;
             overflow: hidden;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }}
-        /* Fixed Decorative Viewport Background - Uniform Grid/Dots Across Full Canvas */
+        /* Fixed Decorative Viewport Background - Uniform High-Tech Grid */
         .graph-background {{
             position: absolute;
             inset: 0;
@@ -68,11 +70,38 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             background-position: 0 0;
             background-image:
                 radial-gradient(rgba(148, 163, 184, 0.22) 1.2px, transparent 1.2px),
-                linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-            background-size: 28px 28px;
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
             pointer-events: none;
             z-index: 1;
+        }}
+        /* Tier Column Guides */
+        .tier-guide-layer {{
+            position: absolute;
+            inset: 0;
+            display: flex;
+            pointer-events: none;
+            z-index: 1;
+        }}
+        .tier-col {{
+            flex: 1;
+            border-right: 1px dashed rgba(148, 163, 184, 0.08);
+            padding-top: 14px;
+            text-align: center;
+        }}
+        .tier-col:last-child {{ border-right: none; }}
+        .tier-col-label {{
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(148, 163, 184, 0.45);
+            background: rgba(15, 23, 42, 0.7);
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.12);
         }}
         svg#graph-svg {{
             position: absolute;
@@ -82,42 +111,54 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             z-index: 2;
             background: transparent;
         }}
+        /* Edge Connections with Flow Animation */
         .edge-line {{
             fill: none;
-            stroke: rgba(148, 163, 184, 0.38);
+            stroke: rgba(148, 163, 184, 0.35);
             stroke-width: 2;
             stroke-dasharray: 6 4;
             animation: flowDash 30s linear infinite;
-            transition: stroke 0.25s, stroke-width 0.25s, filter 0.25s;
+            transition: stroke 0.25s, stroke-width 0.25s, filter 0.25s, opacity 0.25s;
         }}
         .edge-line.highlighted {{
-            fill: none;
-            stroke: #38bdf8;
-            stroke-width: 3.5;
+            stroke: #38bdf8 !important;
+            stroke-width: 3.5 !important;
             stroke-dasharray: none;
-            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.7));
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.85));
+            opacity: 1 !important;
+        }}
+        .edge-line.dimmed {{
+            opacity: 0.15;
         }}
         @keyframes flowDash {{
             to {{ stroke-dashoffset: -1000; }}
         }}
         .node-group {{
             cursor: pointer;
+            transition: opacity 0.25s, transform 0.2s;
+        }}
+        .node-group.dimmed {{
+            opacity: 0.25;
+        }}
+        .node-group.focused .node-card {{
+            stroke-width: 3.5 !important;
+            filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.95)) !important;
         }}
         .node-card {{
-            rx: 10;
-            ry: 10;
-            transition: stroke-width 0.2s, filter 0.2s, fill 0.2s;
+            rx: 12;
+            ry: 12;
+            transition: stroke-width 0.2s, filter 0.2s, fill 0.2s, transform 0.2s;
         }}
         /* Strong Concept Node */
         .node-strong .node-card {{
             fill: #064e3b;
             stroke: #10b981;
             stroke-width: 2;
-            filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.45));
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.45));
         }}
         .node-strong:hover .node-card {{
             stroke-width: 3;
-            filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.8));
+            filter: drop-shadow(0 0 16px rgba(16, 185, 129, 0.85));
             fill: #065f46;
         }}
         /* Moderate Concept Node */
@@ -125,11 +166,11 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             fill: #451a03;
             stroke: #f59e0b;
             stroke-width: 2;
-            filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.45));
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.45));
         }}
         .node-moderate:hover .node-card {{
             stroke-width: 3;
-            filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.8));
+            filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.85));
             fill: #592405;
         }}
         /* Weak Concept Node */
@@ -137,11 +178,11 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             fill: #450a0a;
             stroke: #ef4444;
             stroke-width: 2;
-            filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.55));
+            filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.6));
         }}
         .node-weak:hover .node-card {{
             stroke-width: 3;
-            filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.85));
+            filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.9));
             fill: #5c0e0e;
         }}
         /* Unattempted Concept Node */
@@ -155,7 +196,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             stroke-width: 2.5;
             stroke: #94a3b8;
             stroke-dasharray: none;
-            filter: drop-shadow(0 0 10px rgba(148, 163, 184, 0.6));
+            filter: drop-shadow(0 0 12px rgba(148, 163, 184, 0.65));
             fill: #293548;
         }}
         svg text {{
@@ -168,31 +209,38 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             pointer-events: none;
         }}
         .node-text-sub {{
-            font-size: 10px;
-            font-weight: 500;
-            fill: #94a3b8;
+            font-size: 9.5px;
+            font-weight: 600;
+            fill: #94a3b8 !important;
             pointer-events: none;
         }}
         .node-text-mastery {{
-            font-size: 10.5px;
-            font-weight: 700;
+            font-size: 11px;
+            font-weight: 800;
             pointer-events: none;
         }}
-        /* Precision Positioned Tooltip with Boundary Padding */
+        .node-tier-badge {{
+            font-size: 9px;
+            font-weight: 700;
+            fill: #cbd5e1 !important;
+            opacity: 0.85;
+            pointer-events: none;
+        }}
+        /* Precision Tooltip */
         .tooltip {{
             position: absolute;
-            background: rgba(15, 23, 42, 0.96);
-            border: 1px solid rgba(56, 189, 248, 0.4);
-            backdrop-filter: blur(12px);
-            padding: 10px 14px;
-            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.97);
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            backdrop-filter: blur(14px);
+            padding: 12px 16px;
+            border-radius: 10px;
             font-size: 11.5px;
             color: #f8fafc;
             pointer-events: none;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.65), 0 0 14px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.75), 0 0 16px rgba(56, 189, 248, 0.25);
             display: none;
             z-index: 1000;
-            width: 250px;
+            width: 270px;
             opacity: 0;
             transition: opacity 0.15s ease-out;
         }}
@@ -200,30 +248,19 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             display: block;
             opacity: 1;
         }}
-        .canvas-header {{
-            position: absolute;
-            top: 12px;
-            left: 16px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #94a3b8;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            z-index: 5;
-        }}
         .legend-bar {{
             position: absolute;
             bottom: 12px;
-            left: 16px;
+            left: 14px;
             display: flex;
             gap: 14px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
             z-index: 5;
         }}
         .legend-item {{
@@ -247,9 +284,15 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
     <body>
     <div id="graph-viewport" class="graph-viewport">
         <div class="graph-background"></div>
-        <div class="canvas-header"> Intra-Chapter Concept Map · {ch_title}</div>
 
-        <svg id="graph-svg" viewBox="0 0 1080 440" preserveAspectRatio="xMidYMid meet">
+        <div class="tier-guide-layer">
+            <div class="tier-col"><span class="tier-col-label">Tier 1 · Foundations</span></div>
+            <div class="tier-col"><span class="tier-col-label">Tier 2 · Core Mechanisms</span></div>
+            <div class="tier-col"><span class="tier-col-label">Tier 3 · Advanced Analysis</span></div>
+            <div class="tier-col"><span class="tier-col-label">Tier 4 · Systems & Synthesis</span></div>
+        </div>
+
+        <svg id="graph-svg" viewBox="0 0 1160 480" preserveAspectRatio="xMidYMid meet">
             <defs>
                 <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                     <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="rgba(148, 163, 184, 0.6)" />
@@ -267,6 +310,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             <div class="legend-item"><span class="dot dot-moderate"></span> Moderate (60-79%)</div>
             <div class="legend-item"><span class="dot dot-weak"></span> Weak (&lt;60%)</div>
             <div class="legend-item"><span class="dot dot-unatt"></span> Unattempted</div>
+            <div style="margin-left: 10px; color: #94a3b8; font-size: 10px;">💡 Click any node to focus · Hover for details</div>
         </div>
 
         <div id="tooltip" class="tooltip"></div>
@@ -284,19 +328,18 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
         const edgesLayer = document.getElementById('edges-layer');
         const nodesLayer = document.getElementById('nodes-layer');
         const tooltip = document.getElementById('tooltip');
+        let focusedNodeId = null;
 
-        // Draw Directed Edges with Smooth Bezier Curves (Strictly fill: none)
+        // Draw Directed Edges with Smooth Bezier Curves
         edges.forEach(e => {{
             const s = nodeMap[e.source];
             const t = nodeMap[e.target];
             if (!s || !t) return;
 
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            // Clean anchor from source right-edge to target left-edge
-            const sx = s.pos_x + 180, sy = s.pos_y + 30;
-            const tx = t.pos_x - 4, ty = t.pos_y + 30;
+            const sx = s.pos_x + 190, sy = s.pos_y + 32;
+            const tx = t.pos_x - 4, ty = t.pos_y + 32;
 
-            // Curved Bezier calculation
             const dx = tx - sx;
             const cx1 = sx + dx * 0.45;
             const cy1 = sy;
@@ -313,7 +356,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             edgesLayer.appendChild(path);
         }});
 
-        // Function: Position Tooltip relative to Node Element with Boundary Clamping
+        // Function: Position Tooltip
         function showNodeTooltip(nodeElem, n) {{
             const containerRect = graphViewport.getBoundingClientRect();
             const nodeRect = nodeElem.getBoundingClientRect();
@@ -323,31 +366,28 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
 
             tooltip.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <span style="font-weight:700; color:#38bdf8; font-size:12px;">${{n.name}}</span>
-                    <span style="font-size:9.5px; font-weight:700; color:${{statusColor}}; text-transform:uppercase;">${{n.status}}</span>
+                    <span style="font-weight:700; color:#38bdf8; font-size:12.5px;">${{n.name}}</span>
+                    <span style="font-size:9.5px; font-weight:800; color:${{statusColor}}; text-transform:uppercase; border:1px solid ${{statusColor}}; padding:1px 6px; border-radius:8px;">${{n.status}}</span>
                 </div>
-                <div style="color:#cbd5e1; font-size:11px; margin-bottom:6px; line-height:1.4;">${{n.description}}</div>
-                <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:4px; font-size:10.5px; display:flex; justify-content:space-between; color:#ffffff;">
+                <div style="color:#cbd5e1; font-size:11px; margin-bottom:8px; line-height:1.4;">${{n.description}}</div>
+                <div style="border-top:1px solid rgba(255,255,255,0.12); padding-top:6px; font-size:10.5px; display:flex; justify-content:space-between; color:#ffffff;">
                     <span><strong>Mastery:</strong> ${{mStr}}</span>
                     <span><strong>Assessed:</strong> ${{n.attempts}} (${{n.correct}} ✓)</span>
                 </div>
             `;
 
             tooltip.style.display = 'block';
-            const tipWidth = 250;
-            const tipHeight = tooltip.offsetHeight || 96;
+            const tipWidth = 270;
+            const tipHeight = tooltip.offsetHeight || 105;
 
-            // Calculate center X of node in container coordinates
             const nodeCenterX = (nodeRect.left + nodeRect.right) / 2 - containerRect.left;
             let left = nodeCenterX - (tipWidth / 2);
 
-            // Boundary Detection: Clamp horizontal within container margins (10px)
             if (left < 10) left = 10;
             if (left + tipWidth > containerRect.width - 10) {{
                 left = containerRect.width - tipWidth - 10;
             }}
 
-            // Boundary Detection: Prefer above node; flip below if too close to top edge (< 12px)
             const nodeTopY = nodeRect.top - containerRect.top;
             const nodeBottomY = nodeRect.bottom - containerRect.top;
             let top = nodeTopY - tipHeight - 10;
@@ -372,32 +412,44 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             g.setAttribute('class', `node-group node-${{n.status}}`);
             g.setAttribute('transform', `translate(${{n.pos_x}}, ${{n.pos_y}})`);
             g.setAttribute('data-id', n.id);
+            g.setAttribute('data-status', n.status);
+            g.setAttribute('data-tier', n.tier || 1);
 
             const card = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
             card.setAttribute('class', 'node-card');
-            card.setAttribute('width', '180');
-            card.setAttribute('height', '60');
+            card.setAttribute('width', '190');
+            card.setAttribute('height', '64');
 
+            // Tier pill badge
+            const tierText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            tierText.setAttribute('class', 'node-tier-badge');
+            tierText.setAttribute('x', '178');
+            tierText.setAttribute('y', '20');
+            tierText.setAttribute('text-anchor', 'end');
+            tierText.textContent = `T${{n.tier || 1}}`;
+
+            // Node Title
             const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             title.setAttribute('class', 'node-text-title');
             title.setAttribute('x', '12');
-            title.setAttribute('y', '24');
+            title.setAttribute('y', '26');
             title.setAttribute('style', 'fill: #ffffff !important;');
-            // Truncate title if long
-            const dispName = n.name.length > 20 ? n.name.substring(0, 19) + '…' : n.name;
+            const dispName = n.name.length > 21 ? n.name.substring(0, 20) + '…' : n.name;
             title.textContent = dispName;
 
+            // Subtitle / Section
             const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             sub.setAttribute('class', 'node-text-sub');
             sub.setAttribute('x', '12');
-            sub.setAttribute('y', '44');
+            sub.setAttribute('y', '48');
             sub.setAttribute('style', 'fill: #94a3b8 !important;');
             sub.textContent = n.section ? `Sec ${{n.section}}` : 'Core Concept';
 
+            // Mastery badge
             const mastery = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             mastery.setAttribute('class', 'node-text-mastery');
-            mastery.setAttribute('x', '168');
-            mastery.setAttribute('y', '44');
+            mastery.setAttribute('x', '178');
+            mastery.setAttribute('y', '48');
             mastery.setAttribute('text-anchor', 'end');
 
             if (n.status === 'unattempted') {{
@@ -409,17 +461,36 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             }}
 
             g.appendChild(card);
+            g.appendChild(tierText);
             g.appendChild(title);
             g.appendChild(sub);
             g.appendChild(mastery);
 
-            // Hover interactions (Client-side, 0 Streamlit reruns, 0 layout shifts)
+            // Hover interactions: isolate & highlight connected learning pathway
             g.addEventListener('mouseenter', () => {{
-                // Highlight connected incoming and outgoing edges
+                const connectedNodeIds = new Set([n.id]);
+
                 document.querySelectorAll('.edge-line').forEach(el => {{
-                    if (el.getAttribute('data-source') === n.id || el.getAttribute('data-target') === n.id) {{
+                    const s = el.getAttribute('data-source');
+                    const t = el.getAttribute('data-target');
+                    if (s === n.id || t === n.id) {{
                         el.classList.add('highlighted');
+                        el.classList.remove('dimmed');
                         el.setAttribute('marker-end', 'url(#arrow-active)');
+                        connectedNodeIds.add(s);
+                        connectedNodeIds.add(t);
+                    }} else {{
+                        el.classList.add('dimmed');
+                        el.classList.remove('highlighted');
+                    }}
+                }});
+
+                // Dim non-connected nodes
+                document.querySelectorAll('.node-group').forEach(ng => {{
+                    if (connectedNodeIds.has(ng.getAttribute('data-id'))) {{
+                        ng.classList.remove('dimmed');
+                    }} else {{
+                        ng.classList.add('dimmed');
                     }}
                 }});
 
@@ -428,10 +499,24 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
 
             g.addEventListener('mouseleave', () => {{
                 document.querySelectorAll('.edge-line').forEach(el => {{
-                    el.classList.remove('highlighted');
+                    el.classList.remove('highlighted', 'dimmed');
                     el.setAttribute('marker-end', 'url(#arrow)');
                 }});
+                document.querySelectorAll('.node-group').forEach(ng => {{
+                    ng.classList.remove('dimmed');
+                }});
                 hideNodeTooltip();
+            }});
+
+            // Click interaction: Focus node
+            g.addEventListener('click', () => {{
+                document.querySelectorAll('.node-group').forEach(ng => ng.classList.remove('focused'));
+                if (focusedNodeId === n.id) {{
+                    focusedNodeId = null;
+                }} else {{
+                    focusedNodeId = n.id;
+                    g.classList.add('focused');
+                }}
             }});
 
             nodesLayer.appendChild(g);
@@ -481,23 +566,19 @@ def render_knowledge_graph_screen(
 
     chapter_options = [ch["chapter"] for ch in avail_chapters]
 
-    # Chapter selector bar
-    col_sel, col_stats = st.columns([1.8, 3.2])
+    # Clean chapter selector
+    default_idx = 0
+    req_ch = st.session_state.get("selected_graph_chapter")
+    if req_ch and req_ch in chapter_options:
+        default_idx = chapter_options.index(req_ch)
 
-    with col_sel:
-        # Check if a specific chapter was requested via navigation state
-        default_idx = 0
-        req_ch = st.session_state.get("selected_graph_chapter")
-        if req_ch and req_ch in chapter_options:
-            default_idx = chapter_options.index(req_ch)
-
-        selected_chapter = st.selectbox(
-            f"Select Chapter to Map ({subject})",
-            options=chapter_options,
-            index=default_idx,
-            key=f"knowledge_graph_chapter_select_{subject}",
-            help="Choose any NCERT chapter to view its internal concept hierarchy and mastery.",
-        )
+    selected_chapter = st.selectbox(
+        f"Select Chapter to Map ({subject})",
+        options=chapter_options,
+        index=default_idx,
+        key=f"knowledge_graph_chapter_select_{subject}",
+        help="Choose any NCERT chapter to view its internal concept hierarchy and mastery.",
+    )
 
     # Fetch knowledge graph data for selected chapter, subject, and student
     graph_data = get_chapter_knowledge_graph(
@@ -507,18 +588,44 @@ def render_knowledge_graph_screen(
         subject=subject,
     )
 
-    with col_stats:
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric(" Strong", f"{graph_data.get('strong_count', 0)}")
-        c2.metric(" Moderate", f"{graph_data.get('moderate_count', 0)}")
-        c3.metric(" Weak", f"{graph_data.get('weak_count', 0)}")
-        c4.metric(" Unattempted", f"{graph_data.get('unattempted_count', 0)}")
-
     st.write("")
+
+    # Chapter Mastery Progress Bar HUD
+    total_c = graph_data.get("total_concepts", len(graph_data.get("nodes", [])))
+    strong_c = graph_data.get("strong_count", 0)
+    mod_c = graph_data.get("moderate_count", 0)
+    weak_c = graph_data.get("weak_count", 0)
+    unatt_c = graph_data.get("unattempted_count", 0)
+    overall_m = graph_data.get("overall_mastery")
+
+    pct_strong = (strong_c / total_c * 100) if total_c > 0 else 0
+    pct_mod = (mod_c / total_c * 100) if total_c > 0 else 0
+    pct_weak = (weak_c / total_c * 100) if total_c > 0 else 0
+    pct_unatt = (unatt_c / total_c * 100) if total_c > 0 else 100
+
+    mastery_badge = f"{overall_m:.1f}% Active Mastery" if overall_m is not None else "Unassessed Chapter"
+
+    st.markdown(
+        f"""
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 10px; padding: 10px 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; font-weight: 700; color: var(--on-surface);">
+                <span>📊 Curriculum Coverage & Mastery Index</span>
+                <span style="color: #38bdf8; font-weight: 800;">{mastery_badge} ({total_c} Subtopics Registered)</span>
+            </div>
+            <div style="width: 100%; height: 8px; border-radius: 4px; overflow: hidden; display: flex; background: #1e293b;">
+                <div style="width: {pct_strong}%; background: #10b981; transition: width 0.4s;"></div>
+                <div style="width: {pct_mod}%; background: #f59e0b; transition: width 0.4s;"></div>
+                <div style="width: {pct_weak}%; background: #ef4444; transition: width 0.4s;"></div>
+                <div style="width: {pct_unatt}%; background: #475569; transition: width 0.4s;"></div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # Interactive Graph Visualization Component
     graph_html = _generate_interactive_graph_html(graph_data)
-    components.html(graph_html, height=524, scrolling=False)
+    components.html(graph_html, height=580, scrolling=False)
 
     st.write("")
 

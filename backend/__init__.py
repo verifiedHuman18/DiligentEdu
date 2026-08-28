@@ -18,6 +18,11 @@ from backend.analytics.knowledge_graph import (
     get_chapter_knowledge_graph,
 )
 
+from backend.analytics.performance_trend import (
+    calculate_linear_regression,
+    classify_trend_from_scores,
+    get_student_performance_trend,
+)
 from backend.analytics.study_twin import (
     build_study_twin_profile,
     calculate_twin_similarity,
@@ -194,6 +199,7 @@ __all__ = [
 
     "find_study_twin",
     "calculate_twin_similarity",
+    "get_student_performance_trend",
 ]
 
 

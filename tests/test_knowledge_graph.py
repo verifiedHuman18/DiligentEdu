@@ -344,6 +344,43 @@ class TestKnowledgeGraph(unittest.TestCase):
         self.assertIsNone(snell_node["mastery"])
         self.assertEqual(snell_node["status"], "unattempted")
 
+    def test_expanded_knowledge_graph_node_density_and_edges(self):
+        """Verify expanded concept nodes across Class 10 and 9 Science and Mathematics chapters."""
+        # Class 10 Science - Electricity should have 8 nodes and 9 edges
+        elec = get_chapter_concept_metadata("Electricity", class_level=10, subject="Science")
+        self.assertIsNotNone(elec)
+        self.assertGreaterEqual(len(elec["nodes"]), 7)
+        self.assertGreaterEqual(len(elec["edges"]), 7)
+
+        # Class 10 Science - Life Processes should have 8 nodes
+        life = get_chapter_concept_metadata("Life Processes", class_level=10, subject="Science")
+        self.assertIsNotNone(life)
+        self.assertGreaterEqual(len(life["nodes"]), 7)
+
+        # Class 10 Math - Quadratic Equations should have 5 nodes
+        quad = get_chapter_concept_metadata("Quadratic Equations", class_level=10, subject="Mathematics")
+        self.assertIsNotNone(quad)
+        self.assertGreaterEqual(len(quad["nodes"]), 4)
+
+        # Class 9 Science - Cell: The Building Block of Life should have 7 nodes
+        cell = get_chapter_concept_metadata("Cell: The Building Block of Life", class_level=9, subject="Science")
+        self.assertIsNotNone(cell)
+        self.assertGreaterEqual(len(cell["nodes"]), 6)
+
+        # Verify all nodes have valid coordinates and non-empty metadata
+        for ch_meta in [elec, life, quad, cell]:
+            node_ids = {n["id"] for n in ch_meta["nodes"]}
+            for n in ch_meta["nodes"]:
+                self.assertIn("pos_x", n)
+                self.assertIn("pos_y", n)
+                self.assertIn("tier", n)
+                self.assertTrue(len(n["name"]) > 0)
+                self.assertTrue(len(n["description"]) > 0)
+                self.assertTrue(len(n["keywords"]) > 0)
+            for e in ch_meta["edges"]:
+                self.assertIn(e["source"], node_ids)
+                self.assertIn(e["target"], node_ids)
+
 
 if __name__ == "__main__":
     unittest.main()
