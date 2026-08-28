@@ -158,10 +158,13 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             filter: drop-shadow(0 0 10px rgba(148, 163, 184, 0.6));
             fill: #293548;
         }}
+        svg text {{
+            fill: #ffffff !important;
+        }}
         .node-text-title {{
             font-size: 11.5px;
             font-weight: 700;
-            fill: #ffffff;
+            fill: #ffffff !important;
             pointer-events: none;
         }}
         .node-text-sub {{
@@ -227,6 +230,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             display: flex;
             align-items: center;
             gap: 5px;
+            color: #cbd5e1;
         }}
         .dot {{
             width: 8px;
@@ -323,7 +327,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
                     <span style="font-size:9.5px; font-weight:700; color:${{statusColor}}; text-transform:uppercase;">${{n.status}}</span>
                 </div>
                 <div style="color:#cbd5e1; font-size:11px; margin-bottom:6px; line-height:1.4;">${{n.description}}</div>
-                <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:4px; font-size:10.5px; display:flex; justify-content:space-between;">
+                <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:4px; font-size:10.5px; display:flex; justify-content:space-between; color:#ffffff;">
                     <span><strong>Mastery:</strong> ${{mStr}}</span>
                     <span><strong>Assessed:</strong> ${{n.attempts}} (${{n.correct}} ✓)</span>
                 </div>
@@ -378,6 +382,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             title.setAttribute('class', 'node-text-title');
             title.setAttribute('x', '12');
             title.setAttribute('y', '24');
+            title.setAttribute('style', 'fill: #ffffff !important;');
             // Truncate title if long
             const dispName = n.name.length > 20 ? n.name.substring(0, 19) + '…' : n.name;
             title.textContent = dispName;
@@ -386,6 +391,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             sub.setAttribute('class', 'node-text-sub');
             sub.setAttribute('x', '12');
             sub.setAttribute('y', '44');
+            sub.setAttribute('style', 'fill: #94a3b8 !important;');
             sub.textContent = n.section ? `Sec ${{n.section}}` : 'Core Concept';
 
             const mastery = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -396,10 +402,10 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
 
             if (n.status === 'unattempted') {{
                 mastery.textContent = '○ New';
-                mastery.setAttribute('fill', '#94a3b8');
+                mastery.setAttribute('style', 'fill: #94a3b8 !important;');
             }} else {{
                 mastery.textContent = `${{Math.round(n.mastery)}}%`;
-                mastery.setAttribute('fill', n.status === 'strong' ? '#34d399' : (n.status === 'moderate' ? '#fbbf24' : '#f87171'));
+                mastery.setAttribute('style', `fill: ${{n.status === 'strong' ? '#34d399' : (n.status === 'moderate' ? '#fbbf24' : '#f87171')}} !important;`);
             }}
 
             g.appendChild(card);
