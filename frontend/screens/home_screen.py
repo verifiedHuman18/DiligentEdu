@@ -15,10 +15,12 @@ def render_home_screen(
     selected_class: Optional[str] = None, student_id: str = "student_001"
 ) -> None:
     """Renders the Home Screen with Action Plan, interactive curriculum navigator with SWAT indicators, and module action cards."""
+    from frontend.state import get_student_subject
 
-    # 1. Fetch active student data with master class isolation (0 Gemini calls, Phase 14)
+    # 1. Fetch active student data with master class & subject isolation (0 Gemini calls, Phase 14)
     class_level = get_student_class_level()
-    swat = get_student_swat(student_id, class_level=class_level)
+    subject = get_student_subject()
+    swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     has_data = swat.get("has_data", False)
     selected_chapter = st.session_state.get("selected_chapter", "All Chapters")
     class_display = f"Class {class_level}"
@@ -44,8 +46,9 @@ Welcome, <span style="color: var(--md-primary);">{student_id}</span>
 </div>
 <div class="m3-chips-group">
 <span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.1rem;">school</span> Class: {class_display}</span>
+<span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Subject: {subject}</span>
 <span class="m3-chip m3-chip-purple"><span class="material-symbols-outlined" style="font-size: 1.1rem;">auto_stories</span> Focus: {selected_chapter}</span>
-<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Study Material: {uploaded_count} Active</span>
+<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">description</span> Material: {uploaded_count} Active</span>
 </div>
 <div class="m3-stats-grid">
 <div class="m3-stat-card" style="border-left: 4px solid var(--md-tertiary);">
@@ -75,11 +78,12 @@ Welcome, <span style="color: var(--md-primary);">{student_id}</span>
 </div>
 <div class="m3-chips-group" style="margin-bottom: 0.8rem;">
 <span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.1rem;">school</span> Class: {class_display}</span>
+<span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Subject: {subject}</span>
 <span class="m3-chip m3-chip-purple"><span class="material-symbols-outlined" style="font-size: 1.1rem;">auto_stories</span> Focus: {selected_chapter}</span>
-<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Study Material: {uploaded_count} Active</span>
+<span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">description</span> Material: {uploaded_count} Active</span>
 </div>
 <div style="font-size: 1.0rem; color: var(--text-secondary); line-height: 1.5; max-width: 650px;">
-Welcome to NCERT Science! Explore your curriculum, upload personal reference books, take practice quizzes, or ask doubt questions below.
+Welcome to NCERT {subject}! Explore your curriculum, upload personal reference books, take practice quizzes, or ask doubt questions below.
 </div>
 </div>
 </div>\
@@ -88,21 +92,19 @@ Welcome to NCERT Science! Explore your curriculum, upload personal reference boo
 
     st.write("")
 
-    st.write("")
-
     # SECTION 1: YOUR ACTION PLAN
     st.markdown(
         f"""
         <div class="section-header-bar">
             <div>
-                <h4 class="section-title-text">Your Action Plan — Class {class_level} · Science</h4>
+                <h4 class="section-title-text">Your Action Plan — Class {class_level} · {subject}</h4>
                 <div class="section-subtitle-text">Priority study recommendations tailored to your recent mastery and teacher guidance.</div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    plan = generate_action_plan(student_id, class_level=class_level)
+    plan = generate_action_plan(student_id, class_level=class_level, subject=subject)
     is_custom = plan.get("is_customized", False)
 
     if (has_data or is_custom) and plan.get("actions"):
@@ -283,7 +285,7 @@ Welcome to NCERT Science! Explore your curriculum, upload personal reference boo
         f"""
         <div class="section-header-bar">
             <div>
-                <h4 class="section-title-text">NCERT Science Curriculum — Class {class_level}</h4>
+                <h4 class="section-title-text">NCERT {subject} Curriculum — Class {class_level}</h4>
                 <div class="section-subtitle-text">Click any chapter below to explore textbook PDF, practice quizzes, or ask questions.</div>
             </div>
         </div>
@@ -291,7 +293,7 @@ Welcome to NCERT Science! Explore your curriculum, upload personal reference boo
         unsafe_allow_html=True,
     )
 
-    curriculum_chapters = get_ncert_curriculum(class_level)
+    curriculum_chapters = get_ncert_curriculum(class_level, subject=subject)
     breakdown = swat.get("chapter_breakdown", {})
 
     # 2-column interactive navigator with SWAT performance indicators

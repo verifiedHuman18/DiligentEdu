@@ -13,11 +13,14 @@ logger = logging.getLogger(__name__)
 def get_attempted_chapters(
     student_id: str,
     class_level: int,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> List[str]:
-    """Returns list of distinct chapter titles attempted by a student for a specific class."""
+    """Returns list of distinct chapter titles attempted by a student for a specific class and subject."""
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, class_level=class_level, include_questions=False)
+    history = repo.get_student_history(
+        student_id, class_level=class_level, subject=subject, include_questions=False
+    )
     attempted = []
     seen = set()
     for att in history:
@@ -31,10 +34,11 @@ def get_attempted_chapters(
 def get_unattempted_chapters(
     student_id: str,
     class_level: int,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Returns ordered list of unattempted curriculum chapters for a student in a specific class.
+    Returns ordered list of unattempted curriculum chapters for a student in a specific class and subject.
     Guarantees score=None, accuracy=None, attempts=0 (never an artificial 0%).
     """
     try:
@@ -45,8 +49,9 @@ def get_unattempted_chapters(
     if class_int not in [9, 10]:
         raise ValueError(f"Invalid class_level: {class_int}. Supported grades are 9 and 10.")
 
-    all_chapters = curriculum_service.get_chapters_for_grade(class_int)
-    attempted = set(get_attempted_chapters(student_id, class_int, db_path=db_path))
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    all_chapters = curriculum_service.get_chapters_for_grade(class_int, subject=subj_clean)
+    attempted = set(get_attempted_chapters(student_id, class_int, subject=subj_clean, db_path=db_path))
 
     unattempted = []
     for ch in all_chapters:
@@ -55,6 +60,7 @@ def get_unattempted_chapters(
                 {
                     "chapter_number": ch.chapter_number,
                     "chapter": ch.chapter_title,
+                    "subject": subj_clean,
                     "category": "unattempted",
                     "score": None,
                     "accuracy": None,
@@ -71,12 +77,13 @@ def get_unattempted_chapters(
 def get_student_swat(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
     strong_threshold: float = STRONG_THRESHOLD,
     average_threshold: float = AVERAGE_THRESHOLD,
 ) -> Dict[str, Any]:
     """
-    Computes a comprehensive, unified 4-category SWAT performance profile from stored quiz history.
+    Computes a comprehensive, unified 4-category SWAT performance profile from stored quiz history for a specific subject.
     Single source of truth for Student SWAT, Teacher SWAT, Action Plans, and Progress UI.
 
     Categorizes curriculum chapters:
@@ -84,16 +91,12 @@ def get_student_swat(
       - 🟡 average (average_threshold to strong_threshold - 1, default 50%-69%)
       - 🔴 weak (< average_threshold, default < 50%)
       - ⚪ unattempted (score=None, attempts=0; 0% != Not Attempted)
-
-    Computes for every attempted chapter:
-      - average score (mean of attempt percentages)
-      - attempts count
-      - accuracy (questions_correct / questions_attempted)
-      - recent performance trajectory (e.g. [40, 60, 80] / "40% → 60% → 80%")
-      - chapter trend (improving, stable, declining)
     """
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
-    history = repo.get_student_history(student_id, class_level=class_level, include_questions=True)
+    history = repo.get_student_history(
+        student_id, class_level=class_level, subject=subj_clean, include_questions=True
+    )
 
     target_class = (
         int(class_level)
@@ -104,9 +107,9 @@ def get_student_swat(
     all_curriculum = []
     if target_class in [9, 10]:
         try:
-            all_curriculum = curriculum_service.get_chapters_for_grade(target_class)
+            all_curriculum = curriculum_service.get_chapters_for_grade(target_class, subject=subj_clean)
         except Exception as e:
-            logger.warning(f"Could not load curriculum chapters for class {target_class}: {e}")
+            logger.warning(f"Could not load curriculum chapters for class {target_class} {subj_clean}: {e}")
 
     total_chapters_count = len(all_curriculum) if all_curriculum else 13
 
@@ -368,10 +371,11 @@ def get_student_swat(
 
 def get_available_chapters(
     class_level: int,
+    subject: str = "Science",
     student_id: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Returns available NCERT chapters annotated with student's current SWAT status."""
+    """Returns available NCERT chapters annotated with student's current SWAT status for a specific subject."""
     try:
         class_level_int = int(class_level)
     except (ValueError, TypeError):
@@ -382,15 +386,16 @@ def get_available_chapters(
             f"Invalid class level: {class_level_int}. Supported class levels are 9 and 10."
         )
 
-    chapters = curriculum_service.get_chapters_for_grade(class_level_int)
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    chapters = curriculum_service.get_chapters_for_grade(class_level_int, subject=subj_clean)
     if not chapters:
-        raise ValueError(f"No mapping data found for Class {class_level_int}")
+        raise ValueError(f"No mapping data found for Class {class_level_int} {subj_clean}")
 
     swat_profile: Dict[str, Any] = {}
     if student_id:
         try:
             swat_profile = get_student_swat(
-                student_id, class_level=class_level_int, db_path=db_path
+                student_id, class_level=class_level_int, subject=subj_clean, db_path=db_path
             )
         except Exception as e:
             logger.warning(f"Could not load SWAT profile for {student_id}: {e}")

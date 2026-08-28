@@ -38,6 +38,32 @@ class AppConfig:
         return self.data_dir / "metadata" / "ncert_mapping.json"
 
     @property
+    def class9_sci_dir(self) -> Path:
+        return self.data_dir / "class9_sci"
+
+    @property
+    def class10_sci_dir(self) -> Path:
+        return self.data_dir / "class10_sci"
+
+    @property
+    def class9_math_dir(self) -> Path:
+        p = self.data_dir / "class9_maths"
+        return p if p.exists() else self.data_dir / "class9_math"
+
+    @property
+    def class10_math_dir(self) -> Path:
+        p = self.data_dir / "class10_maths"
+        return p if p.exists() else self.data_dir / "class10_math"
+
+    def get_corpus_dir(self, class_level: int, subject: str = "Science") -> Path:
+        """Resolves the authoritative NCERT PDF directory for a (class_level, subject) pair."""
+        subj_clean = str(subject).strip().lower()
+        cls_int = int(class_level)
+        if "math" in subj_clean:
+            return self.class9_math_dir if cls_int == 9 else self.class10_math_dir
+        return self.class9_sci_dir if cls_int == 9 else self.class10_sci_dir
+
+    @property
     def scholarships_data_dir(self) -> Path:
         return self.data_dir / "scholarships"
 

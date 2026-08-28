@@ -72,7 +72,7 @@ class TestChapterHub(unittest.TestCase):
         self.assertEqual(pdf_info["class_level"], 10)
         self.assertEqual(pdf_info["chapter_id"], "class10_science_electricity")
         self.assertEqual(pdf_info["chapter_name"], "Electricity")
-        self.assertEqual(pdf_info["pdf_path"], "data/class10/jesc111.pdf")
+        self.assertEqual(pdf_info["pdf_path"], "data/class10_sci/jesc111.pdf")
         self.assertTrue(pdf_info["exists"])
 
         swat = backend.get_student_swat(self.student_id, class_level=10, db_path=self.db_path)

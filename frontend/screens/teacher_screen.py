@@ -31,15 +31,18 @@ def render_teacher_screen(
     if default_student not in all_students:
         all_students = [default_student] + [s for s in all_students if s != default_student]
 
-    t_c1, t_c2, t_c3 = st.columns([2.2, 1.4, 1.4])
+    from frontend.state import get_student_subject
+    current_subject = get_student_subject()
+
+    t_c1, t_c2, t_c3, t_c4 = st.columns([1.8, 1.3, 1.0, 1.3])
     with t_c1:
-        st.markdown("### Teacher Diagnostics & Analytics")
+        st.markdown("### Teacher Diagnostics")
         st.caption(
-            "Pedagogical insights, 4-category SWAT breakdown, and action-plan supporting statistics."
+            "Pedagogical insights, 4-category SWAT breakdown, and action-plan statistics."
         )
     with t_c2:
         curr_inspect_student = st.selectbox(
-            "Select Student to Inspect",
+            "Student to Inspect",
             options=all_students,
             index=0,
             key="teacher_inspect_student_select",
@@ -47,17 +50,27 @@ def render_teacher_screen(
         )
     with t_c3:
         teacher_class = st.radio(
-            "Class to Inspect",
+            "Class",
             options=["Class 10", "Class 9"],
             horizontal=True,
             key="teacher_screen_class_toggle",
             help="Inspect student performance strictly for Class 10 or Class 9.",
         )
+    with t_c4:
+        teacher_subject = st.radio(
+            "Subject",
+            options=["Science", "Mathematics"],
+            index=0 if current_subject == "Science" else 1,
+            horizontal=True,
+            key="teacher_screen_subject_toggle",
+            help="Inspect student performance strictly for Science or Mathematics.",
+        )
 
     target_student_id = curr_inspect_student or default_student
     cls_int = 10 if teacher_class == "Class 10" else 9
+    subject = teacher_subject
 
-    prof = get_teacher_student_profile(target_student_id, class_level=cls_int)
+    prof = get_teacher_student_profile(target_student_id, class_level=cls_int, subject=subject)
     has_history = prof.get("has_data", False)
 
     st_overview = prof.get("overview", {})
@@ -71,7 +84,7 @@ def render_teacher_screen(
 
     if not has_history:
         st.info(
-            f"No quiz data found for student `{target_student_id}` in {teacher_class}. "
+            f"No quiz data found for student `{target_student_id}` in {teacher_class} {subject}. "
             "You can assign a customized study action plan below to guide their onboarding."
         )
     else:
@@ -278,7 +291,7 @@ def render_teacher_screen(
             "These priorities will immediately take top precedence in the student's Home Screen."
         )
 
-        all_grade_chapters = curriculum_service.get_chapters_for_grade(cls_int)
+        all_grade_chapters = curriculum_service.get_chapters_for_grade(cls_int, subject=subject)
         ch_titles = [c.chapter_title for c in all_grade_chapters]
 
         num_assigned = st.slider(
@@ -286,7 +299,7 @@ def render_teacher_screen(
             min_value=1,
             max_value=min(5, len(ch_titles)),
             value=min(3, len(ch_titles)),
-            key=f"t_edit_num_ch_{cls_int}_{target_student_id}",
+            key=f"t_edit_num_ch_{cls_int}_{subject}_{target_student_id}",
         )
 
         custom_actions_inputs = []
@@ -305,7 +318,7 @@ def render_teacher_screen(
                     f"Chapter {i + 1}",
                     options=ch_titles,
                     index=default_ch_idx,
-                    key=f"t_edit_ch_{cls_int}_{target_student_id}_{i}",
+                    key=f"t_edit_ch_{cls_int}_{subject}_{target_student_id}_{i}",
                 )
 
             with col_diff:
@@ -317,7 +330,7 @@ def render_teacher_screen(
                     f"Difficulty {i + 1}",
                     options=diff_opts,
                     index=diff_opts.index(default_diff) if default_diff in diff_opts else 0,
-                    key=f"t_edit_diff_{cls_int}_{target_student_id}_{i}",
+                    key=f"t_edit_diff_{cls_int}_{subject}_{target_student_id}_{i}",
                 )
 
             with col_act:
@@ -329,7 +342,7 @@ def render_teacher_screen(
                     f"Goal {i + 1}",
                     options=act_opts,
                     index=act_opts.index(default_act_type) if default_act_type in act_opts else 0,
-                    key=f"t_edit_act_{cls_int}_{target_student_id}_{i}",
+                    key=f"t_edit_act_{cls_int}_{subject}_{target_student_id}_{i}",
                 )
 
             default_note = (
@@ -340,8 +353,8 @@ def render_teacher_screen(
             ch_note = st.text_input(
                 f"Guidance / Focus Note for Priority {i + 1} (optional)",
                 value=default_note,
-                placeholder="e.g. Focus on balancing chemical equations before Friday's test",
-                key=f"t_edit_note_{cls_int}_{target_student_id}_{i}",
+                placeholder="e.g. Focus on this chapter before Friday's assessment",
+                key=f"t_edit_note_{cls_int}_{subject}_{target_student_id}_{i}",
             )
 
             custom_actions_inputs.append(
@@ -361,7 +374,7 @@ def render_teacher_screen(
             "Overall Teacher Instructions / Message for Student (optional)",
             value=teacher_notes or "",
             placeholder="e.g., Please complete these practice quizzes before Monday's revision class.",
-            key=f"t_edit_global_note_{cls_int}_{target_student_id}",
+            key=f"t_edit_global_note_{cls_int}_{subject}_{target_student_id}",
         )
 
         b_c1, b_c2, b_c3 = st.columns([1.6, 1.6, 1.8])
@@ -371,7 +384,7 @@ def render_teacher_screen(
                 "Save & Assign Plan",
                 type="primary",
                 icon=":material/save:",
-                key=f"btn_save_plan_{cls_int}_{target_student_id}",
+                key=f"btn_save_plan_{cls_int}_{subject}_{target_student_id}",
                 use_container_width=True,
             ):
                 save_teacher_action_plan(
@@ -379,9 +392,10 @@ def render_teacher_screen(
                     class_level=cls_int,
                     actions=custom_actions_inputs,
                     teacher_notes=global_teacher_note,
+                    subject=subject,
                 )
                 st.success(
-                    f"Custom action plan successfully assigned to `{target_student_id}` for {teacher_class}!"
+                    f"Custom action plan successfully assigned to `{target_student_id}` for {teacher_class} {subject}!"
                 )
                 st.rerun()
 
@@ -390,12 +404,12 @@ def render_teacher_screen(
                 "Reset to AI / SWAT Plan",
                 type="secondary",
                 icon=":material/restart_alt:",
-                key=f"btn_reset_plan_{cls_int}_{target_student_id}",
+                key=f"btn_reset_plan_{cls_int}_{subject}_{target_student_id}",
                 use_container_width=True,
                 help="Clears teacher customizations and restores algorithmic SWAT recommendations based on quiz scores.",
             ):
-                reset_teacher_action_plan(student_id=target_student_id, class_level=cls_int)
-                st.info(f"Restored automated SWAT action plan for `{target_student_id}`.")
+                reset_teacher_action_plan(student_id=target_student_id, class_level=cls_int, subject=subject)
+                st.info(f"Restored automated SWAT action plan for `{target_student_id}` ({subject}).")
                 st.rerun()
 
     st.write("")

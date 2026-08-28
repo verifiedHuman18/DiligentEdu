@@ -41,6 +41,7 @@ def extract_and_chunk_pdf(
     class_num: int,
     ch_num: int,
     ch_title: str,
+    subject: str,
     text_splitter: RecursiveCharacterTextSplitter,
 ) -> List[Dict[str, Any]]:
     """
@@ -49,6 +50,7 @@ def extract_and_chunk_pdf(
     doc = pymupdf.open(pdf_path)
     chunks = []
     chunk_counter = 0
+    subj_code = "math" if "math" in subject.lower() else "sci"
 
     for page_idx in range(len(doc)):
         page_num = page_idx + 1
@@ -66,12 +68,12 @@ def extract_and_chunk_pdf(
                 continue
 
             chunk_counter += 1
-            chunk_id = f"ncert_c{class_num}_ch{ch_num:02d}_p{page_num:03d}_ck{chunk_counter:03d}"
+            chunk_id = f"ncert_c{class_num}_{subj_code}_ch{ch_num:02d}_p{page_num:03d}_ck{chunk_counter:03d}"
 
             metadata = {
                 "source": "NCERT",
                 "class": int(class_num),
-                "subject": "Science",
+                "subject": subject,
                 "chapter_number": int(ch_num),
                 "chapter": ch_title,
                 "page": int(page_num),
@@ -93,9 +95,10 @@ def process_corpus(
     chunk_size: int = 800,
     chunk_overlap: int = 100,
     class_filter: int = None,
+    subject_filter: str = None,
     chapter_filter: int = None,
 ) -> List[Dict[str, Any]]:
-    """Process all or filtered NCERT chapters into chunked documents."""
+    """Process all or filtered NCERT chapters (Science & Mathematics) into chunked documents."""
     mapping = load_mapping()
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
@@ -104,19 +107,38 @@ def process_corpus(
     )
 
     all_chunks = []
-    target_classes = ["class9", "class10"]
-    if class_filter:
-        target_classes = [f"class{class_filter}"]
+    
+    # Define targets to process
+    corpus_targets = [
+        ("class9_science", 9, "Science", "class9_sci"),
+        ("class9_mathematics", 9, "Mathematics", "class9_maths"),
+        ("class10_science", 10, "Science", "class10_sci"),
+        ("class10_mathematics", 10, "Mathematics", "class10_maths"),
+    ]
 
     print(f"📖 Chunking configuration: size={chunk_size}, overlap={chunk_overlap}")
     print("📂 Processing corpus...")
 
-    for class_key in target_classes:
-        class_num = 9 if class_key == "class9" else 10
-        class_dir = os.path.join(DATA_DIR, class_key)
-        class_mapping = mapping.get(class_key, {})
+    for map_key, class_num, subject_name, default_folder in corpus_targets:
+        if class_filter and class_num != class_filter:
+            continue
+        if subject_filter and subject_filter.lower() not in subject_name.lower():
+            continue
 
-        print(f"\n--- Class {class_num} ---")
+        class_dir = os.path.join(DATA_DIR, default_folder)
+        if not os.path.exists(class_dir):
+            # Fallback check
+            alt_folder = default_folder.rstrip("s")
+            class_dir = os.path.join(DATA_DIR, alt_folder)
+            if not os.path.exists(class_dir):
+                # Pure class directory fallback
+                class_dir = os.path.join(DATA_DIR, f"class{class_num}")
+
+        class_mapping = mapping.get(map_key, {})
+        if not class_mapping and subject_name == "Science":
+            class_mapping = mapping.get(f"class{class_num}", {})
+
+        print(f"\n--- Class {class_num} {subject_name} ---")
         sorted_files = sorted(
             class_mapping.items(),
             key=lambda x: x[1].get("chapter_number", 0),
@@ -139,6 +161,7 @@ def process_corpus(
                 class_num=class_num,
                 ch_num=ch_num,
                 ch_title=ch_title,
+                subject=subject_name,
                 text_splitter=text_splitter,
             )
 
@@ -162,7 +185,7 @@ def setup_pinecone_index(pc: Pinecone, index_name: str, dimension: int = 384) ->
             metric="cosine",
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
-        print(f"✅ Index '{index_name}' created.")
+        print(f"✅ Created index '{index_name}' successfully.")
     else:
         print(f"🔍 Found existing Pinecone index '{index_name}'.")
 
@@ -172,26 +195,24 @@ def setup_pinecone_index(pc: Pinecone, index_name: str, dimension: int = 384) ->
 def embed_and_upsert(
     chunks: List[Dict[str, Any]],
     index_name: str = DEFAULT_INDEX,
-    model_name: str = DEFAULT_MODEL,
     batch_size: int = 100,
     namespace: str = "",
-):
-    """Embed chunks and upsert them to Pinecone in batches."""
+) -> None:
+    """Generates MiniLM embeddings and upserts chunks with metadata in batches to Pinecone."""
     load_dotenv()
     api_key = os.getenv("PINECONE_API_KEY")
     if not api_key:
-        raise ValueError("PINECONE_API_KEY not found in environment or .env file.")
+        raise ValueError("PINECONE_API_KEY environment variable is required.")
 
+    print("\n🧠 Initializing HuggingFace MiniLM Embeddings...")
+    embeddings = HuggingFaceEmbeddings(model_name=DEFAULT_MODEL)
+
+    print(f"🌲 Connecting to Pinecone index: '{index_name}'...")
     pc = Pinecone(api_key=api_key)
-    index = setup_pinecone_index(pc, index_name=index_name, dimension=384)
-
-    print(f"\n🧠 Initializing HuggingFace Embeddings ({model_name})...")
-    embeddings = HuggingFaceEmbeddings(model_name=model_name)
+    index = setup_pinecone_index(pc, index_name)
 
     total_chunks = len(chunks)
-    print(
-        f"\n🚀 Upserting {total_chunks} chunks to Pinecone index '{index_name}' (Batch size: {batch_size})..."
-    )
+    print(f"\n🚀 Upserting {total_chunks} chunks in batches of {batch_size}...")
 
     for i in range(0, total_chunks, batch_size):
         batch = chunks[i : i + batch_size]
@@ -225,7 +246,7 @@ def embed_and_upsert(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="NCERT Science Ingestion & Indexing Pipeline")
+    parser = argparse.ArgumentParser(description="NCERT Science & Mathematics Ingestion & Indexing Pipeline")
     parser.add_argument("--chunk-size", type=int, default=800, help="Chunk character length")
     parser.add_argument(
         "--chunk-overlap", type=int, default=100, help="Chunk overlap character length"
@@ -246,6 +267,12 @@ def main():
         help="Filter to specific class (9 or 10)",
     )
     parser.add_argument(
+        "--subject-filter",
+        type=str,
+        default=None,
+        help="Filter to specific subject (Science or Mathematics)",
+    )
+    parser.add_argument(
         "--chapter-filter", type=int, default=None, help="Filter to specific chapter number"
     )
     parser.add_argument(
@@ -260,6 +287,7 @@ def main():
         chunk_size=args.chunk_size,
         chunk_overlap=args.chunk_overlap,
         class_filter=args.class_filter,
+        subject_filter=args.subject_filter,
         chapter_filter=args.chapter_filter,
     )
 

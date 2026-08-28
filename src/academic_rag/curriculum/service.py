@@ -82,11 +82,29 @@ class CurriculumService:
         self._cached_mapping = DEFAULT_CURRICULUM_MAPPING
         return self._cached_mapping
 
-    def get_chapters_for_grade(self, class_level: int) -> List[ChapterInfo]:
-        """Returns sorted list of all chapters in a grade (Class 9 or 10)."""
+    def get_chapters_for_grade(
+        self, class_level: int, subject: str = "Science"
+    ) -> List[ChapterInfo]:
+        """Returns sorted list of all chapters in a grade and subject (Class 9 or 10, Science or Mathematics)."""
         mapping = self.get_mapping()
-        class_key = f"class{int(class_level)}"
-        class_map = mapping.get(class_key, {})
+        class_int = int(class_level)
+        subj_clean = str(subject).strip().lower()
+        is_math = "math" in subj_clean
+
+        if is_math:
+            class_key = f"class{class_int}_mathematics"
+            subj_canonical = "Mathematics"
+        else:
+            class_key = f"class{class_int}_science"
+            subj_canonical = "Science"
+
+        class_map = mapping.get(class_key)
+        if not class_map and not is_math:
+            # Legacy fallback for pure class key
+            class_map = mapping.get(f"class{class_int}", {})
+
+        if not class_map:
+            class_map = {}
 
         chapters = []
         for fname, info in class_map.items():
@@ -95,7 +113,8 @@ class CurriculumService:
                     chapter_number=int(info.get("chapter_number", 0)),
                     chapter_title=str(info.get("chapter", "")),
                     filename=fname,
-                    class_level=int(class_level),
+                    class_level=class_int,
+                    subject=subj_canonical,
                 )
             )
 
@@ -103,11 +122,14 @@ class CurriculumService:
         return chapters
 
     def resolve_chapter(
-        self, class_level: int, chapter_identifier: Union[str, int]
+        self,
+        class_level: int,
+        chapter_identifier: Union[str, int],
+        subject: str = "Science",
     ) -> Tuple[int, str]:
         """
         Resolves chapter identifier (int, digit str, or title substring) into
-        (chapter_number, canonical_title).
+        (chapter_number, canonical_title) for a specific class and subject.
         """
         try:
             class_int = int(class_level)
@@ -119,12 +141,18 @@ class CurriculumService:
                 f"Invalid class level: {class_int}. Supported class levels are 9 and 10."
             )
 
+        subj_clean = str(subject).strip().lower()
+        is_math = "math" in subj_clean
+        subj_canonical = "Mathematics" if is_math else "Science"
+
         mapping = self.get_mapping()
-        class_key = f"class{class_int}"
-        class_map = mapping.get(class_key, {})
+        class_key = f"class{class_int}_mathematics" if is_math else f"class{class_int}_science"
+        class_map = mapping.get(class_key)
+        if not class_map and not is_math:
+            class_map = mapping.get(f"class{class_int}", {})
 
         if not class_map:
-            raise CurriculumError(f"No curriculum mapping data found for Class {class_int}")
+            raise CurriculumError(f"No curriculum mapping data found for Class {class_int} {subj_canonical}")
 
         # Case 1: Integer or numeric string
         if isinstance(chapter_identifier, int) or (
@@ -135,7 +163,7 @@ class CurriculumService:
                 if int(info.get("chapter_number", 0)) == target_num:
                     return target_num, str(info.get("chapter", ""))
             raise ChapterNotFoundError(
-                f"Chapter number {target_num} not found in Class {class_int} NCERT Science."
+                f"Chapter number {target_num} not found in Class {class_int} NCERT {subj_canonical}."
             )
 
         # Case 2: String matching
@@ -164,17 +192,20 @@ class CurriculumService:
                 return int(info.get("chapter_number", 0)), ch_title
 
         raise ChapterNotFoundError(
-            f"Could not resolve chapter '{chapter_identifier}' for Class {class_int}."
+            f"Could not resolve chapter '{chapter_identifier}' for Class {class_int} {subj_canonical}."
         )
 
-    def get_next_chapter(self, class_level: int, current_chapter_num: int) -> Tuple[int, str, bool]:
+    def get_next_chapter(
+        self, class_level: int, current_chapter_num: int, subject: str = "Science"
+    ) -> Tuple[int, str, bool]:
         """
         Finds the next sequential chapter in the NCERT curriculum.
         Returns: (next_chapter_number, next_chapter_title, has_more_chapters)
         """
-        chapters = self.get_chapters_for_grade(class_level)
+        chapters = self.get_chapters_for_grade(class_level, subject=subject)
+        subj_name = "Mathematics" if "math" in str(subject).lower() else "Science"
         if not chapters:
-            return current_chapter_num, "General Science", False
+            return current_chapter_num, f"General {subj_name}", False
 
         for idx, ch in enumerate(chapters):
             if ch.chapter_number == current_chapter_num:
@@ -191,16 +222,17 @@ class CurriculumService:
 curriculum_service = CurriculumService()
 
 
-def get_ncert_curriculum(class_level: int) -> List[Dict[str, Any]]:
+def get_ncert_curriculum(class_level: int, subject: str = "Science") -> List[Dict[str, Any]]:
     """
-    Phase 4: Retrieves the authoritative NCERT Science curriculum for a specific class (9 or 10).
-    Guarantees strict class scoping with zero cross-contamination.
+    Retrieves the authoritative NCERT curriculum for a specific class (9 or 10) and subject (Science or Mathematics).
+    Guarantees strict class and subject scoping with zero cross-contamination.
 
     Args:
         class_level: 9 or 10 (int)
+        subject: "Science" or "Mathematics" (str)
 
     Returns:
-        List of chapter dictionaries containing chapter_number, chapter, chapter_id, filename, and pdf_path.
+        List of chapter dictionaries containing chapter_number, chapter, chapter_id, filename, pdf_path, and subject.
     """
     try:
         cls_int = int(class_level)
@@ -212,16 +244,23 @@ def get_ncert_curriculum(class_level: int) -> List[Dict[str, Any]]:
             f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported."
         )
 
-    chapters = curriculum_service.get_chapters_for_grade(cls_int)
+    subj_clean = str(subject).strip().lower()
+    is_math = "math" in subj_clean
+    subj_canonical = "Mathematics" if is_math else "Science"
+    subj_slug = "math" if is_math else "science"
+
+    chapters = curriculum_service.get_chapters_for_grade(cls_int, subject=subj_canonical)
     results = []
+    folder_name = f"class{cls_int}_{'maths' if is_math else 'sci'}"
     for ch in chapters:
-        slug = ch.chapter_title.lower().replace(" ", "_").replace("–", "-").replace(":", "")
-        chapter_id = f"class{cls_int}_science_{slug}"
-        pdf_path = f"data/class{cls_int}/{ch.filename}"
-        static_url = f"app/static/class{cls_int}/{ch.filename}"
+        slug = ch.chapter_title.lower().replace(" ", "_").replace("–", "-").replace(":", "").replace("'", "")
+        chapter_id = f"class{cls_int}_{subj_slug}_{slug}"
+        pdf_path = f"data/{folder_name}/{ch.filename}"
+        static_url = f"app/static/{folder_name}/{ch.filename}"
         results.append(
             {
                 "class_level": cls_int,
+                "subject": subj_canonical,
                 "chapter_id": chapter_id,
                 "chapter_number": ch.chapter_number,
                 "chapter": ch.chapter_title,
@@ -238,28 +277,35 @@ def ensure_static_assets() -> None:
     import shutil
 
     for cls_int in (9, 10):
-        src_dir = os.path.join("data", f"class{cls_int}")
-        dst_dir = os.path.join("static", f"class{cls_int}")
-        if os.path.isdir(src_dir):
-            os.makedirs(dst_dir, exist_ok=True)
-            for fname in os.listdir(src_dir):
-                if fname.endswith(".pdf"):
-                    dst_path = os.path.join(dst_dir, fname)
-                    if not os.path.exists(dst_path):
-                        shutil.copy2(os.path.join(src_dir, fname), dst_path)
+        for sub_dir in (f"class{cls_int}_sci", f"class{cls_int}_maths", f"class{cls_int}"):
+            src_dir = os.path.join("data", sub_dir)
+            dst_dir = os.path.join("static", sub_dir)
+            if os.path.isdir(src_dir):
+                os.makedirs(dst_dir, exist_ok=True)
+                for fname in os.listdir(src_dir):
+                    if fname.endswith(".pdf"):
+                        dst_path = os.path.join(dst_dir, fname)
+                        if not os.path.exists(dst_path):
+                            try:
+                                shutil.copy2(os.path.join(src_dir, fname), dst_path)
+                            except Exception:
+                                pass
 
 
-def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Dict[str, Any]:
+def get_chapter_pdf(
+    class_level: int, chapter_identifier: Union[int, str], subject: str = "Science"
+) -> Dict[str, Any]:
     """
-    Resolves the authoritative NCERT textbook PDF for a specific class and chapter.
-    Guarantees class isolation via composite key (class_level, chapter_identifier).
+    Resolves the authoritative NCERT textbook PDF for a specific class, subject, and chapter.
+    Guarantees class and subject isolation via composite key (class_level, subject, chapter_identifier).
 
     Args:
         class_level: 9 or 10 (int)
         chapter_identifier: Chapter number (int) or Chapter title (str)
+        subject: "Science" or "Mathematics" (str)
 
     Returns:
-        Dict with class_level, chapter_id, chapter_number, chapter_name, filename, pdf_path, static_url, exists.
+        Dict with class_level, subject, chapter_id, chapter_number, chapter_name, filename, pdf_path, static_url, exists.
     """
     try:
         cls_int = int(class_level)
@@ -271,30 +317,45 @@ def get_chapter_pdf(class_level: int, chapter_identifier: Union[int, str]) -> Di
             f"Unsupported class_level {cls_int}. Only Class 9 and Class 10 are supported."
         )
 
-    ch_num, ch_title = curriculum_service.resolve_chapter(cls_int, chapter_identifier)
+    subj_clean = str(subject).strip().lower()
+    is_math = "math" in subj_clean
+    subj_canonical = "Mathematics" if is_math else "Science"
+    subj_slug = "math" if is_math else "science"
+
+    ch_num, ch_title = curriculum_service.resolve_chapter(cls_int, chapter_identifier, subject=subj_canonical)
 
     # Lookup authoritative filename
-    class_map = curriculum_service.get_mapping().get(f"class{cls_int}", {})
+    class_key = f"class{cls_int}_mathematics" if is_math else f"class{cls_int}_science"
+    class_map = curriculum_service.get_mapping().get(class_key, {})
+    if not class_map and not is_math:
+        class_map = curriculum_service.get_mapping().get(f"class{cls_int}", {})
+
     filename = None
     for fname, info in class_map.items():
         if info.get("chapter_number") == ch_num or info.get("chapter") == ch_title:
             filename = fname
             break
 
-    prefix = "iesc1" if cls_int == 9 else "jesc1"
+    if is_math:
+        prefix = "iemh1" if cls_int == 9 else "jemh1"
+    else:
+        prefix = "iesc1" if cls_int == 9 else "jesc1"
+
     if not filename:
         filename = f"{prefix}{ch_num:02d}.pdf"
 
-    pdf_path = os.path.join("data", f"class{cls_int}", filename)
+    folder_name = f"class{cls_int}_{'maths' if is_math else 'sci'}"
+    pdf_path = os.path.join("data", folder_name, filename)
     clean_pdf_path = pdf_path.replace("\\", "/")
-    slug = ch_title.lower().replace(" ", "_").replace("–", "-").replace(":", "")
-    chapter_id = f"class{cls_int}_science_{slug}"
-    static_url = f"app/static/class{cls_int}/{filename}"
-    external_url = f"https://ncert.nic.in/textbook.php?{prefix}=1-13"
+    slug = ch_title.lower().replace(" ", "_").replace("–", "-").replace(":", "").replace("'", "")
+    chapter_id = f"class{cls_int}_{subj_slug}_{slug}"
+    static_url = f"app/static/{folder_name}/{filename}"
+    external_url = f"https://ncert.nic.in/textbook.php?{prefix}=1-14"
     official_pdf_url = f"https://ncert.nic.in/textbook/pdf/{filename}"
 
     return {
         "class_level": cls_int,
+        "subject": subj_canonical,
         "chapter_id": chapter_id,
         "chapter_number": ch_num,
         "chapter_name": ch_title,

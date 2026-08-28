@@ -89,14 +89,16 @@ logger = logging.getLogger(__name__)
 def get_student_swat(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Retrieves the complete, descriptive SWAT performance profile for a student.
+    Retrieves the complete, descriptive SWAT performance profile for a student in a specific subject.
 
     Args:
         student_id: Unique student ID (e.g. "student_001")
         class_level: Optional grade level (9 or 10) to isolate metrics
+        subject: Subject name ("Science" or "Mathematics")
         db_path: Optional custom DB path
 
     Returns:
@@ -106,21 +108,23 @@ def get_student_swat(
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_student_swat(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_student_action_plan(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Generates a prioritized, explainable, and actionable study recommendation plan for a student.
+    Generates a prioritized, explainable, and actionable study recommendation plan for a student in a specific subject.
 
     Args:
         student_id: Unique student ID
         class_level: Optional grade level (9 or 10)
+        subject: Subject name ("Science" or "Mathematics")
         db_path: Optional custom DB path
 
     Returns:
@@ -129,23 +133,24 @@ def get_student_action_plan(
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_generate_action_plan(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_chapters_with_status(
     student_id: Optional[Union[str, int]] = None,
     class_level: Optional[Union[str, int]] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
     **kwargs: Any,
 ) -> List[Dict[str, Any]]:
     """
-    Retrieves the complete list of NCERT chapters for a grade, annotated with student mastery status.
+    Retrieves the complete list of NCERT chapters for a grade and subject, annotated with student mastery status.
 
     Accepts either:
       - (student_id: str, class_level: int)
       - (class_level: int, student_id: Optional[str])
-      - Keyword args: get_chapters_with_status(student_id="...", class_level=10)
+      - Keyword args: get_chapters_with_status(student_id="...", class_level=10, subject="Mathematics")
 
     Returns:
         List of chapter dicts with chapter_number, chapter, status, score, attempts.
@@ -157,7 +162,8 @@ def get_chapters_with_status(
         sid = str(student_id) if student_id is not None else kwargs.get("student_id")
         cls = int(class_level) if class_level is not None else kwargs.get("class_level", 10)
 
-    return _internal_get_available_chapters(class_level=cls, student_id=sid, db_path=db_path)
+    target_subj = kwargs.get("subject", subject)
+    return _internal_get_available_chapters(class_level=cls, student_id=sid, subject=target_subj, db_path=db_path)
 
 
 def generate_quiz(
@@ -166,6 +172,7 @@ def generate_quiz(
     chapter: Union[str, int],
     difficulty: str = "medium",
     num_questions: int = 5,
+    subject: str = "Science",
     api_key: Optional[str] = None,
     model: Optional[str] = None,
     model_name: Optional[str] = None,
@@ -180,6 +187,7 @@ def generate_quiz(
         chapter: Canonical chapter name string or chapter number int
         difficulty: 'easy', 'medium', or 'hard'
         num_questions: Number of questions to generate (default: 5)
+        subject: 'Science' or 'Mathematics'
         api_key: Optional Gemini API key
         model: Model identifier (default: "gemini-3.5-flash-lite")
 
@@ -192,6 +200,7 @@ def generate_quiz(
         chapter=chapter,
         difficulty=difficulty,
         num_questions=num_questions,
+        subject=subject,
         api_key=api_key,
         model=model or model_name,
         **kwargs,
@@ -239,11 +248,12 @@ def submit_quiz(
 def get_student_quiz_history(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: Optional[str] = None,
     include_questions: bool = True,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Retrieves chronological attempt history for a student, optionally isolated by class level.
+    Retrieves chronological attempt history for a student, optionally isolated by class level and subject.
     """
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
@@ -251,6 +261,7 @@ def get_student_quiz_history(
     return repo.get_student_history(
         student_id=str(student_id).strip(),
         class_level=class_level,
+        subject=subject,
         include_questions=include_questions,
     )
 
@@ -258,11 +269,12 @@ def get_student_quiz_history(
 def get_student_class_history(
     student_id: str,
     class_level: int,
+    subject: Optional[str] = None,
     include_questions: bool = False,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Retrieves chronological attempt history for a student strictly isolated to a specific class.
+    Retrieves chronological attempt history for a student strictly isolated to a specific class and subject.
     """
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
@@ -270,6 +282,7 @@ def get_student_class_history(
     return repo.get_student_class_history(
         student_id=str(student_id).strip(),
         class_level=class_level,
+        subject=subject,
         include_questions=include_questions,
     )
 
@@ -277,26 +290,28 @@ def get_student_class_history(
 def get_attempted_chapters(
     student_id: str,
     class_level: int,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> List[str]:
-    """Retrieves list of attempted chapter names for a student in a specific class."""
+    """Retrieves list of attempted chapter names for a student in a specific class and subject."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_attempted_chapters(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_unattempted_chapters(
     student_id: str,
     class_level: int,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Retrieves list of unattempted chapter dicts with score=None for a student in a specific class."""
+    """Retrieves list of unattempted chapter dicts with score=None for a student in a specific class and subject."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_unattempted_chapters(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
@@ -308,19 +323,21 @@ def get_unattempted_chapters(
 def get_teacher_student_overview(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Retrieves overall student statistics and KPIs for Teacher View."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_student_overview(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_teacher_swat(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -330,13 +347,14 @@ def get_teacher_swat(
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_student_swat(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_teacher_action_plan(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -345,7 +363,7 @@ def get_teacher_action_plan(
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_generate_action_plan(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
@@ -354,6 +372,7 @@ def save_teacher_action_plan(
     class_level: int,
     actions: List[Dict[str, Any]],
     teacher_notes: Optional[str] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -366,6 +385,7 @@ def save_teacher_action_plan(
         class_level=class_level,
         actions=actions,
         teacher_notes=teacher_notes,
+        subject=subject,
         db_path=db_path,
     )
 
@@ -373,6 +393,7 @@ def save_teacher_action_plan(
 def reset_teacher_action_plan(
     student_id: str,
     class_level: int,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> bool:
     """
@@ -381,59 +402,64 @@ def reset_teacher_action_plan(
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_reset_teacher_action_plan(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_teacher_quiz_history(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
+    limit: int = 10,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Retrieves class-scoped chronological quiz history for Teacher View."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_teacher_quiz_history(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, limit=limit, db_path=db_path
     )
 
 
 def get_student_chapter_stats(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Chapter Statistics for Teacher View."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_student_chapter_stats(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_student_status(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Early-Warning Status Engine for Teacher View."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_student_status(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
 def get_teacher_student_profile(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Unified Teacher Master Profile."""
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     return _internal_get_teacher_student_profile(
-        str(student_id).strip(), class_level=class_level, db_path=db_path
+        str(student_id).strip(), class_level=class_level, subject=subject, db_path=db_path
     )
 
 
@@ -488,6 +514,7 @@ def get_student_study_materials(
     student_id: str,
     class_level: Optional[int] = None,
     chapter: Optional[str] = None,
+    subject: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
@@ -496,7 +523,9 @@ def get_student_study_materials(
     from src.academic_rag.storage.repository import study_material_repository
 
     repo = study_material_repository if db_path is None else type(study_material_repository)(db_path=db_path)
-    return repo.get_student_documents(student_id=student_id, class_level=class_level, chapter=chapter)
+    return repo.get_student_documents(
+        student_id=student_id, class_level=class_level, chapter=chapter, subject=subject
+    )
 
 
 def delete_study_material(
@@ -547,10 +576,11 @@ def get_chapter_knowledge_graph(
     student_id: str,
     class_level: int,
     chapter: str,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Constructs the concept-level knowledge graph for a chapter and student,
+    Constructs the concept-level knowledge graph for a chapter, subject, and student,
     incorporating mastery calculations, unattempted concept safety, and linked study resources.
     """
     from src.academic_rag.analytics.knowledge_graph import (
@@ -561,26 +591,31 @@ def get_chapter_knowledge_graph(
         student_id=student_id,
         class_level=class_level,
         chapter_name=chapter,
+        subject=subject,
         db_path=db_path,
     )
 
 
-def get_available_knowledge_map_chapters(class_level: int) -> List[Dict[str, Any]]:
-    """Returns chapters available for concept knowledge mapping in the given class."""
+def get_available_knowledge_map_chapters(
+    class_level: int,
+    subject: str = "Science",
+) -> List[Dict[str, Any]]:
+    """Returns chapters available for concept knowledge mapping in the given class and subject."""
     from src.academic_rag.analytics.knowledge_graph import (
         get_available_knowledge_map_chapters as _internal_get_avail_km_chapters,
     )
 
-    return _internal_get_avail_km_chapters(class_level=class_level)
+    return _internal_get_avail_km_chapters(class_level=class_level, subject=subject)
 
 
 def calculate_student_concept_telemetry(
     student_id: str,
     class_level: int,
     chapter: Optional[str] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Dict[str, Any]]:
-    """Calculates granular concept-level performance telemetry for a student."""
+    """Calculates granular concept-level performance telemetry for a student in a specific subject."""
     from src.academic_rag.analytics.knowledge_graph import (
         calculate_student_concept_telemetry as _internal_calc_concept_telemetry,
     )
@@ -589,6 +624,7 @@ def calculate_student_concept_telemetry(
         student_id=student_id,
         class_level=class_level,
         chapter_name=chapter,
+        subject=subject,
         db_path=db_path,
     )
 

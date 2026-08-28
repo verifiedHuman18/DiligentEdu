@@ -56,14 +56,17 @@ def calculate_student_concept_telemetry(
     student_id: str,
     class_level: int,
     chapter_name: Optional[str] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """
-    Calculates detailed concept-level telemetry (attempts, correct, mastery) for a student.
+    Calculates detailed concept-level telemetry (attempts, correct, mastery) for a student,
+    isolated strictly to the active class level and subject.
     Handles multi-concept questions via equal weighting (w = 1/n).
     Strictly keeps unassessed concepts as None / unattempted.
     """
     target_db = db_path or str(config.default_db_path)
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     concept_stats: Dict[str, Dict[str, float]] = {}
 
     try:
@@ -78,12 +81,13 @@ def calculate_student_concept_telemetry(
                     qr.chapter,
                     qr.is_correct,
                     qr.concept_id,
-                    qa.class_level
+                    qa.class_level,
+                    qa.subject
                 FROM question_responses qr
                 JOIN quiz_attempts qa ON qr.quiz_id = qa.quiz_id
-                WHERE qa.student_id = ? AND qa.class_level = ?
+                WHERE qa.student_id = ? AND qa.class_level = ? AND qa.subject = ?
             """
-            params: List[Any] = [str(student_id).strip(), int(class_level)]
+            params: List[Any] = [str(student_id).strip(), int(class_level), subj_clean]
 
             if chapter_name:
                 query += " AND qr.chapter = ?"
@@ -113,7 +117,7 @@ def calculate_student_concept_telemetry(
 
                 # If no explicit concept tag stored, match dynamically
                 if not target_concepts:
-                    ch_meta = get_chapter_concept_metadata(ch_name, class_level=class_level)
+                    ch_meta = get_chapter_concept_metadata(ch_name, class_level=class_level, subject=subj_clean)
                     if ch_meta:
                         target_concepts = _match_question_to_concepts(q_text, ch_meta.get("nodes", []))
 
@@ -139,10 +143,10 @@ def calculate_student_concept_telemetry(
         correct = round(stats["correct"], 2)
 
         if attempts > 0:
-            mastery_pct = round((correct / attempts) * 100.0, 1)
-            if mastery_pct >= 80.0:
+            mastery_pct = int(round((correct / attempts) * 100.0))
+            if mastery_pct >= 80:
                 status = ConceptStatus.STRONG
-            elif mastery_pct >= 60.0:
+            elif mastery_pct >= 60:
                 status = ConceptStatus.MODERATE
             else:
                 status = ConceptStatus.WEAK
@@ -174,14 +178,16 @@ def get_chapter_knowledge_graph(
     student_id: str,
     class_level: int,
     chapter_name: str,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Constructs the complete concept knowledge graph for a specific chapter and student.
+    Constructs the complete concept knowledge graph for a specific chapter, subject, and student.
     Merges authoritative NCERT concepts, dependency edges, student performance telemetry,
     and linked uploaded study materials.
     """
-    ch_meta = get_chapter_concept_metadata(chapter_name, class_level=class_level)
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    ch_meta = get_chapter_concept_metadata(chapter_name, class_level=class_level, subject=subj_clean)
     target_class = int(class_level)
 
     if ch_meta:
@@ -212,17 +218,19 @@ def get_chapter_knowledge_graph(
         student_id=student_id,
         class_level=target_class,
         chapter_name=ch_title,
+        subject=subj_clean,
         db_path=db_path,
     )
 
     # Fetch student uploaded documents for resource linking
     student_docs: List[Dict[str, Any]] = []
     try:
-        from src.academic_rag.storage.repository import get_student_study_materials
-        student_docs = get_student_study_materials(
+        from src.academic_rag.storage.repository import study_material_repository
+        m_repo = study_material_repository if db_path is None else type(study_material_repository)(db_path=db_path)
+        student_docs = m_repo.get_student_documents(
             student_id=student_id,
             class_level=target_class,
-            db_path=db_path,
+            subject=subj_clean,
         )
     except Exception as e:
         logger.debug(f"Could not load study materials for resource linking: {e}")
@@ -341,6 +349,8 @@ def get_chapter_knowledge_graph(
     return graph.to_dict()
 
 
-def get_available_knowledge_map_chapters(class_level: int) -> List[Dict[str, Any]]:
-    """Returns sorted list of chapters supported by the Knowledge Map for the selected class."""
-    return get_all_registered_chapters(class_level=class_level)
+def get_available_knowledge_map_chapters(
+    class_level: int, subject: str = "Science"
+) -> List[Dict[str, Any]]:
+    """Returns sorted list of chapters supported by the Knowledge Map for the selected class and subject."""
+    return get_all_registered_chapters(class_level=class_level, subject=subject)

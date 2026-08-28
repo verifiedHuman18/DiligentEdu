@@ -51,12 +51,13 @@ def retrieve_ncert_context(
     query: str,
     class_filter: Optional[int] = None,
     chapter_filter: Optional[int] = None,
+    subject_filter: Optional[str] = "Science",
     top_k: int = 4,
     api_key: Optional[str] = None,
 ) -> str:
     """
     Retrieves representative, rich NCERT textbook chunks from Pinecone.
-    Preserves exact class, chapter name, chapter number, and page number metadata.
+    Preserves exact class, subject, chapter name, chapter number, and page number metadata.
     """
     try:
         embeddings = get_embeddings()
@@ -67,6 +68,9 @@ def retrieve_ncert_context(
             filter_dict["class"] = {"$eq": int(class_filter)}
         if chapter_filter is not None:
             filter_dict["chapter_number"] = {"$eq": int(chapter_filter)}
+        if subject_filter is not None:
+            subj_val = "Mathematics" if "math" in str(subject_filter).lower() else "Science"
+            filter_dict["subject"] = {"$eq": subj_val}
 
         query_vector = embeddings.embed_query(query)
 
@@ -89,11 +93,12 @@ def retrieve_ncert_context(
             meta = match.get("metadata", {})
             cls_num = int(meta.get("class", class_filter or 0))
             ch_num = int(meta.get("chapter_number", chapter_filter or 0))
-            ch_name = meta.get("chapter", "Science")
+            subj_name = meta.get("subject", "Science")
+            ch_name = meta.get("chapter", subj_name)
             page_num = int(meta.get("page", 0))
             text = meta.get("text", "").strip()
 
-            chunk_header = f"[SOURCE: NCERT Class {cls_num} Science | CHAPTER {ch_num}: {ch_name} | PAGE: {page_num}]"
+            chunk_header = f"[SOURCE: NCERT Class {cls_num} {subj_name} | CHAPTER {ch_num}: {ch_name} | PAGE: {page_num}]"
             formatted_chunks.append(f"{chunk_header}\n{text}")
 
         return "\n\n---\n\n".join(formatted_chunks)
@@ -108,12 +113,13 @@ def retrieve_student_material_context(
     student_id: str,
     class_filter: Optional[int] = None,
     chapter_filter: Optional[str] = None,
+    subject_filter: Optional[str] = None,
     top_k: int = 3,
     api_key: Optional[str] = None,
 ) -> str:
     """
     Retrieves student-uploaded reference material chunks from Pinecone.
-    Strictly isolates vectors by student_id and class level.
+    Strictly isolates vectors by student_id, class level, and subject.
     """
     clean_student_id = str(student_id).strip()
     if not clean_student_id:
@@ -125,7 +131,7 @@ def retrieve_student_material_context(
 
         # Quick check: does student have any READY uploaded materials?
         ready_docs = study_material_repository.get_student_documents(
-            student_id=clean_student_id, class_level=class_filter
+            student_id=clean_student_id, class_level=class_filter, subject=subject_filter
         )
         ready_docs = [d for d in ready_docs if d.get("status") == "READY"]
         if not ready_docs:
@@ -141,6 +147,9 @@ def retrieve_student_material_context(
         }
         if class_filter is not None:
             filter_dict["class"] = {"$eq": int(class_filter)}
+        if subject_filter is not None:
+            subj_val = "Mathematics" if "math" in str(subject_filter).lower() else "Science"
+            filter_dict["subject"] = {"$eq": subj_val}
 
         # Semantic retrieval is primary; chapter filter is applied loosely if available
         query_vector = embeddings.embed_query(query)
@@ -169,6 +178,11 @@ def retrieve_student_material_context(
                 continue
             if class_filter is not None and int(meta.get("class", meta.get("class_level", 0))) != int(class_filter):
                 continue
+            if subject_filter is not None:
+                meta_subj = str(meta.get("subject", "")).lower()
+                target_subj = "mathematics" if "math" in str(subject_filter).lower() else "science"
+                if meta_subj and meta_subj != target_subj:
+                    continue
 
             mat_name = meta.get("material_name") or meta.get("filename", "Reference Material")
             filename = meta.get("filename", "")
@@ -195,6 +209,7 @@ def retrieve_hybrid_academic_context(
     query: str,
     student_id: Optional[str] = None,
     class_filter: Optional[int] = None,
+    subject_filter: Optional[str] = "Science",
     chapter_filter: Optional[Any] = None,
     ncert_top_k: int = 4,
     student_top_k: int = 3,
@@ -212,6 +227,7 @@ def retrieve_hybrid_academic_context(
         query=query,
         class_filter=class_filter,
         chapter_filter=ch_num,
+        subject_filter=subject_filter,
         top_k=ncert_top_k,
         api_key=api_key,
     )
@@ -223,6 +239,7 @@ def retrieve_hybrid_academic_context(
             query=query,
             student_id=student_id,
             class_filter=class_filter,
+            subject_filter=subject_filter,
             top_k=student_top_k,
             api_key=api_key,
         )

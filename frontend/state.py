@@ -7,6 +7,7 @@ import streamlit as st
 from src.academic_rag.config import config
 
 VALID_CLASS_LEVELS = (9, 10)
+VALID_SUBJECTS = ("Science", "Mathematics")
 
 
 def init_session_state() -> None:
@@ -20,6 +21,8 @@ def init_session_state() -> None:
         "messages": [],
         "class_level": 10,
         "selected_class": "Class 10",
+        "subject": "Science",
+        "selected_subject": "Science",
         "selected_chapter": "All Chapters",
         "student_id": "student_001",
         "model": config.default_llm_model
@@ -95,6 +98,43 @@ def set_student_class_level(class_level: int) -> None:
         st.session_state.socrates_attempts = {}
         st.session_state.socrates_completed = False
         st.session_state.tutor_needs_refresh = True
+        st.session_state.tutor_suggested_questions = None
+
+
+def get_student_subject() -> str:
+    """
+    Returns the student's active subject ('Science' or 'Mathematics').
+    """
+    raw_val = st.session_state.get("subject") or st.session_state.get("selected_subject") or "Science"
+    if "math" in str(raw_val).lower():
+        return "Mathematics"
+    return "Science"
+
+
+def set_student_subject(subject: str) -> None:
+    """
+    Sets the active subject and triggers complete cross-subject state invalidation.
+    """
+    target_subject = "Mathematics" if "math" in str(subject).lower() else "Science"
+    prev_subject = st.session_state.get("subject")
+
+    st.session_state.subject = target_subject
+    st.session_state.selected_subject = target_subject
+
+    if prev_subject is not None and prev_subject != target_subject:
+        st.session_state.current_quiz = None
+        st.session_state.quiz_submitted = False
+        st.session_state.quiz_user_answers = {}
+        st.session_state.last_submission_result = None
+        st.session_state.selected_chapter = "All Chapters"
+        st.session_state.socrates_active_q = 1
+        st.session_state.socrates_hints_revealed = {}
+        st.session_state.socrates_chat_history = {}
+        st.session_state.socrates_attempts = {}
+        st.session_state.socrates_completed = False
+        st.session_state.tutor_needs_refresh = True
+        st.session_state.tutor_suggested_questions = None
+        st.session_state.messages = []
 
 
 def get_student_profile() -> Dict[str, Any]:
@@ -102,6 +142,7 @@ def get_student_profile() -> Dict[str, Any]:
     return {
         "student_id": st.session_state.get("student_id", "student_001"),
         "class_level": get_student_class_level(),
+        "subject": get_student_subject(),
         "selected_chapter": st.session_state.get("selected_chapter", "All Chapters"),
         "model": st.session_state.get("model", "gemini-3.5-flash-lite"),
     }

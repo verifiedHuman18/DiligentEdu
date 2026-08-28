@@ -12,13 +12,14 @@ logger = logging.getLogger(__name__)
 def generate_action_plan(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
     check_custom: bool = True,
 ) -> Dict[str, Any]:
     """
     Generates a prioritized, explainable, and actionable study recommendation plan
     based on the student's unified SWAT performance, unattempted chapters,
-    or active Teacher Customizations.
+    or active Teacher Customizations for a specific subject.
 
     Recommendation Priority (when not customized):
       1. Priority 1 (High)   — Weak chapters (< 50%) -> Practice quiz (medium/easy)
@@ -30,29 +31,34 @@ def generate_action_plan(
         Structured Dict containing overall urgency, summary, ordered actionable items,
         and customization metadata.
     """
-    swat = get_student_swat(student_id, class_level=class_level, db_path=db_path)
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    swat = get_student_swat(student_id, class_level=class_level, subject=subj_clean, db_path=db_path)
     target_class = swat.get("class_level") or (int(class_level) if class_level is not None else 10)
     repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
 
     # 1. Check for Active Teacher Custom Action Plan
-    custom_record = repo.get_teacher_custom_plan(student_id, target_class) if check_custom else None
+    custom_record = repo.get_teacher_custom_plan(student_id, target_class, subject=subj_clean) if check_custom else None
 
     if custom_record and custom_record.get("plan_data"):
-        return _build_custom_teacher_action_plan(
+        plan = _build_custom_teacher_action_plan(
             student_id=student_id,
             target_class=target_class,
             swat=swat,
             custom_record=custom_record,
             db_path=db_path,
         )
+        plan["subject"] = subj_clean
+        return plan
 
     # 2. Build Automated SWAT Action Plan
-    return _build_automated_swat_action_plan(
+    plan = _build_automated_swat_action_plan(
         student_id=student_id,
         target_class=target_class,
         swat=swat,
         db_path=db_path,
     )
+    plan["subject"] = subj_clean
+    return plan
 
 
 def _build_automated_swat_action_plan(
@@ -356,6 +362,7 @@ def save_teacher_action_plan(
     class_level: int,
     actions: List[Dict[str, Any]],
     teacher_notes: Optional[str] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
@@ -366,6 +373,7 @@ def save_teacher_action_plan(
         class_level: Grade level (9 or 10)
         actions: Ordered list of action dicts (must contain 'chapter', optional: 'difficulty', 'reason', 'action')
         teacher_notes: Optional global pedagogical guidance note
+        subject: Subject ('Science' or 'Mathematics')
         db_path: Optional custom DB path
     """
     if not student_id or not str(student_id).strip():
@@ -381,13 +389,15 @@ def save_teacher_action_plan(
         class_level=class_int,
         plan_data=plan_data,
         teacher_notes=teacher_notes,
+        subject=subject,
     )
-    return generate_action_plan(str(student_id).strip(), class_level=class_int, db_path=db_path)
+    return generate_action_plan(str(student_id).strip(), class_level=class_int, subject=subject, db_path=db_path)
 
 
 def reset_teacher_action_plan(
     student_id: str,
     class_level: int,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> bool:
     """
@@ -398,14 +408,15 @@ def reset_teacher_action_plan(
     class_int = int(class_level)
     repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
     return repo.delete_teacher_action_plan(
-        student_id=str(student_id).strip(), class_level=class_int
+        student_id=str(student_id).strip(), class_level=class_int, subject=subject
     )
 
 
 def get_teacher_action_plan(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: str = "Science",
     db_path: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Retrieves the active action plan for teacher view."""
-    return generate_action_plan(student_id, class_level=class_level, db_path=db_path)
+    return generate_action_plan(student_id, class_level=class_level, subject=subject, db_path=db_path)

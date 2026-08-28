@@ -980,39 +980,824 @@ CHAPTER_CONCEPTS_REGISTRY: Dict[str, Dict[str, Any]] = {
             {"source": "tissue_permanent_plant", "target": "tissue_connective_nervous", "relationship": "related"},
         ],
     },
+
+    # =========================================================================
+    # CLASS 10 NCERT MATHEMATICS CHAPTERS
+    # =========================================================================
+    "Real Numbers": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 1,
+        "nodes": [
+            {
+                "id": "math10_euclid_fundamental",
+                "name": "Fundamental Theorem of Arithmetic",
+                "section": "1.2",
+                "tier": 1,
+                "description": "Prime factorisation uniqueness, HCF and LCM calculations, and prime decomposition of composite numbers.",
+                "keywords": ["fundamental theorem", "prime factorisation", "composite numbers", "hcf", "lcm", "product of primes"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_irrational_proofs",
+                "name": "Irrationality Proofs (√2, √3, √5)",
+                "section": "1.3",
+                "tier": 2,
+                "description": "Proof of irrationality by contradiction for square roots of primes and linear combinations (a ± b√p).",
+                "keywords": ["irrational number", "proof by contradiction", "co-prime", "divisibility", "root 2", "root 3", "root 5"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_decimal_expansions",
+                "name": "Rational Decimal Expansions",
+                "section": "1.4",
+                "tier": 3,
+                "description": "Terminating and non-terminating recurring decimal conditions based on denominator prime factorisation 2^n * 5^m.",
+                "keywords": ["terminating decimal", "non-terminating recurring", "rational number", "denominator", "2^n 5^m"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_euclid_fundamental", "target": "math10_irrational_proofs", "relationship": "prerequisite"},
+            {"source": "math10_euclid_fundamental", "target": "math10_decimal_expansions", "relationship": "prerequisite"},
+        ],
+    },
+
+    "Polynomials": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 2,
+        "nodes": [
+            {
+                "id": "math10_poly_zeros_geom",
+                "name": "Geometric Meaning of Zeroes",
+                "section": "2.2",
+                "tier": 1,
+                "description": "Relationship between x-intercepts of parabola / curves and number of real zeroes of linear, quadratic, and cubic polynomials.",
+                "keywords": ["zeroes", "x-intercept", "parabola", "linear polynomial", "quadratic polynomial", "cubic polynomial"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_poly_coeff_relations",
+                "name": "Zeroes & Coefficients Relationship",
+                "section": "2.3",
+                "tier": 2,
+                "description": "Sum of zeroes (α + β = -b/a) and product of zeroes (αβ = c/a) for quadratic and cubic polynomials.",
+                "keywords": ["sum of zeroes", "product of zeroes", "coefficients", "quadratic polynomial", "alpha beta"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_poly_division_alg",
+                "name": "Division Algorithm for Polynomials",
+                "section": "2.4",
+                "tier": 3,
+                "description": "Dividing polynomials p(x) = g(x)q(x) + r(x) to find remaining zeroes from known roots.",
+                "keywords": ["division algorithm", "quotient", "remainder", "finding remaining zeroes", "factorisation"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_poly_zeros_geom", "target": "math10_poly_coeff_relations", "relationship": "prerequisite"},
+            {"source": "math10_poly_coeff_relations", "target": "math10_poly_division_alg", "relationship": "derived_from"},
+        ],
+    },
+
+    "Pair of Linear Equations in Two Variables": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 3,
+        "nodes": [
+            {
+                "id": "math10_linear_graphical",
+                "name": "Graphical Method & Consistency",
+                "section": "3.2",
+                "tier": 1,
+                "description": "Intersecting, parallel, and coincident lines with consistency ratios a1/a2, b1/b2, c1/c2.",
+                "keywords": ["graphical method", "intersecting lines", "parallel lines", "coincident", "consistent", "inconsistent"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_linear_substitution",
+                "name": "Substitution & Elimination Methods",
+                "section": "3.3",
+                "tier": 2,
+                "description": "Algebraic solution by substituting one variable or eliminating coefficients to solve simultaneous equations.",
+                "keywords": ["substitution method", "elimination method", "algebraic solution", "simultaneous equations"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_linear_reducible",
+                "name": "Equations Reducible to Linear Form",
+                "section": "3.4",
+                "tier": 3,
+                "description": "Transforming non-linear paired fractions (e.g. 1/x, 1/y) into standard linear form using variable substitution.",
+                "keywords": ["reducible equations", "upstream downstream", "speed time distance", "variable substitution"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_linear_graphical", "target": "math10_linear_substitution", "relationship": "prerequisite"},
+            {"source": "math10_linear_substitution", "target": "math10_linear_reducible", "relationship": "related"},
+        ],
+    },
+
+    "Quadratic Equations": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 4,
+        "nodes": [
+            {
+                "id": "math10_quad_standard_factorisation",
+                "name": "Standard Form & Factorisation",
+                "section": "4.1 - 4.2",
+                "tier": 1,
+                "description": "ax^2 + bx + c = 0 formulation and solving by splitting the middle term.",
+                "keywords": ["quadratic equation", "standard form", "factorisation", "splitting middle term", "roots"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_quad_formula",
+                "name": "Quadratic Formula (Sridharacharya)",
+                "section": "4.3",
+                "tier": 2,
+                "description": "Derivation and application of x = (-b ± √(b^2 - 4ac)) / (2a) for solving quadratic equations.",
+                "keywords": ["quadratic formula", "completing square", "roots formula", "sridharacharya"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_quad_nature_roots",
+                "name": "Discriminant & Nature of Roots",
+                "section": "4.4",
+                "tier": 3,
+                "description": "D = b^2 - 4ac test: two distinct real roots (D > 0), two equal real roots (D = 0), or no real roots (D < 0).",
+                "keywords": ["discriminant", "nature of roots", "equal roots", "distinct roots", "real roots"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_quad_standard_factorisation", "target": "math10_quad_formula", "relationship": "prerequisite"},
+            {"source": "math10_quad_formula", "target": "math10_quad_nature_roots", "relationship": "derived_from"},
+        ],
+    },
+
+    "Arithmetic Progressions": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 5,
+        "nodes": [
+            {
+                "id": "math10_ap_definition_common_diff",
+                "name": "AP Concept & Common Difference",
+                "section": "5.1 - 5.2",
+                "tier": 1,
+                "description": "Definition of arithmetic progression, first term a, and common difference d = a_(k+1) - a_k.",
+                "keywords": ["arithmetic progression", "first term", "common difference", "finite ap", "infinite ap"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_ap_nth_term",
+                "name": "nth Term of an AP (a_n = a + (n-1)d)",
+                "section": "5.3",
+                "tier": 2,
+                "description": "Calculating general nth term, finding position of terms, and solving unknown parameters.",
+                "keywords": ["nth term", "general term", "a_n formula", "term from end"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_ap_sum_terms",
+                "name": "Sum of First n Terms (S_n)",
+                "section": "5.4",
+                "tier": 3,
+                "description": "Sum formulas S_n = n/2 [2a + (n-1)d] and S_n = n/2 (a + l) applied to word problems and series.",
+                "keywords": ["sum of ap", "S_n formula", "sum of first n terms", "first n natural numbers"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_ap_definition_common_diff", "target": "math10_ap_nth_term", "relationship": "prerequisite"},
+            {"source": "math10_ap_nth_term", "target": "math10_ap_sum_terms", "relationship": "derived_from"},
+        ],
+    },
+
+    "Triangles": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 6,
+        "nodes": [
+            {
+                "id": "math10_tri_similar_figures_bpt",
+                "name": "Similar Figures & Basic Proportionality",
+                "section": "6.1 - 6.2",
+                "tier": 1,
+                "description": "Similarity of geometric figures and Thales Theorem (BPT) with its converse.",
+                "keywords": ["similarity", "basic proportionality theorem", "thales theorem", "ratio of sides"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_tri_similarity_criteria",
+                "name": "Criteria for Similarity (AAA, SSS, SAS)",
+                "section": "6.3",
+                "tier": 2,
+                "description": "Proof and application of AAA (or AA), SSS, and SAS similarity criteria for triangle pairs.",
+                "keywords": ["similarity criteria", "AAA similarity", "AA criterion", "SSS similarity", "SAS similarity"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_tri_areas_pythagoras",
+                "name": "Areas of Similar Triangles & Pythagoras",
+                "section": "6.4 - 6.5",
+                "tier": 3,
+                "description": "Ratio of areas equal to ratio of squares of corresponding sides, and Pythagoras theorem proof and converse.",
+                "keywords": ["areas of similar triangles", "pythagoras theorem", "hypotenuse", "right triangle"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_tri_similar_figures_bpt", "target": "math10_tri_similarity_criteria", "relationship": "prerequisite"},
+            {"source": "math10_tri_similarity_criteria", "target": "math10_tri_areas_pythagoras", "relationship": "derived_from"},
+        ],
+    },
+
+    "Coordinate Geometry": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 7,
+        "nodes": [
+            {
+                "id": "math10_coord_distance_formula",
+                "name": "Distance Formula",
+                "section": "7.2",
+                "tier": 1,
+                "description": "Euclidean distance between two coordinates d = √((x2-x1)^2 + (y2-y1)^2) and collinearity tests.",
+                "keywords": ["distance formula", "collinear points", "equidistant", "coordinates"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_coord_section_formula",
+                "name": "Section Formula & Mid-Point",
+                "section": "7.3",
+                "tier": 2,
+                "description": "Internal division of line segment in ratio m1:m2, midpoint formula, and trisection.",
+                "keywords": ["section formula", "ratio division", "midpoint formula", "centroid", "trisection"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_coord_area_triangle",
+                "name": "Area of a Triangle from Coordinates",
+                "section": "7.4",
+                "tier": 3,
+                "description": "Calculating triangle area Area = 1/2 |x1(y2-y3) + x2(y3-y1) + x3(y1-y2)| and checking collinearity.",
+                "keywords": ["area of triangle", "collinear test", "vertices coordinates"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_coord_distance_formula", "target": "math10_coord_section_formula", "relationship": "prerequisite"},
+            {"source": "math10_coord_section_formula", "target": "math10_coord_area_triangle", "relationship": "related"},
+        ],
+    },
+
+    "Introduction to Trigonometry": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 8,
+        "nodes": [
+            {
+                "id": "math10_trig_ratios_def",
+                "name": "Trigonometric Ratios (sin, cos, tan, cosec, sec, cot)",
+                "section": "8.2",
+                "tier": 1,
+                "description": "Definitions of trigonometric ratios in a right-angled triangle relative to acute angles.",
+                "keywords": ["trigonometric ratios", "sin", "cos", "tan", "cosec", "sec", "cot", "opposite adjacent hypotenuse"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_trig_specific_angles",
+                "name": "Ratios of Specific Angles (0°, 30°, 45°, 60°, 90°)",
+                "section": "8.3",
+                "tier": 2,
+                "description": "Standard values table and evaluations of trigonometric expressions.",
+                "keywords": ["specific angles", "trig table", "sin 30", "cos 60", "tan 45", "evaluations"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_trig_identities",
+                "name": "Trigonometric Identities (sin^2θ + cos^2θ = 1)",
+                "section": "8.5",
+                "tier": 3,
+                "description": "Fundamental identities: sin^2 + cos^2 = 1, 1 + tan^2 = sec^2, 1 + cot^2 = cosec^2, and proofs.",
+                "keywords": ["trigonometric identities", "proving identities", "sin^2 cos^2", "sec^2 tan^2", "cosec^2 cot^2"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_trig_ratios_def", "target": "math10_trig_specific_angles", "relationship": "prerequisite"},
+            {"source": "math10_trig_specific_angles", "target": "math10_trig_identities", "relationship": "derived_from"},
+        ],
+    },
+
+    "Some Applications of Trigonometry": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 9,
+        "nodes": [
+            {
+                "id": "math10_trig_app_elevation_depression",
+                "name": "Angles of Elevation & Depression",
+                "section": "9.1",
+                "tier": 1,
+                "description": "Line of sight, horizontal line, angle of elevation (looking up), and angle of depression (looking down).",
+                "keywords": ["angle of elevation", "angle of depression", "line of sight", "horizontal observer"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_trig_app_heights_distances",
+                "name": "Solving Heights and Distances Problems",
+                "section": "9.1.2",
+                "tier": 2,
+                "description": "Multi-step trigonometric calculations to find heights of towers, trees, buildings, and widths of rivers.",
+                "keywords": ["heights and distances", "tower height", "shadow length", "two angles", "river width"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_trig_app_elevation_depression", "target": "math10_trig_app_heights_distances", "relationship": "prerequisite"},
+        ],
+    },
+
+    "Circles": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 10,
+        "nodes": [
+            {
+                "id": "math10_circ_tangent_radius_perp",
+                "name": "Tangent & Radius Perpendicularity",
+                "section": "10.2",
+                "tier": 1,
+                "description": "The tangent at any point of a circle is perpendicular to the radius through the point of contact (Theorem 10.1).",
+                "keywords": ["tangent to circle", "point of contact", "radius perpendicular to tangent", "secant"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_circ_tangents_external_point",
+                "name": "Length of Tangents from External Point",
+                "section": "10.3",
+                "tier": 2,
+                "description": "The lengths of tangents drawn from an external point to a circle are equal (Theorem 10.2) and related angle properties.",
+                "keywords": ["external point tangents", "equal tangents", "theorem 10.2", "circumscribing quadrilateral"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_circ_tangent_radius_perp", "target": "math10_circ_tangents_external_point", "relationship": "prerequisite"},
+        ],
+    },
+
+    "Areas Related to Circles": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 11,
+        "nodes": [
+            {
+                "id": "math10_area_circ_sector_segment",
+                "name": "Sector & Segment of a Circle",
+                "section": "11.1 - 11.2",
+                "tier": 1,
+                "description": "Area of sector (θ/360 * πr^2), length of an arc (θ/360 * 2πr), and area of minor/major segments.",
+                "keywords": ["area of sector", "length of arc", "segment of circle", "minor sector", "major sector"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_area_circ_plane_combinations",
+                "name": "Combinations of Plane Figures",
+                "section": "11.3",
+                "tier": 2,
+                "description": "Finding shaded region areas composed of circles, semi-circles, squares, rectangles, and triangles.",
+                "keywords": ["combinations of plane figures", "shaded region", "concentric circles", "designs"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_area_circ_sector_segment", "target": "math10_area_circ_plane_combinations", "relationship": "derived_from"},
+        ],
+    },
+
+    "Surface Areas and Volumes": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 12,
+        "nodes": [
+            {
+                "id": "math10_sa_volume_combination_solids",
+                "name": "Surface Area & Volume of Combined Solids",
+                "section": "12.2 - 12.3",
+                "tier": 1,
+                "description": "Total surface area and volume of combined 3D shapes: cylinder, cone, hemisphere, cuboid, and sphere.",
+                "keywords": ["combined solids", "surface area", "volume of solids", "hemisphere cylinder cone", "toy shape"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_sa_volume_conversion_solids",
+                "name": "Conversion of Solids & Melted Shapes",
+                "section": "12.4",
+                "tier": 2,
+                "description": "Molding and casting solids: volume conservation when melting one solid shape into one or many new shapes.",
+                "keywords": ["conversion of solids", "volume conservation", "melting casting", "embankment", "sphere to wire"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_sa_volume_combination_solids", "target": "math10_sa_volume_conversion_solids", "relationship": "related"},
+        ],
+    },
+
+    "Statistics": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 13,
+        "nodes": [
+            {
+                "id": "math10_stat_mean_grouped",
+                "name": "Mean of Grouped Data (Direct, Assumed, Step Dev)",
+                "section": "13.2",
+                "tier": 1,
+                "description": "Methods to calculate arithmetic mean: direct method (Σfi*xi / Σfi), assumed mean, and step deviation.",
+                "keywords": ["mean of grouped data", "class mark", "direct method", "assumed mean", "step deviation"],
+                "pos_x": 160,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_stat_mode_grouped",
+                "name": "Mode of Grouped Data",
+                "section": "13.3",
+                "tier": 2,
+                "description": "Modal class identification and mode formula Mode = l + [(f1 - f0) / (2f1 - f0 - f2)] * h.",
+                "keywords": ["mode of grouped data", "modal class", "modal frequency", "mode formula"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_stat_median_grouped",
+                "name": "Median of Grouped Data & Empirical Relation",
+                "section": "13.4",
+                "tier": 3,
+                "description": "Cumulative frequency table, median formula Median = l + [(n/2 - cf)/f] * h, and 3 Median = Mode + 2 Mean.",
+                "keywords": ["median of grouped data", "cumulative frequency", "median class", "empirical relationship"],
+                "pos_x": 680,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_stat_mean_grouped", "target": "math10_stat_mode_grouped", "relationship": "related"},
+            {"source": "math10_stat_mode_grouped", "target": "math10_stat_median_grouped", "relationship": "related"},
+        ],
+    },
+
+    "Probability": {
+        "class_level": 10,
+        "subject": "Mathematics",
+        "chapter_number": 14,
+        "nodes": [
+            {
+                "id": "math10_prob_classical_definition",
+                "name": "Classical Theoretical Probability (P(E))",
+                "section": "14.1",
+                "tier": 1,
+                "description": "P(E) = (Number of outcomes favourable to E) / (Number of all possible outcomes), equally likely outcomes.",
+                "keywords": ["probability", "theoretical probability", "favourable outcomes", "sample space", "equally likely"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math10_prob_complementary_experiments",
+                "name": "Complementary Events & Standard Experiments",
+                "section": "14.2",
+                "tier": 2,
+                "description": "P(E) + P(not E) = 1, impossible events (P = 0), sure events (P = 1), coin tosses, dice rolls, and 52-card deck.",
+                "keywords": ["complementary event", "impossible event", "sure event", "deck of cards", "dice", "coins"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math10_prob_classical_definition", "target": "math10_prob_complementary_experiments", "relationship": "prerequisite"},
+        ],
+    },
+
+    # =========================================================================
+    # CLASS 9 NCERT MATHEMATICS CHAPTERS (GANITA MANJARI)
+    # =========================================================================
+    "Orienting Yourself: The Use of Coordinates": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 1,
+        "nodes": [
+            {
+                "id": "math9_coord_cartesian_system",
+                "name": "Cartesian Coordinate System & Axes",
+                "section": "1.1",
+                "tier": 1,
+                "description": "Origin (0,0), X-axis (abscissa), Y-axis (ordinate), four quadrants, and positioning points.",
+                "keywords": ["cartesian plane", "axes", "origin", "abscissa", "ordinate", "quadrants"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math9_coord_plotting_interpreting",
+                "name": "Plotting Points & Map Grid Interpretation",
+                "section": "1.2",
+                "tier": 2,
+                "description": "Locating ordered pairs (x, y) on grid paper and using coordinate frames to navigate spaces.",
+                "keywords": ["plotting coordinates", "ordered pairs", "grid system", "mapping points"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math9_coord_cartesian_system", "target": "math9_coord_plotting_interpreting", "relationship": "prerequisite"},
+        ],
+    },
+
+    "Introduction to Linear Polynomials": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 2,
+        "nodes": [
+            {
+                "id": "math9_poly_terms_coefficients",
+                "name": "Polynomial Terms & Degrees",
+                "section": "2.1",
+                "tier": 1,
+                "description": "Monomials, binomials, trinomials, variables, coefficients, and degree of polynomials in one variable.",
+                "keywords": ["polynomial terms", "coefficients", "monomial", "binomial", "degree of polynomial"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math9_poly_zeroes_linear_graphs",
+                "name": "Zeroes of Linear Polynomials & Graphs",
+                "section": "2.2 - 2.3",
+                "tier": 2,
+                "description": "Finding root/zero of ax + b = 0 and representing linear relations graphically as straight lines.",
+                "keywords": ["zero of polynomial", "linear equation root", "straight line graph", "ax + b"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math9_poly_terms_coefficients", "target": "math9_poly_zeroes_linear_graphs", "relationship": "prerequisite"},
+        ],
+    },
+
+    "The World of Numbers": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 3,
+        "nodes": [
+            {
+                "id": "math9_num_real_number_types",
+                "name": "Natural, Integers, Rationals & Irrationals",
+                "section": "3.1",
+                "tier": 1,
+                "description": "Number classification: N, W, Z, Q, and irrational numbers (non-terminating non-recurring decimals).",
+                "keywords": ["natural numbers", "integers", "rational numbers", "irrational numbers", "real numbers"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math9_num_line_and_exponents",
+                "name": "Real Number Line & Laws of Exponents",
+                "section": "3.2 - 3.3",
+                "tier": 2,
+                "description": "Locating roots on number line via Pythagoras and applying laws of exponents for positive real bases.",
+                "keywords": ["number line", "representation of roots", "laws of exponents", "powers radicals"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math9_num_real_number_types", "target": "math9_num_line_and_exponents", "relationship": "prerequisite"},
+        ],
+    },
+
+    "Exploring Algebraic Identities": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 4,
+        "nodes": [
+            {
+                "id": "math9_alg_square_identities",
+                "name": "Standard Square Identities",
+                "section": "4.1",
+                "tier": 1,
+                "description": "(x + y)^2, (x - y)^2, (x^2 - y^2), and (x + a)(x + b) expansions and factorisations.",
+                "keywords": ["algebraic identities", "square expansion", "difference of squares", "factorising quadratics"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math9_alg_cubic_factor_identities",
+                "name": "Cubic Identities & Factor Theorem",
+                "section": "4.2 - 4.3",
+                "tier": 2,
+                "description": "(x + y + z)^2, (x ± y)^3, and x^3 + y^3 + z^3 - 3xyz applications with remainder and factor theorems.",
+                "keywords": ["cubic identities", "factor theorem", "remainder theorem", "polynomial factorisation"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math9_alg_square_identities", "target": "math9_alg_cubic_factor_identities", "relationship": "derived_from"},
+        ],
+    },
+
+    "I'm Up and Down, and Round and Round": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 5,
+        "nodes": [
+            {
+                "id": "math9_geom_lines_angles_parallel",
+                "name": "Lines, Angles & Transversals",
+                "section": "5.1 - 5.2",
+                "tier": 1,
+                "description": "Linear pair axiom, vertically opposite angles, and alternate/corresponding angles formed by transversals.",
+                "keywords": ["lines and angles", "linear pair", "vertically opposite", "transversal", "alternate interior angles"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math9_geom_triangles_congruence",
+                "name": "Triangle Congruence Criteria",
+                "section": "5.3",
+                "tier": 2,
+                "description": "SAS, ASA, AAS, SSS, and RHS congruence rules and properties of isosceles triangles.",
+                "keywords": ["congruence of triangles", "SAS criterion", "ASA criterion", "SSS criterion", "RHS congruence"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math9_geom_lines_angles_parallel", "target": "math9_geom_triangles_congruence", "relationship": "prerequisite"},
+        ],
+    },
+
+    "Measuring Space: Perimeter and Area": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 6,
+        "nodes": [
+            {
+                "id": "math9_mens_heron_formula",
+                "name": "Heron's Formula for Triangles",
+                "section": "6.1",
+                "tier": 1,
+                "description": "Calculating triangle area using semi-perimeter s = (a+b+c)/2 and Area = √(s(s-a)(s-b)(s-c)).",
+                "keywords": ["heron formula", "semi perimeter", "triangle area", "scalene triangle"],
+                "pos_x": 260,
+                "pos_y": 140,
+            },
+            {
+                "id": "math9_mens_surface_volume_basics",
+                "name": "Surface Areas & Volumes of Solids",
+                "section": "6.2 - 6.3",
+                "tier": 2,
+                "description": "Surface areas and volume formulas for cuboids, cubes, right circular cylinders, cones, and spheres.",
+                "keywords": ["surface area", "volume", "cuboid", "cylinder", "cone", "sphere", "curved surface area"],
+                "pos_x": 580,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [
+            {"source": "math9_mens_heron_formula", "target": "math9_mens_surface_volume_basics", "relationship": "related"},
+        ],
+    },
+
+    "The Mathematics of Maybe: Introduction to Probability": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 7,
+        "nodes": [
+            {
+                "id": "math9_prob_experimental_intro",
+                "name": "Empirical & Experimental Probability",
+                "section": "7.1 - 7.2",
+                "tier": 1,
+                "description": "Probability as a measure of chance: Number of trials in which event happened divided by total trials.",
+                "keywords": ["experimental probability", "empirical probability", "trials", "frequency", "outcomes"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [],
+    },
+
+    "Predicting What Comes Next: Exploring Sequences and Progressions": {
+        "class_level": 9,
+        "subject": "Mathematics",
+        "chapter_number": 8,
+        "nodes": [
+            {
+                "id": "math9_seq_patterns_progressions",
+                "name": "Sequences & Progressions Foundations",
+                "section": "8.1 - 8.3",
+                "tier": 1,
+                "description": "Identifying numerical patterns, recurrence relations, general terms, and linear progressions.",
+                "keywords": ["sequences", "progressions", "number patterns", "general term", "recurrence"],
+                "pos_x": 420,
+                "pos_y": 140,
+            },
+        ],
+        "edges": [],
+    },
 }
 
 
-def get_chapter_concept_metadata(chapter_name: str, class_level: Optional[int] = None) -> Optional[Dict[str, Any]]:
+def get_chapter_concept_metadata(
+    chapter_name: str, class_level: Optional[int] = None, subject: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
     """
     Retrieves the concept registry definition for a chapter.
-    Matches by exact title or normalized substring.
+    Matches by exact title or normalized substring, optionally filtered by class and subject.
     """
     clean_name = chapter_name.strip()
+    subj_filter = str(subject).strip().lower() if subject else None
+
     if clean_name in CHAPTER_CONCEPTS_REGISTRY:
-        return CHAPTER_CONCEPTS_REGISTRY[clean_name]
+        data = CHAPTER_CONCEPTS_REGISTRY[clean_name]
+        data_subj = str(data.get("subject", "Science")).lower()
+        if (class_level is None or int(data["class_level"]) == int(class_level)) and (
+            subj_filter is None or subj_filter in data_subj or data_subj in subj_filter
+        ):
+            return data
 
     # Fuzzy match by normalized lowercase
-    target_lower = clean_name.lower().replace("–", "-").replace("—", "-")
+    target_lower = clean_name.lower().replace("–", "-").replace("—", "-").replace("'", "")
     for ch_title, data in CHAPTER_CONCEPTS_REGISTRY.items():
-        ch_lower = ch_title.lower().replace("–", "-").replace("—", "-")
+        ch_lower = ch_title.lower().replace("–", "-").replace("—", "-").replace("'", "")
         if target_lower in ch_lower or ch_lower in target_lower:
-            if class_level is None or int(data["class_level"]) == int(class_level):
+            data_subj = str(data.get("subject", "Science")).lower()
+            if (class_level is None or int(data["class_level"]) == int(class_level)) and (
+                subj_filter is None or subj_filter in data_subj or data_subj in subj_filter
+            ):
                 return data
 
     return None
 
 
-def get_all_registered_chapters(class_level: Optional[int] = None) -> List[Dict[str, Any]]:
-    """Returns list of all chapters with registered concept graphs."""
+def get_all_registered_chapters(
+    class_level: Optional[int] = None, subject: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Returns list of all chapters with registered concept graphs, filtered by class and subject."""
     chapters = []
+    subj_filter = str(subject).strip().lower() if subject else None
+
     for ch_name, data in CHAPTER_CONCEPTS_REGISTRY.items():
-        if class_level is None or int(data["class_level"]) == int(class_level):
-            chapters.append({
-                "chapter": ch_name,
-                "chapter_number": data["chapter_number"],
-                "class_level": data["class_level"],
-                "concept_count": len(data.get("nodes", [])),
-                "edge_count": len(data.get("edges", [])),
-            })
-    return sorted(chapters, key=lambda x: (x["class_level"], x["chapter_number"]))
+        data_subj = str(data.get("subject", "Science")).lower()
+        if class_level is not None and int(data["class_level"]) != int(class_level):
+            continue
+        if subj_filter is not None and not (subj_filter in data_subj or data_subj in subj_filter):
+            continue
+
+        chapters.append({
+            "chapter": ch_name,
+            "chapter_number": data["chapter_number"],
+            "class_level": data["class_level"],
+            "subject": data.get("subject", "Science"),
+            "concept_count": len(data.get("nodes", [])),
+            "edge_count": len(data.get("edges", [])),
+        })
+    return sorted(chapters, key=lambda x: (x["class_level"], x["subject"], x["chapter_number"]))

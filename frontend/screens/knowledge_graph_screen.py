@@ -446,14 +446,16 @@ def render_knowledge_graph_screen(
     """Renders the Interactive Concept-Level Knowledge Graph screen."""
     render_back_to_home("knowledge_graph")
 
+    from frontend.state import get_student_subject
     class_level = get_student_class_level()
+    subject = get_student_subject()
 
     st.write("")
     header_html = textwrap.dedent(f"""\
 <div class="section-header-bar">
     <div>
         <h3 style="margin:0; font-size: 1.45rem; font-weight: 700; color: var(--on-surface);">
-            🌌 Knowledge Map — Class {class_level} · Science
+            🌌 Knowledge Map — Class {class_level} · {subject}
         </h3>
         <div class="section-subtitle-text">
             Explore deep concept-level dependency maps, assess mastery across subtopics, and target weak areas with one-click practice.
@@ -464,10 +466,10 @@ def render_knowledge_graph_screen(
     st.markdown(header_html, unsafe_allow_html=True)
     st.write("")
 
-    # Available chapters for this class
-    avail_chapters = get_available_knowledge_map_chapters(class_level=class_level)
+    # Available chapters for this class and subject
+    avail_chapters = get_available_knowledge_map_chapters(class_level=class_level, subject=subject)
     if not avail_chapters:
-        st.warning(f"No registered concept maps found for Class {class_level} Science.")
+        st.warning(f"No registered concept maps found for Class {class_level} {subject}.")
         return
 
     chapter_options = [ch["chapter"] for ch in avail_chapters]
@@ -483,18 +485,19 @@ def render_knowledge_graph_screen(
             default_idx = chapter_options.index(req_ch)
 
         selected_chapter = st.selectbox(
-            "Select Chapter to Map",
+            f"Select Chapter to Map ({subject})",
             options=chapter_options,
             index=default_idx,
-            key="knowledge_graph_chapter_select",
+            key=f"knowledge_graph_chapter_select_{subject}",
             help="Choose any NCERT chapter to view its internal concept hierarchy and mastery.",
         )
 
-    # Fetch knowledge graph data for selected chapter and student
+    # Fetch knowledge graph data for selected chapter, subject, and student
     graph_data = get_chapter_knowledge_graph(
         student_id=student_id,
         class_level=class_level,
         chapter_name=selected_chapter,
+        subject=subject,
     )
 
     with col_stats:

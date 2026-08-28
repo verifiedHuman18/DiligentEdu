@@ -60,10 +60,12 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
     """Renders the Practice Quiz screen with unified controls and Socrates Learning System."""
     render_back_to_home("quiz")
 
+    from frontend.state import get_student_subject
     class_level = get_student_class_level()
+    subject = get_student_subject()
 
     st.write("")
-    st.markdown(f"### NCERT Practice Quiz — Class {class_level}")
+    st.markdown(f"### NCERT Practice Quiz — Class {class_level} · {subject}")
 
     # Unified Mode Switcher (Sleek side-by-side buttons)
     current_mode = st.session_state.get("quiz_mode", "socrates")
@@ -116,7 +118,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
     c1, c2, c3 = st.columns([3.0, 1.2, 1.2])
 
     with c1:
-        available_chs = get_available_chapters(class_level, student_id=student_id)
+        available_chs = get_available_chapters(class_level, subject=subject, student_id=student_id)
         ch_display_map = {}
         ch_labels = []
         for ch in available_chs:
@@ -135,11 +137,11 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
                     break
 
         selected_ch_label = st.selectbox(
-            "Chapter", ch_labels, index=default_idx, key="screen_quiz_ch"
+            f"Chapter ({subject})", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
         )
         selected_ch_title = ch_display_map.get(
             selected_ch_label,
-            available_chs[0]["chapter"] if available_chs else "Chemical Reactions and Equations",
+            available_chs[0]["chapter"] if available_chs else "Chapter 1",
         )
 
     with c2:
@@ -159,7 +161,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
         use_container_width=True,
     ):
         with st.spinner(
-            f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level})..."
+            f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level} {subject})..."
         ):
             try:
                 from src.academic_rag.exceptions import (
@@ -172,6 +174,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
                     student_id=student_id,
                     chapter=selected_ch_title,
                     class_level=class_level,
+                    subject=subject,
                     num_questions=quiz_count,
                     difficulty=quiz_diff,
                     api_key=user_api_key,

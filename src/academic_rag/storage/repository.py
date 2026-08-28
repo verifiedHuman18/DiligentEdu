@@ -35,6 +35,7 @@ class QuizRepository:
             or f"quiz_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
         )
         class_level = int(quiz_data.get("class_level", 10))
+        subject = str(quiz_data.get("subject", "Science"))
         chapter = str(quiz_data.get("chapter", "Science"))
         chapter_number = int(quiz_data.get("chapter_number", 0))
         difficulty = str(quiz_data.get("difficulty", "medium")).lower()
@@ -98,14 +99,15 @@ class QuizRepository:
                 cursor.execute(
                     """
                     INSERT OR REPLACE INTO quiz_attempts (
-                        quiz_id, student_id, class_level, chapter, chapter_number,
+                        quiz_id, student_id, class_level, subject, chapter, chapter_number,
                         difficulty, score, total_questions, percentage, timestamp
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
                         q_id,
                         clean_student_id,
                         class_level,
+                        subject,
                         chapter,
                         chapter_number,
                         difficulty,
@@ -147,6 +149,7 @@ class QuizRepository:
             "quiz_id": q_id,
             "student_id": clean_student_id,
             "class_level": class_level,
+            "subject": subject,
             "chapter": chapter,
             "chapter_number": chapter_number,
             "difficulty": difficulty,
@@ -161,38 +164,35 @@ class QuizRepository:
         self,
         student_id: str,
         class_level: Optional[int] = None,
+        subject: Optional[str] = None,
         include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
         """
-        Retrieves chronological quiz attempts for a student, optionally filtered by class_level.
-        Directly filters by class_level at the query level when specified.
+        Retrieves chronological quiz attempts for a student, optionally filtered by class_level and subject.
+        Directly filters by class_level and subject at the query level when specified.
         """
         clean_id = str(student_id).strip()
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
+                query = "SELECT * FROM quiz_attempts WHERE student_id = ?"
+                params: List[Any] = [clean_id]
+
                 if class_level is not None:
                     try:
                         class_int = int(class_level)
                     except (ValueError, TypeError):
                         raise ValueError(f"Invalid class_level: {class_level}")
-                    cursor.execute(
-                        """
-                        SELECT * FROM quiz_attempts
-                        WHERE student_id = ? AND class_level = ?
-                        ORDER BY timestamp ASC
-                    """,
-                        (clean_id, class_int),
-                    )
-                else:
-                    cursor.execute(
-                        """
-                        SELECT * FROM quiz_attempts
-                        WHERE student_id = ?
-                        ORDER BY timestamp ASC
-                    """,
-                        (clean_id,),
-                    )
+                    query += " AND class_level = ?"
+                    params.append(class_int)
+
+                if subject is not None:
+                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                    query += " AND subject = ?"
+                    params.append(subj_clean)
+
+                query += " ORDER BY timestamp ASC"
+                cursor.execute(query, tuple(params))
 
                 rows = cursor.fetchall()
                 history = [dict(row) for row in rows]
@@ -232,17 +232,19 @@ class QuizRepository:
         self,
         student_id: str,
         class_level: int,
+        subject: Optional[str] = None,
         include_questions: bool = False,
     ) -> List[Dict[str, Any]]:
         """
-        Dedicated class-scoped retrieval function.
-        Guarantees that attempts outside the requested class_level are never fetched.
+        Dedicated class- and subject-scoped retrieval function.
+        Guarantees that attempts outside the requested class_level and subject are never fetched.
         """
         if class_level is None:
             raise ValueError("class_level is required for get_student_class_history")
         return self.get_student_history(
             student_id=student_id,
             class_level=int(class_level),
+            subject=subject,
             include_questions=include_questions,
         )
 
@@ -285,12 +287,14 @@ class QuizRepository:
         class_level: int,
         plan_data: Dict[str, Any],
         teacher_notes: Optional[str] = None,
+        subject: str = "Science",
     ) -> Dict[str, Any]:
         """
-        Saves or updates a customized teacher action plan for a student and class level.
+        Saves or updates a customized teacher action plan for a student, class level, and subject.
         """
         clean_id = str(student_id).strip()
         class_int = int(class_level)
+        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         plan_json = json.dumps(plan_data)
         notes = (str(teacher_notes).strip()) if teacher_notes is not None else None
         ts = datetime.now(timezone.utc).isoformat()
@@ -300,38 +304,40 @@ class QuizRepository:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    INSERT INTO teacher_action_plans (student_id, class_level, plan_data, teacher_notes, updated_at)
-                    VALUES (?, ?, ?, ?, ?)
-                    ON CONFLICT(student_id, class_level) DO UPDATE SET
+                    INSERT INTO teacher_action_plans (student_id, class_level, subject, plan_data, teacher_notes, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(student_id, class_level, subject) DO UPDATE SET
                         plan_data = excluded.plan_data,
                         teacher_notes = excluded.teacher_notes,
                         updated_at = excluded.updated_at
                 """,
-                    (clean_id, class_int, plan_json, notes, ts),
+                    (clean_id, class_int, subj_clean, plan_json, notes, ts),
                 )
                 conn.commit()
         except Exception as e:
             logger.error(
-                f"Failed to save teacher action plan for {student_id} Class {class_level}: {e}"
+                f"Failed to save teacher action plan for {student_id} Class {class_level} {subj_clean}: {e}"
             )
             raise StorageError(f"Failed to save teacher action plan: {e}")
 
         return {
             "student_id": clean_id,
             "class_level": class_int,
+            "subject": subj_clean,
             "plan_data": plan_data,
             "teacher_notes": notes,
             "updated_at": ts,
         }
 
     def get_teacher_custom_plan(
-        self, student_id: str, class_level: int
+        self, student_id: str, class_level: int, subject: str = "Science"
     ) -> Optional[Dict[str, Any]]:
         """
-        Retrieves active custom teacher action plan for a student and class level if present.
+        Retrieves active custom teacher action plan for a student, class level, and subject if present.
         """
         clean_id = str(student_id).strip()
         class_int = int(class_level)
+        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -339,9 +345,9 @@ class QuizRepository:
                     """
                     SELECT plan_data, teacher_notes, updated_at
                     FROM teacher_action_plans
-                    WHERE student_id = ? AND class_level = ?
+                    WHERE student_id = ? AND class_level = ? AND subject = ?
                 """,
-                    (clean_id, class_int),
+                    (clean_id, class_int, subj_clean),
                 )
                 row = cursor.fetchone()
                 if not row:
@@ -351,37 +357,41 @@ class QuizRepository:
                 return {
                     "student_id": clean_id,
                     "class_level": class_int,
+                    "subject": subj_clean,
                     "plan_data": plan_content,
                     "teacher_notes": row["teacher_notes"],
                     "updated_at": row["updated_at"],
                 }
         except Exception as e:
             logger.error(
-                f"Failed to fetch teacher custom plan for {student_id} Class {class_level}: {e}"
+                f"Failed to fetch teacher custom plan for {student_id} Class {class_level} {subj_clean}: {e}"
             )
             return None
 
-    def delete_teacher_action_plan(self, student_id: str, class_level: int) -> bool:
+    def delete_teacher_action_plan(
+        self, student_id: str, class_level: int, subject: str = "Science"
+    ) -> bool:
         """
-        Deletes custom action plan for a student and class level, resetting to default SWAT recommendations.
+        Deletes custom action plan for a student, class level, and subject, resetting to default SWAT recommendations.
         """
         clean_id = str(student_id).strip()
         class_int = int(class_level)
+        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         try:
             with get_db_connection(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
                     DELETE FROM teacher_action_plans
-                    WHERE student_id = ? AND class_level = ?
+                    WHERE student_id = ? AND class_level = ? AND subject = ?
                 """,
-                    (clean_id, class_int),
+                    (clean_id, class_int, subj_clean),
                 )
                 conn.commit()
                 return cursor.rowcount > 0
         except Exception as e:
             logger.error(
-                f"Failed to delete teacher action plan for {student_id} Class {class_level}: {e}"
+                f"Failed to delete teacher action plan for {student_id} Class {class_level} {subj_clean}: {e}"
             )
             raise StorageError(f"Failed to delete teacher action plan: {e}")
 
@@ -501,9 +511,10 @@ class StudyMaterialRepository:
         student_id: str,
         class_level: Optional[int] = None,
         chapter: Optional[str] = None,
+        subject: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Retrieves all uploaded documents for a student, optionally filtered by class level and chapter.
+        Retrieves all uploaded documents for a student, optionally filtered by class level, chapter, and subject.
         """
         clean_student_id = str(student_id).strip()
         try:
@@ -516,6 +527,11 @@ class StudyMaterialRepository:
                     query += " AND class_level = ?"
                     params.append(int(class_level))
 
+                if subject is not None:
+                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                    query += " AND (subject = ? OR subject = '')"
+                    params.append(subj_clean)
+
                 if chapter is not None and chapter != "All Chapters":
                     query += " AND (chapter = ? OR chapter IS NULL OR chapter = '')"
                     params.append(str(chapter))
@@ -524,6 +540,9 @@ class StudyMaterialRepository:
                 cursor.execute(query, tuple(params))
                 rows = cursor.fetchall()
                 return [dict(r) for r in rows]
+        except Exception as e:
+            logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
+            raise StorageError(f"Failed to fetch uploaded documents: {e}")
         except Exception as e:
             logger.error(f"Failed to fetch documents for student {clean_student_id}: {e}")
             raise StorageError(f"Failed to fetch uploaded documents: {e}")

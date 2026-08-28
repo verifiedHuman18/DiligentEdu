@@ -15,6 +15,7 @@ async def stream_ncert_rag_response(
     query: str,
     class_filter: Optional[int] = None,
     grade: Optional[int] = None,
+    subject: Optional[str] = "Science",
     student_id: Optional[str] = None,
     api_key: Optional[str] = None,
     model_name: Optional[str] = None,
@@ -23,19 +24,21 @@ async def stream_ncert_rag_response(
     **kwargs,
 ) -> AsyncGenerator[str, None]:
     """
-    Direct NCERT + Student Study Material RAG streaming engine.
+    Direct NCERT + Student Study Material RAG streaming engine for specific class and subject.
     1. Retrieves authoritative NCERT chunks and supplementary student material chunks.
     2. Invokes Gemini via centralized stream_chat_completion factory.
     3. Streams response token-by-token with dual-source citations.
     """
     effective_class_filter = grade if grade is not None else class_filter
     active_model = model_name or config.default_llm_model
+    effective_subject = kwargs.get("subject_filter", subject)
 
     # 1. Retrieve Hybrid Context (NCERT + Student Reference Material)
     hybrid_result = retrieve_hybrid_academic_context(
         query=query,
         student_id=student_id,
         class_filter=effective_class_filter,
+        subject_filter=effective_subject,
         ncert_top_k=top_k,
         student_top_k=3,
         api_key=api_key,

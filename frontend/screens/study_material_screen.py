@@ -38,14 +38,16 @@ def render_study_material_screen(
     """Renders the My Study Material screen with upload and management capabilities."""
     render_back_to_home("study_material")
 
+    from frontend.state import get_student_subject
     class_level = get_student_class_level()
+    subject = get_student_subject()
 
     st.write("")
     header_html = textwrap.dedent(f"""\
 <div class="section-header-bar">
     <div>
         <h3 style="margin:0; font-size: 1.45rem; font-weight: 700; color: var(--on-surface);">
-            📚 My Study Material — Class {class_level} · Science
+            📚 My Study Material — Class {class_level} · {subject}
         </h3>
         <div class="section-subtitle-text">
             Upload and manage reference books, notes, and study material. Automatically indexed with local embeddings for your Tutor and Practice Quizzes.
@@ -78,19 +80,19 @@ def render_study_material_screen(
             material_title = st.text_input(
                 "Material Title / Name",
                 value=mat_name_default,
-                placeholder="e.g. Physics Reference Book, HC Verma Notes",
+                placeholder=f"e.g. {subject} Reference Book, Important Notes",
                 key="study_mat_title_input",
             )
         with c_subj:
             st.text_input(
                 "Subject",
-                value="Science",
+                value=subject,
                 disabled=True,
                 key="study_mat_subject_display",
             )
 
         # Chapter mapping (Optional)
-        curriculum_chapters = get_ncert_curriculum(class_level)
+        curriculum_chapters = get_ncert_curriculum(class_level, subject=subject)
         ch_options = ["All Chapters / General Reference"] + [
             f"Ch {ch['chapter_number']}: {ch['chapter']}" for ch in curriculum_chapters
         ]
@@ -108,7 +110,7 @@ def render_study_material_screen(
             if ":" in selected_ch_opt:
                 selected_chapter = selected_ch_opt.split(":", 1)[1].strip()
 
-        st.caption(f"🔒 Bound automatically to your active profile: **Class {class_level}**.")
+        st.caption(f"🔒 Bound automatically to your active profile: **Class {class_level} ({subject})**.")
 
         if st.button(
             "Upload & Index Material",
@@ -132,7 +134,7 @@ def render_study_material_screen(
                             filename=uploaded_file.name,
                             material_name=material_title.strip() or mat_name_default,
                             class_level=class_level,
-                            subject="Science",
+                            subject=subject,
                             chapter=selected_chapter,
                         )
                         st.success(
@@ -167,7 +169,7 @@ def render_study_material_screen(
 
     # Section 2: Uploaded Material Inventory
     st.markdown("#### My Uploaded Material Inventory")
-    materials = get_student_study_materials(student_id=student_id, class_level=class_level)
+    materials = get_student_study_materials(student_id=student_id, class_level=class_level, subject=subject)
 
     if not materials:
         empty_html = textwrap.dedent("""\
@@ -190,6 +192,7 @@ def render_study_material_screen(
             size_str = _format_file_size(doc.get("file_size_bytes", 0))
             uploaded_at = doc.get("uploaded_at", "")[:10]
             ch_tag = doc.get("chapter") or "All Chapters"
+            doc_subj = doc.get("subject") or subject
 
             # Status Badge Styling
             if status == "READY":
@@ -212,7 +215,7 @@ def render_study_material_screen(
         <code>{filename}</code> &nbsp;·&nbsp; {size_str} &nbsp;·&nbsp; Uploaded: {uploaded_at}
     </div>
     <div style="font-size: 0.82rem; color: var(--md-primary); font-weight: 600;">
-        Class {class_level} Science &nbsp;·&nbsp; Scope: {ch_tag} &nbsp;·&nbsp; {pages} Pages ({chunks} Chunks)
+        Class {class_level} {doc_subj} &nbsp;·&nbsp; Scope: {ch_tag} &nbsp;·&nbsp; {pages} Pages ({chunks} Chunks)
     </div>
 </div>
 """)

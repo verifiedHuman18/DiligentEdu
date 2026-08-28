@@ -12,6 +12,7 @@ class ChapterInfo:
     chapter_title: str
     filename: str
     class_level: int
+    subject: str = "Science"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -19,6 +20,7 @@ class ChapterInfo:
             "chapter": self.chapter_title,
             "filename": self.filename,
             "class_level": self.class_level,
+            "subject": self.subject,
         }
 
 
@@ -32,6 +34,7 @@ class ChapterSummaryStatus:
     status: str  # 'strong', 'average', 'weak', 'not_attempted'
     score: Optional[int]
     attempts: int
+    subject: str = "Science"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -41,4 +44,5 @@ class ChapterSummaryStatus:
             "status": self.status,
             "score": self.score,
             "attempts": self.attempts,
+            "subject": self.subject,
         }
