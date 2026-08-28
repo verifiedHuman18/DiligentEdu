@@ -1696,6 +1696,11 @@ header {{
 section[data-testid="stSidebar"] {{
     display: none !important;
 }}
+
+/* Hide "Press Enter to apply" hint in text inputs */
+[data-testid="InputInstructions"] {{
+    display: none !important;
+}}
 </style>
     """
     st.markdown(css, unsafe_allow_html=True)
