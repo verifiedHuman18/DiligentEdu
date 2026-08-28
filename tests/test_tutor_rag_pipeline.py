@@ -5,22 +5,22 @@
 import os
 import tempfile
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import fitz
 
-from frontend.screens.tutor_screen import _get_fresh_suggestions
-from src.academic_rag.ingestion.pdf_ingester import ingest_study_material_pdf
-from src.academic_rag.quiz.generator import retrieve_chapter_context_for_quiz
-from src.academic_rag.rag.engine import stream_ncert_rag_response
-from src.academic_rag.rag.prompts import NCERT_TUTOR_SYSTEM_PROMPT
-from src.academic_rag.rag.retriever import (
+from backend.quiz.generator import retrieve_chapter_context_for_quiz
+from backend.rag.engine import stream_ncert_rag_response
+from backend.rag.prompts import NCERT_TUTOR_SYSTEM_PROMPT
+from backend.rag.retriever import (
     delete_student_material_vectors,
     retrieve_hybrid_academic_context,
     retrieve_student_material_context,
 )
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import StudyMaterialRepository
+from backend.storage.database import init_database
+from backend.storage.repository import StudyMaterialRepository
+from frontend.screens.tutor_screen import _get_fresh_suggestions
+from src.academic_rag.ingestion.pdf_ingester import ingest_study_material_pdf
 
 
 def _create_test_pdf(text: str) -> bytes:
@@ -52,19 +52,21 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
         self.assertIn("STATE A — NCERT-SUPPORTED", NCERT_TUTOR_SYSTEM_PROMPT)
         self.assertIn("STATE B — STUDENT-MATERIAL-SUPPORTED", NCERT_TUTOR_SYSTEM_PROMPT)
         self.assertIn("STATE C — GENUINE UNSUPPORTED", NCERT_TUTOR_SYSTEM_PROMPT)
-        self.assertIn("Do NOT say \"not in syllabus\"", NCERT_TUTOR_SYSTEM_PROMPT)
+        self.assertIn('Do NOT say "not in syllabus"', NCERT_TUTOR_SYSTEM_PROMPT)
         self.assertIn("NCERT IS AUTHORITATIVE", NCERT_TUTOR_SYSTEM_PROMPT)
         self.assertIn("STUDENT MATERIAL IS SUPPLEMENTARY", NCERT_TUTOR_SYSTEM_PROMPT)
         self.assertIn("### NCERT Textbook Citations", NCERT_TUTOR_SYSTEM_PROMPT)
         self.assertIn("### Student Reference Material Citations", NCERT_TUTOR_SYSTEM_PROMPT)
 
-    @patch("src.academic_rag.rag.retriever.retrieve_ncert_context")
-    @patch("src.academic_rag.rag.retriever.retrieve_student_material_context")
+    @patch("backend.rag.retriever.retrieve_ncert_context")
+    @patch("backend.rag.retriever.retrieve_student_material_context")
     def test_phase_6_11_source_classification_and_context_demarcation(
         self, mock_student_ret, mock_ncert_ret
     ):
         """Phase 6 & 11: Verify hybrid context cleanly demarcates official NCERT vs student material."""
-        mock_ncert_ret.return_value = "[SOURCE: NCERT Class 10 Science | PAGE: 200]\nV = IR definition."
+        mock_ncert_ret.return_value = (
+            "[SOURCE: NCERT Class 10 Science | PAGE: 200]\nV = IR definition."
+        )
         mock_student_ret.return_value = "[SOURCE: STUDENT REFERENCE MATERIAL | TITLE: Physics Guide | PAGE: 15]\nCircuit derivation."
 
         ctx = retrieve_hybrid_academic_context(
@@ -75,15 +77,15 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(ctx["has_student_context"])
         self.assertIn("=== OFFICIAL NCERT TEXTBOOK EXCERPTS ===", ctx["combined_context"])
-        self.assertIn("=== STUDENT REFERENCE MATERIAL (SUPPLEMENTARY EXCERPTS) ===", ctx["combined_context"])
+        self.assertIn(
+            "=== STUDENT REFERENCE MATERIAL (SUPPLEMENTARY EXCERPTS) ===", ctx["combined_context"]
+        )
         self.assertIn("V = IR definition", ctx["combined_context"])
         self.assertIn("Circuit derivation", ctx["combined_context"])
 
-    @patch("src.academic_rag.rag.retriever.retrieve_ncert_context")
-    @patch("src.academic_rag.rag.retriever.retrieve_student_material_context")
-    def test_state_b_uploaded_only_knowledge_passed_to_llm(
-        self, mock_student_ret, mock_ncert_ret
-    ):
+    @patch("backend.rag.retriever.retrieve_ncert_context")
+    @patch("backend.rag.retriever.retrieve_student_material_context")
+    def test_state_b_uploaded_only_knowledge_passed_to_llm(self, mock_student_ret, mock_ncert_ret):
         """State B: When question is present only in student material, excerpts reach Gemini payload."""
         mock_ncert_ret.return_value = ""  # No NCERT match
         mock_student_ret.return_value = (
@@ -102,8 +104,8 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Hall Effect Notes", ctx["combined_context"])
         self.assertIn("RH = Ey / (Jx * Bz)", ctx["combined_context"])
 
-    @patch("src.academic_rag.rag.retriever.retrieve_ncert_context")
-    @patch("src.academic_rag.rag.retriever.retrieve_student_material_context")
+    @patch("backend.rag.retriever.retrieve_ncert_context")
+    @patch("backend.rag.retriever.retrieve_student_material_context")
     def test_state_c_unsupported_knowledge(self, mock_student_ret, mock_ncert_ret):
         """State C: When neither source has context, formatted context indicates no matches."""
         mock_ncert_ret.return_value = ""
@@ -119,9 +121,9 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
         self.assertIn("[No direct NCERT textbook excerpt matches found]", ctx["combined_context"])
         self.assertNotIn("STUDENT REFERENCE MATERIAL", ctx["combined_context"])
 
-    @patch("src.academic_rag.storage.repository.study_material_repository")
-    @patch("src.academic_rag.rag.retriever.get_pinecone_index")
-    @patch("src.academic_rag.rag.retriever.get_embeddings")
+    @patch("backend.storage.repository.study_material_repository")
+    @patch("backend.rag.retriever.get_pinecone_index")
+    @patch("backend.rag.retriever.get_embeddings")
     def test_phase_4_student_and_class_isolation(
         self, mock_get_embeddings, mock_get_pinecone, mock_repo
     ):
@@ -172,10 +174,8 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(alice_cls9_ctx, "")
 
-    @patch("src.academic_rag.storage.repository.study_material_repository")
-    def test_phase_17_quiz_generation_uses_student_material(
-        self, mock_repo
-    ):
+    @patch("backend.storage.repository.study_material_repository")
+    def test_phase_17_quiz_generation_uses_student_material(self, mock_repo):
         """Phase 17: Verify quiz generator retrieves supplementary student reference material."""
         mock_repo.get_student_documents.side_effect = self.repo.get_student_documents
 
@@ -191,7 +191,7 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
             status="READY",
         )
 
-        with patch("src.academic_rag.quiz.generator.retrieve_student_material_context") as mock_stud_ctx:
+        with patch("backend.quiz.generator.retrieve_student_material_context") as mock_stud_ctx:
             mock_stud_ctx.return_value = (
                 "[SOURCE: STUDENT REFERENCE MATERIAL | TITLE: Electricity Special Notes | PAGE: 5]\n"
                 "Advanced resistor bridge formula."
@@ -220,18 +220,16 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
             status="READY",
         )
 
-        with patch("src.academic_rag.storage.repository.study_material_repository", self.repo):
+        with patch("backend.storage.repository.study_material_repository", self.repo):
             suggestions = _get_fresh_suggestions(class_level=10, student_id="student_solar")
             self.assertGreaterEqual(len(suggestions), 1)
             # Check if any suggestion has the reference prefix or mentions reference
             labels = [s[0] for s in suggestions]
             self.assertTrue(any("Ref:" in label or "Energy" in label for label in labels))
 
-    @patch("src.academic_rag.rag.engine.stream_chat_completion")
-    @patch("src.academic_rag.rag.engine.retrieve_hybrid_academic_context")
-    async def test_phase_19_gemini_quota_protection_one_request(
-        self, mock_hybrid, mock_stream
-    ):
+    @patch("backend.rag.engine.stream_chat_completion")
+    @patch("backend.rag.engine.retrieve_hybrid_academic_context")
+    async def test_phase_19_gemini_quota_protection_one_request(self, mock_hybrid, mock_stream):
         """Phase 19: Verify exactly ONE streaming Gemini request is made per user turn."""
         mock_hybrid.return_value = {
             "ncert_context": "NCERT text",
@@ -258,9 +256,11 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("".join(chunks), "Ohm's Law.")
         self.assertEqual(mock_stream.call_count, 1)
 
-    @patch("src.academic_rag.rag.retriever.get_pinecone_index")
+    @patch("backend.rag.retriever.get_pinecone_index")
     @patch("src.academic_rag.ingestion.pdf_ingester.get_pinecone_index")
-    def test_phase_20_end_to_end_controlled_lifecycle(self, mock_ingest_pinecone, mock_retriever_pinecone):
+    def test_phase_20_end_to_end_controlled_lifecycle(
+        self, mock_ingest_pinecone, mock_retriever_pinecone
+    ):
         """Phase 20: Controlled test with distinctive fact ('Luminescence-X principle') through ingestion, retrieval, and deletion."""
         mock_index = MagicMock()
         mock_ingest_pinecone.return_value = mock_index
@@ -293,7 +293,9 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(doc["material_name"], "Luminescence X Guide")
 
         # 3. Simulate Pinecone vector delete
-        delete_success = delete_student_material_vectors(document_id=doc_id, student_id="student_tester")
+        delete_success = delete_student_material_vectors(
+            document_id=doc_id, student_id="student_tester"
+        )
         self.assertTrue(delete_success)
         self.assertTrue(mock_index.delete.called)
 

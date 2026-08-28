@@ -1,20 +1,18 @@
 """Tests for Dual-Source Hybrid Retrieval and Tutor Prompts (Phases 10-12)."""
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from src.academic_rag.rag.prompts import NCERT_TUTOR_SYSTEM_PROMPT
-from src.academic_rag.rag.retriever import retrieve_hybrid_academic_context
+from backend.rag.prompts import NCERT_TUTOR_SYSTEM_PROMPT
+from backend.rag.retriever import retrieve_hybrid_academic_context
 
 
 class TestStudyMaterialRetrieval(unittest.TestCase):
     """Test suite for multi-source hybrid retrieval and prompt formatting."""
 
-    @patch("src.academic_rag.rag.retriever.retrieve_student_material_context")
-    @patch("src.academic_rag.rag.retriever.retrieve_ncert_context")
-    def test_hybrid_retrieval_combines_ncert_and_student_material(
-        self, mock_ncert, mock_student
-    ):
+    @patch("backend.rag.retriever.retrieve_student_material_context")
+    @patch("backend.rag.retriever.retrieve_ncert_context")
+    def test_hybrid_retrieval_combines_ncert_and_student_material(self, mock_ncert, mock_student):
         """Test that hybrid context cleanly segregates official NCERT and student material."""
         mock_ncert.return_value = (
             "[SOURCE: NCERT Class 10 Science | CHAPTER 12: Electricity | PAGE: 199]\n"
@@ -33,7 +31,9 @@ class TestStudyMaterialRetrieval(unittest.TestCase):
 
         self.assertTrue(result["has_student_context"])
         self.assertIn("OFFICIAL NCERT TEXTBOOK EXCERPTS", result["combined_context"])
-        self.assertIn("STUDENT REFERENCE MATERIAL (SUPPLEMENTARY EXCERPTS)", result["combined_context"])
+        self.assertIn(
+            "STUDENT REFERENCE MATERIAL (SUPPLEMENTARY EXCERPTS)", result["combined_context"]
+        )
         self.assertIn("Electricity | PAGE: 199", result["combined_context"])
         self.assertIn("HC Verma Notes | PAGE: 48", result["combined_context"])
 

@@ -5,12 +5,11 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
-from src.academic_rag.rag.retriever import (
-    retrieve_hybrid_academic_context,
+from backend.rag.retriever import (
     retrieve_student_material_context,
 )
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import StudyMaterialRepository
+from backend.storage.database import init_database
+from backend.storage.repository import StudyMaterialRepository
 
 
 class TestStudyMaterialIsolation(unittest.TestCase):
@@ -59,9 +58,9 @@ class TestStudyMaterialIsolation(unittest.TestCase):
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
 
-    @patch("src.academic_rag.storage.repository.study_material_repository")
-    @patch("src.academic_rag.rag.retriever.get_pinecone_index")
-    @patch("src.academic_rag.rag.retriever.get_embeddings")
+    @patch("backend.storage.repository.study_material_repository")
+    @patch("backend.rag.retriever.get_pinecone_index")
+    @patch("backend.rag.retriever.get_embeddings")
     def test_student_tenant_isolation(self, mock_get_embeddings, mock_get_pinecone, mock_repo):
         """Verify Student A's retrieval strictly filters by student_id and cannot receive Student B's data."""
         mock_repo.get_student_documents.side_effect = self.repo.get_student_documents
@@ -112,9 +111,9 @@ class TestStudyMaterialIsolation(unittest.TestCase):
         )
         self.assertNotIn("Alice Physics Reference", bob_ctx)
 
-    @patch("src.academic_rag.storage.repository.study_material_repository")
-    @patch("src.academic_rag.rag.retriever.get_pinecone_index")
-    @patch("src.academic_rag.rag.retriever.get_embeddings")
+    @patch("backend.storage.repository.study_material_repository")
+    @patch("backend.rag.retriever.get_pinecone_index")
+    @patch("backend.rag.retriever.get_embeddings")
     def test_class_grade_isolation(self, mock_get_embeddings, mock_get_pinecone, mock_repo):
         """Verify Class 9 queries cannot retrieve Class 10 uploads and vice versa."""
         mock_repo.get_student_documents.side_effect = self.repo.get_student_documents

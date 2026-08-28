@@ -12,20 +12,20 @@ from backend.models.curriculum import (
     ChapterInfo,
     ChapterSummaryStatus,
 )
-from backend.models.quiz import (
-    QuestionFeedback,
-    QuizData,
-    QuizQuestion,
-    QuizSubmissionResult,
-)
-from src.academic_rag.models.knowledge_graph import (
+from backend.models.knowledge_graph import (
     ChapterKnowledgeGraph,
     ConceptEdge,
     ConceptNode,
     ConceptStatus,
     EdgeRelationship,
 )
-from src.academic_rag.models.study_material import (
+from backend.models.quiz import (
+    QuestionFeedback,
+    QuizData,
+    QuizQuestion,
+    QuizSubmissionResult,
+)
+from backend.models.study_material import (
     DocumentChunk,
     DocumentStatus,
     DocumentValidationResult,

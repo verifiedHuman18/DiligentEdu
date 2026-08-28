@@ -10,13 +10,12 @@ from backend import (
     get_chapter_knowledge_graph,
     submit_quiz,
 )
-from src.academic_rag.curriculum.concepts import (
-    CHAPTER_CONCEPTS_REGISTRY,
+from backend.curriculum.concepts import (
     get_chapter_concept_metadata,
 )
-from src.academic_rag.models.knowledge_graph import ConceptStatus
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import (
+from backend.models.knowledge_graph import ConceptStatus
+from backend.storage.database import init_database
+from backend.storage.repository import (
     QuizRepository,
     StudyMaterialRepository,
 )
@@ -50,7 +49,12 @@ class TestKnowledgeGraph(unittest.TestCase):
         # Check edge structure
         edges = elec_meta["edges"]
         self.assertTrue(len(edges) >= 3)
-        self.assertTrue(any(e["source"] == "elec_current_potential" and e["target"] == "elec_ohms_law" for e in edges))
+        self.assertTrue(
+            any(
+                e["source"] == "elec_current_potential" and e["target"] == "elec_ohms_law"
+                for e in edges
+            )
+        )
 
         # Class 9 Describing Motion Around Us
         motion_meta = get_chapter_concept_metadata("Describing Motion Around Us", class_level=9)
@@ -204,7 +208,9 @@ class TestKnowledgeGraph(unittest.TestCase):
             chapter="Electricity",
             db_path=self.db_path,
         )
-        current_node_alice = next(n for n in graph_alice["nodes"] if n["id"] == "elec_current_potential")
+        current_node_alice = next(
+            n for n in graph_alice["nodes"] if n["id"] == "elec_current_potential"
+        )
         self.assertEqual(current_node_alice["mastery"], 100.0)
         self.assertEqual(current_node_alice["status"], "strong")
 
@@ -215,7 +221,9 @@ class TestKnowledgeGraph(unittest.TestCase):
             chapter="Electricity",
             db_path=self.db_path,
         )
-        current_node_bob = next(n for n in graph_bob["nodes"] if n["id"] == "elec_current_potential")
+        current_node_bob = next(
+            n for n in graph_bob["nodes"] if n["id"] == "elec_current_potential"
+        )
         self.assertIsNone(current_node_bob["mastery"])
         self.assertEqual(current_node_bob["status"], "unattempted")
 

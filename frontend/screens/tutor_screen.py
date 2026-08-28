@@ -237,7 +237,7 @@ def _get_fresh_suggestions(
     # Check for student uploaded materials to inject source-aware suggestions (Phase 14 & 18)
     if student_id:
         try:
-            from src.academic_rag.storage.repository import study_material_repository
+            from backend.storage.repository import study_material_repository
 
             docs = study_material_repository.get_student_documents(
                 student_id=student_id, class_level=class_level, subject=subject
@@ -286,7 +286,7 @@ async def render_tutor_screen(
     # Fetch student uploaded reference materials for current class and subject
     mat_count = 0
     try:
-        from src.academic_rag.storage.repository import study_material_repository
+        from backend.storage.repository import study_material_repository
 
         mat_count = study_material_repository.count_student_documents(
             student_id=active_student_id, class_level=class_level, subject=subject

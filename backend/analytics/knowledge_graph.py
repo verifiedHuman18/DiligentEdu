@@ -9,19 +9,19 @@ import logging
 import sqlite3
 from typing import Any, Dict, List, Optional
 
-from src.academic_rag.config import config
-from src.academic_rag.curriculum.concepts import (
+from backend.config import config
+from backend.curriculum.concepts import (
     get_all_registered_chapters,
     get_chapter_concept_metadata,
 )
-from src.academic_rag.models.knowledge_graph import (
+from backend.models.knowledge_graph import (
     ChapterKnowledgeGraph,
     ConceptEdge,
     ConceptNode,
     ConceptStatus,
     EdgeRelationship,
 )
-from src.academic_rag.storage.database import get_db_connection
+from backend.storage.database import get_db_connection
 
 logger = logging.getLogger(__name__)
 
@@ -232,7 +232,7 @@ def get_chapter_knowledge_graph(
     # Fetch student uploaded documents for resource linking
     student_docs: List[Dict[str, Any]] = []
     try:
-        from src.academic_rag.storage.repository import study_material_repository
+        from backend.storage.repository import study_material_repository
 
         m_repo = (
             study_material_repository

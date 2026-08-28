@@ -7,12 +7,12 @@ from unittest.mock import MagicMock, patch
 
 import fitz
 
-from src.academic_rag.ingestion.chunker import chunk_document_pages, split_text_into_chunks
+from backend.models.study_material import DocumentStatus
+from backend.storage.database import init_database
+from backend.storage.repository import StudyMaterialRepository
+from src.academic_rag.ingestion.chunker import chunk_document_pages
 from src.academic_rag.ingestion.document_processor import extract_pages_from_pdf
 from src.academic_rag.ingestion.pdf_ingester import ingest_study_material_pdf
-from src.academic_rag.models.study_material import DocumentStatus
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import StudyMaterialRepository
 
 
 def _create_multi_page_pdf(pages_text: list[str]) -> bytes:

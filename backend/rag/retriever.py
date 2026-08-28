@@ -126,8 +126,8 @@ def retrieve_student_material_context(
         return ""
 
     try:
-        from src.academic_rag.config import DEBUG_RAG, PINECONE_STUDENT_NAMESPACE
-        from src.academic_rag.storage.repository import study_material_repository
+        from backend.config import DEBUG_RAG, PINECONE_STUDENT_NAMESPACE
+        from backend.storage.repository import study_material_repository
 
         # Quick check: does student have any READY uploaded materials?
         ready_docs = study_material_repository.get_student_documents(
@@ -229,7 +229,7 @@ def retrieve_hybrid_academic_context(
     Retrieves both authoritative NCERT context and supplementary student reference context.
     Returns structured dictionary with segregated context and merged formatted block.
     """
-    from src.academic_rag.config import DEBUG_RAG
+    from backend.config import DEBUG_RAG
 
     # 1. Retrieve NCERT context (authoritative)
     ch_num = chapter_filter if isinstance(chapter_filter, int) else None
@@ -304,7 +304,7 @@ def delete_student_material_vectors(
         return False
 
     try:
-        from src.academic_rag.config import PINECONE_STUDENT_NAMESPACE
+        from backend.config import PINECONE_STUDENT_NAMESPACE
 
         index = get_pinecone_index(api_key=api_key)
         filter_dict = {"document_id": {"$eq": clean_doc_id}}

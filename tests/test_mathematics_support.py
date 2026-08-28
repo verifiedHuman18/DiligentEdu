@@ -1,37 +1,25 @@
 """Comprehensive Automated Test Suite for Mathematics (Class 9 & Class 10) Support & Cross-Subject Isolation."""
 
 import os
-import sqlite3
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
-from src.academic_rag.analytics.action_plan import generate_action_plan
-from src.academic_rag.analytics.knowledge_graph import (
+from backend.analytics.action_plan import generate_action_plan
+from backend.analytics.knowledge_graph import (
     calculate_student_concept_telemetry,
     get_available_knowledge_map_chapters,
-    get_chapter_knowledge_graph,
 )
-from src.academic_rag.analytics.swat import (
-    get_attempted_chapters,
-    get_available_chapters,
+from backend.analytics.swat import (
     get_student_swat,
-    get_unattempted_chapters,
 )
-from src.academic_rag.analytics.teacher import (
-    get_teacher_chapter_statistics,
-    get_teacher_student_overview,
-    get_teacher_student_profile,
-)
-from src.academic_rag.config import config
-from src.academic_rag.curriculum.concepts import (
-    get_all_registered_chapters,
+from backend.curriculum.concepts import (
     get_chapter_concept_metadata,
 )
-from src.academic_rag.curriculum.service import curriculum_service, get_ncert_curriculum
-from src.academic_rag.rag.retriever import retrieve_hybrid_academic_context, retrieve_ncert_context
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import QuizRepository, StudyMaterialRepository
+from backend.curriculum.service import curriculum_service
+from backend.rag.retriever import retrieve_ncert_context
+from backend.storage.database import init_database
+from backend.storage.repository import QuizRepository
 
 
 class TestMathematicsCurriculumAndMetadata(unittest.TestCase):
@@ -77,12 +65,16 @@ class TestMathematicsConceptGraphs(unittest.TestCase):
 
     def test_class10_math_concept_metadata(self):
         """Class 10 Math chapters have registered concept nodes and dependency edges."""
-        real_num_meta = get_chapter_concept_metadata("Real Numbers", class_level=10, subject="Mathematics")
+        real_num_meta = get_chapter_concept_metadata(
+            "Real Numbers", class_level=10, subject="Mathematics"
+        )
         self.assertIsNotNone(real_num_meta)
         self.assertTrue(len(real_num_meta["nodes"]) >= 2)
         self.assertTrue(len(real_num_meta["edges"]) >= 1)
 
-        trig_meta = get_chapter_concept_metadata("Introduction to Trigonometry", class_level=10, subject="Mathematics")
+        trig_meta = get_chapter_concept_metadata(
+            "Introduction to Trigonometry", class_level=10, subject="Mathematics"
+        )
         self.assertIsNotNone(trig_meta)
         node_names = [n["name"] for n in trig_meta["nodes"]]
         self.assertTrue(any("Trigonometric Ratios" in n for n in node_names))
@@ -90,7 +82,9 @@ class TestMathematicsConceptGraphs(unittest.TestCase):
 
     def test_class9_math_concept_metadata(self):
         """Class 9 Math chapters have registered concept nodes and dependency edges."""
-        num_meta = get_chapter_concept_metadata("The World of Numbers", class_level=9, subject="Mathematics")
+        num_meta = get_chapter_concept_metadata(
+            "The World of Numbers", class_level=9, subject="Mathematics"
+        )
         self.assertIsNotNone(num_meta)
         self.assertTrue(len(num_meta["nodes"]) >= 2)
 
@@ -175,14 +169,18 @@ class TestMathematicsStorageAndSWAT(unittest.TestCase):
         )
 
         # Verify Math SWAT only contains Math chapters (14 total) and 1 attempt
-        math_swat = get_student_swat(student_id, class_level=10, subject="Mathematics", db_path=self.temp_db_path)
+        math_swat = get_student_swat(
+            student_id, class_level=10, subject="Mathematics", db_path=self.temp_db_path
+        )
         self.assertEqual(math_swat["overall"]["quizzes_attempted"], 1)
         self.assertEqual(math_swat["overall"]["total_chapters"], 14)
         self.assertIn("Real Numbers", math_swat["chapter_breakdown"])
         self.assertNotIn("Chemical Reactions and Equations", math_swat["chapter_breakdown"])
 
         # Verify Science SWAT only contains Science chapters (13 total) and 1 attempt
-        sci_swat = get_student_swat(student_id, class_level=10, subject="Science", db_path=self.temp_db_path)
+        sci_swat = get_student_swat(
+            student_id, class_level=10, subject="Science", db_path=self.temp_db_path
+        )
         self.assertEqual(sci_swat["overall"]["quizzes_attempted"], 1)
         self.assertEqual(sci_swat["overall"]["total_chapters"], 13)
         self.assertIn("Chemical Reactions and Equations", sci_swat["chapter_breakdown"])
@@ -191,10 +189,15 @@ class TestMathematicsStorageAndSWAT(unittest.TestCase):
     def test_action_plan_subject_awareness(self):
         """Action plan must recommend Mathematics unattempted/weak chapters when subject is Mathematics."""
         student_id = "math_student_002"
-        math_plan = generate_action_plan(student_id, class_level=10, subject="Mathematics", db_path=self.temp_db_path)
+        math_plan = generate_action_plan(
+            student_id, class_level=10, subject="Mathematics", db_path=self.temp_db_path
+        )
         self.assertEqual(math_plan["subject"], "Mathematics")
         top_act_chapter = math_plan["actions"][0]["chapter"]
-        math_chapters = [c.chapter_title for c in curriculum_service.get_chapters_for_grade(10, subject="Mathematics")]
+        math_chapters = [
+            c.chapter_title
+            for c in curriculum_service.get_chapters_for_grade(10, subject="Mathematics")
+        ]
         self.assertIn(top_act_chapter, math_chapters)
 
     def test_knowledge_graph_concept_telemetry_isolation(self):
@@ -220,7 +223,11 @@ class TestMathematicsStorageAndSWAT(unittest.TestCase):
         self.repo.record_attempt(student_id, quiz_data, {"q1": "A"}, quiz_id="q_math_001")
 
         telemetry = calculate_student_concept_telemetry(
-            student_id, class_level=10, chapter_name="Real Numbers", subject="Mathematics", db_path=self.temp_db_path
+            student_id,
+            class_level=10,
+            chapter_name="Real Numbers",
+            subject="Mathematics",
+            db_path=self.temp_db_path,
         )
         self.assertIn("c10_m01_fund_thm", telemetry)
         self.assertEqual(telemetry["c10_m01_fund_thm"]["attempts"], 1)
@@ -230,8 +237,8 @@ class TestMathematicsStorageAndSWAT(unittest.TestCase):
 class TestMathematicsRAGRetrievalFilter(unittest.TestCase):
     """Verifies that RAG Retrieval applies metadata filtering for Mathematics."""
 
-    @patch("src.academic_rag.rag.retriever.get_pinecone_index")
-    @patch("src.academic_rag.rag.retriever.get_embeddings")
+    @patch("backend.rag.retriever.get_pinecone_index")
+    @patch("backend.rag.retriever.get_embeddings")
     def test_retrieve_ncert_context_mathematics_filter(self, mock_get_embeddings, mock_get_index):
         mock_emb = MagicMock()
         mock_emb.embed_query.return_value = [0.1] * 384

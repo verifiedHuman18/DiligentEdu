@@ -3,8 +3,8 @@
 import logging
 from typing import List, Optional, Tuple
 
-from src.academic_rag.config import STUDENT_CHUNK_OVERLAP, STUDENT_CHUNK_SIZE
-from src.academic_rag.models.study_material import DocumentChunk
+from backend.config import STUDENT_CHUNK_OVERLAP, STUDENT_CHUNK_SIZE
+from backend.models.study_material import DocumentChunk
 
 logger = logging.getLogger(__name__)
 

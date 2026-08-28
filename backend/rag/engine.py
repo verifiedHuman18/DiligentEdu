@@ -62,7 +62,7 @@ Please provide a thorough, pedagogically structured explanation with step-by-ste
 
     messages.append({"role": "user", "content": user_content})
 
-    from src.academic_rag.config import DEBUG_RAG
+    from backend.config import DEBUG_RAG
 
     if DEBUG_RAG:
         logger.info(

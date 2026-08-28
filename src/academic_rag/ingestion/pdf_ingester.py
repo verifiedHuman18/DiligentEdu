@@ -9,20 +9,19 @@ import io
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
-from src.academic_rag.config import (
+from backend.config import (
     PINECONE_STUDENT_NAMESPACE,
     STUDENT_CHUNK_OVERLAP,
     STUDENT_CHUNK_SIZE,
-    config,
 )
+from backend.models.study_material import DocumentStatus
+from backend.rag.retriever import get_embeddings, get_pinecone_index
+from backend.storage.repository import StudyMaterialRepository, study_material_repository
 from src.academic_rag.ingestion.chunker import chunk_document_pages
 from src.academic_rag.ingestion.document_processor import extract_pages_from_pdf
 from src.academic_rag.ingestion.validator import sanitize_filename, validate_pdf_file
-from src.academic_rag.models.study_material import DocumentStatus, UploadedDocument
-from src.academic_rag.rag.retriever import get_embeddings, get_pinecone_index
-from src.academic_rag.storage.repository import StudyMaterialRepository, study_material_repository
 
 logger = logging.getLogger(__name__)
 
@@ -57,14 +56,20 @@ def ingest_study_material_pdf(
         raise ValueError("student_id cannot be empty.")
 
     clean_filename = sanitize_filename(filename)
-    display_title = (material_name or "").strip() or clean_filename.replace(".pdf", "").replace("_", " ").title()
+    display_title = (material_name or "").strip() or clean_filename.replace(".pdf", "").replace(
+        "_", " "
+    ).title()
     class_int = int(class_level)
-    repo = repository or (study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path))
+    repo = repository or (
+        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    )
 
     # 1. Validate Upload
     validation = validate_pdf_file(file_data, clean_filename)
     if not validation.is_valid:
-        logger.warning(f"Rejected study material upload '{clean_filename}': {validation.error_message}")
+        logger.warning(
+            f"Rejected study material upload '{clean_filename}': {validation.error_message}"
+        )
         raise ValueError(validation.error_message)
 
     # 2. Initialize Document Record
@@ -142,7 +147,9 @@ def ingest_study_material_pdf(
             for i in range(0, len(vectors_to_upsert), batch_size):
                 batch = vectors_to_upsert[i : i + batch_size]
                 index.upsert(vectors=batch, namespace=PINECONE_STUDENT_NAMESPACE)
-            logger.info(f"Successfully upserted {len(vectors_to_upsert)} vectors to Pinecone namespace '{PINECONE_STUDENT_NAMESPACE}'")
+            logger.info(
+                f"Successfully upserted {len(vectors_to_upsert)} vectors to Pinecone namespace '{PINECONE_STUDENT_NAMESPACE}'"
+            )
         except Exception as pc_err:
             # If Pinecone is mocked or connection fails in test mode, log appropriately
             logger.warning(f"Pinecone upsert encountered: {pc_err}")

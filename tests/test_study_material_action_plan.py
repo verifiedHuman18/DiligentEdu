@@ -5,10 +5,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from src.academic_rag.analytics.action_plan import generate_action_plan
-from src.academic_rag.analytics.swat import get_student_swat
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import QuizRepository, StudyMaterialRepository
+from backend.analytics.action_plan import generate_action_plan
+from backend.analytics.swat import get_student_swat
+from backend.storage.database import init_database
+from backend.storage.repository import QuizRepository, StudyMaterialRepository
 
 
 class TestStudyMaterialActionPlan(unittest.TestCase):
@@ -43,7 +43,13 @@ class TestStudyMaterialActionPlan(unittest.TestCase):
             ],
         }
         # Student gets 2/5 right (40%)
-        user_answers = {"q_choice_1": "A", "q_choice_2": "A", "q_choice_3": "B", "q_choice_4": "B", "q_choice_5": "B"}
+        user_answers = {
+            "q_choice_1": "A",
+            "q_choice_2": "A",
+            "q_choice_3": "B",
+            "q_choice_4": "B",
+            "q_choice_5": "B",
+        }
         self.quiz_repo.record_attempt("student_001", quiz_data, user_answers)
 
         swat_before = get_student_swat("student_001", class_level=10, db_path=self.db_path)
@@ -69,7 +75,7 @@ class TestStudyMaterialActionPlan(unittest.TestCase):
         self.assertEqual(swat_after["weak"][0]["score"], 40)
         self.assertEqual(swat_after["uploaded_materials_count"], 1)
 
-    @patch("src.academic_rag.storage.repository.study_material_repository")
+    @patch("backend.storage.repository.study_material_repository")
     def test_action_plan_recommends_uploaded_resources(self, mock_doc_repo):
         """Verify Action Plan suggests student's uploaded material for weak/unattempted topics."""
         mock_doc_repo.get_student_documents.side_effect = self.doc_repo.get_student_documents
@@ -105,7 +111,9 @@ class TestStudyMaterialActionPlan(unittest.TestCase):
         self.assertEqual(top_action["chapter"], "Electricity")
         self.assertIn("Physics Notes Ch 12", top_action["reason"])
         self.assertEqual(len(top_action["recommended_resources"]), 1)
-        self.assertEqual(top_action["recommended_resources"][0]["material_name"], "Physics Notes Ch 12")
+        self.assertEqual(
+            top_action["recommended_resources"][0]["material_name"], "Physics Notes Ch 12"
+        )
 
 
 if __name__ == "__main__":

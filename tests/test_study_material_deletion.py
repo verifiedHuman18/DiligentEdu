@@ -6,8 +6,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from backend import delete_study_material
-from src.academic_rag.storage.database import init_database
-from src.academic_rag.storage.repository import StudyMaterialRepository
+from backend.storage.database import init_database
+from backend.storage.repository import StudyMaterialRepository
 
 
 class TestStudyMaterialDeletion(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestStudyMaterialDeletion(unittest.TestCase):
         if os.path.exists(self.db_path):
             os.remove(self.db_path)
 
-    @patch("src.academic_rag.rag.retriever.get_pinecone_index")
+    @patch("backend.rag.retriever.get_pinecone_index")
     def test_delete_document_removes_db_and_vectors(self, mock_get_pinecone):
         """Verify deletion removes SQLite record and triggers Pinecone vector deletion by document_id."""
         mock_index = MagicMock()

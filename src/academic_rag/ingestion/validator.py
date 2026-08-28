@@ -4,15 +4,14 @@ import io
 import logging
 import os
 import re
-from typing import Optional, Union
+from typing import Union
 
 import fitz  # PyMuPDF
 
-from src.academic_rag.config import (
+from backend.config import (
     MAX_UPLOAD_SIZE_BYTES,
-    config,
 )
-from src.academic_rag.models.study_material import DocumentValidationResult
+from backend.models.study_material import DocumentValidationResult
 
 logger = logging.getLogger(__name__)
 

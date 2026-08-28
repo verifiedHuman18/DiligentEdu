@@ -10,13 +10,12 @@ from typing import Optional
 
 import streamlit as st
 
-from frontend.components.navigation import render_back_to_home
-from frontend.state import get_student_class_level
-from src.academic_rag.curriculum.service import get_ncert_curriculum
-from src.academic_rag.storage.repository import (
-    delete_student_study_material,
+from backend.curriculum.service import get_ncert_curriculum
+from backend.storage.repository import (
     get_student_study_materials,
 )
+from frontend.components.navigation import render_back_to_home
+from frontend.state import get_student_class_level
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +38,7 @@ def render_study_material_screen(
     render_back_to_home("study_material")
 
     from frontend.state import get_student_subject
+
     class_level = get_student_class_level()
     subject = get_student_subject()
 
@@ -110,7 +110,9 @@ def render_study_material_screen(
             if ":" in selected_ch_opt:
                 selected_chapter = selected_ch_opt.split(":", 1)[1].strip()
 
-        st.caption(f"🔒 Bound automatically to your active profile: **Class {class_level} ({subject})**.")
+        st.caption(
+            f"🔒 Bound automatically to your active profile: **Class {class_level} ({subject})**."
+        )
 
         if st.button(
             "Upload & Index Material",
@@ -123,7 +125,9 @@ def render_study_material_screen(
             if uploaded_file is None:
                 st.error("Please select a PDF file to upload.")
             else:
-                with st.spinner("Validating, extracting pages, and generating local vector embeddings (0 Gemini tokens consumed)..."):
+                with st.spinner(
+                    "Validating, extracting pages, and generating local vector embeddings (0 Gemini tokens consumed)..."
+                ):
                     try:
                         from backend import upload_study_material
 
@@ -169,7 +173,9 @@ def render_study_material_screen(
 
     # Section 2: Uploaded Material Inventory
     st.markdown("#### My Uploaded Material Inventory")
-    materials = get_student_study_materials(student_id=student_id, class_level=class_level, subject=subject)
+    materials = get_student_study_materials(
+        student_id=student_id, class_level=class_level, subject=subject
+    )
 
     if not materials:
         empty_html = textwrap.dedent("""\

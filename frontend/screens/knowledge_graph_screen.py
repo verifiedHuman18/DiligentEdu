@@ -7,17 +7,17 @@ color-coded mastery states, unattempted concept isolation, and one-click learnin
 import json
 import logging
 import textwrap
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import streamlit as st
 import streamlit.components.v1 as components
 
-from frontend.components.navigation import render_back_to_home
-from frontend.state import get_student_class_level
-from src.academic_rag.analytics.knowledge_graph import (
+from backend.analytics.knowledge_graph import (
     get_available_knowledge_map_chapters,
     get_chapter_knowledge_graph,
 )
+from frontend.components.navigation import render_back_to_home
+from frontend.state import get_student_class_level
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             width: 100%;
             height: 100%;
             background-position: 0 0;
-            background-image: 
+            background-image:
                 radial-gradient(rgba(148, 163, 184, 0.22) 1.2px, transparent 1.2px),
                 linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
@@ -244,7 +244,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
     <div id="graph-viewport" class="graph-viewport">
         <div class="graph-background"></div>
         <div class="canvas-header">🌌 Intra-Chapter Concept Map · {ch_title}</div>
-        
+
         <svg id="graph-svg" viewBox="0 0 1080 440" preserveAspectRatio="xMidYMid meet">
             <defs>
                 <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -291,7 +291,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
             // Clean anchor from source right-edge to target left-edge
             const sx = s.pos_x + 180, sy = s.pos_y + 30;
             const tx = t.pos_x - 4, ty = t.pos_y + 30;
-            
+
             // Curved Bezier calculation
             const dx = tx - sx;
             const cx1 = sx + dx * 0.45;
@@ -313,7 +313,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
         function showNodeTooltip(nodeElem, n) {{
             const containerRect = graphViewport.getBoundingClientRect();
             const nodeRect = nodeElem.getBoundingClientRect();
-            
+
             const mStr = n.mastery !== null ? `${{Math.round(n.mastery)}}% (${{n.status.toUpperCase()}})` : 'Unattempted (No quiz taken)';
             const statusColor = n.status === 'strong' ? '#34d399' : (n.status === 'moderate' ? '#fbbf24' : (n.status === 'weak' ? '#f87171' : '#94a3b8'));
 
@@ -447,6 +447,7 @@ def render_knowledge_graph_screen(
     render_back_to_home("knowledge_graph")
 
     from frontend.state import get_student_subject
+
     class_level = get_student_class_level()
     subject = get_student_subject()
 
@@ -553,7 +554,11 @@ def render_knowledge_graph_screen(
             if selected_node.get("mastery") is not None
             else "*Unassessed (No quiz taken yet)*"
         )
-        sec_display = f"Section {selected_node.get('section')}" if selected_node.get("section") else "Core Concept"
+        sec_display = (
+            f"Section {selected_node.get('section')}"
+            if selected_node.get("section")
+            else "Core Concept"
+        )
 
         card_html = textwrap.dedent(f"""\
 <div style="background: var(--surface-container); border-radius: 12px; padding: 18px 20px; border: 1px solid var(--outline-variant); margin-bottom: 12px;">
@@ -626,6 +631,8 @@ def render_knowledge_graph_screen(
             use_container_width=True,
             key=f"btn_ask_tutor_kg_{selected_node.get('id')}",
         ):
-            st.session_state["tutor_prefilled_prompt"] = f"Explain {selected_node.get('name')} from Class {class_level} Science chapter {selected_chapter} with examples and key formulas."
+            st.session_state["tutor_prefilled_prompt"] = (
+                f"Explain {selected_node.get('name')} from Class {class_level} Science chapter {selected_chapter} with examples and key formulas."
+            )
             st.session_state["active_nav"] = "tutor"
             st.rerun()

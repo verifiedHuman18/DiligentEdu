@@ -79,7 +79,7 @@ def _build_automated_swat_action_plan(
     # Check student's uploaded materials for recommended resources (Phase 17)
     uploaded_docs: List[Dict[str, Any]] = []
     try:
-        from src.academic_rag.storage.repository import (
+        from backend.storage.repository import (
             StudyMaterialRepository,
             study_material_repository,
         )

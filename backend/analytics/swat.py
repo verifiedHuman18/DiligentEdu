@@ -154,7 +154,7 @@ def get_student_swat(
 
         docs_count = 0
         try:
-            from src.academic_rag.storage.repository import (
+            from backend.storage.repository import (
                 StudyMaterialRepository,
                 study_material_repository,
             )
@@ -353,7 +353,7 @@ def get_student_swat(
 
     uploaded_count = 0
     try:
-        from src.academic_rag.storage.repository import (
+        from backend.storage.repository import (
             StudyMaterialRepository,
             study_material_repository,
         )
