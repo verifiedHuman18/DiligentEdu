@@ -20,6 +20,22 @@ def render_home_screen(
     # 1. Fetch active student data with master class & subject isolation (0 Gemini calls, Phase 14)
     class_level = get_student_class_level()
     subject = get_student_subject()
+
+    col_hdr_1, col_hdr_2 = st.columns([0.7, 0.3])
+    with col_hdr_2:
+        from frontend.state import set_student_subject
+
+        new_subj = st.selectbox(
+            "Subject",
+            ["Science", "Mathematics"],
+            index=0 if subject == "Science" else 1,
+            key="home_subj_switch",
+            label_visibility="collapsed",
+        )
+        if new_subj != subject:
+            set_student_subject(new_subj)
+            st.rerun()
+
     swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     has_data = swat.get("has_data", False)
     selected_chapter = st.session_state.get("selected_chapter", "All Chapters")

@@ -55,66 +55,13 @@ THEMES: Dict[str, Dict[str, str]] = {
         "btn_teacher_border": "#f59e0b",
         "btn_teacher_text": "#fde68a",
     },
-    "Light": {
-        "name": "Light",
-        # Warm Cream M3 Surfaces
-        "bg_app": "#fcf9f2",
-        "bg_surface": "#ffffff",
-        "surface_container_lowest": "#ffffff",
-        "surface_container_low": "#f8f3e9",
-        "surface_container": "#f1e9dc",
-        "surface_container_high": "#e8ddcc",
-        "surface_container_highest": "#decbbe",
-        "border_outline": "#9c8b7b",
-        "border_outline_variant": "#dfd4c5",
-        "text_primary": "#2a1f16",
-        "text_secondary": "#574435",
-        "text_muted": "#84705f",
-        # Warm Translucent Active Container (Zero Blue Background)
-        "md_primary": "#b45309",
-        "md_on_primary": "#ffffff",
-        "md_primary_container": "rgba(42, 31, 22, 0.08)",
-        "md_on_primary_container": "#2a1f16",
-        "md_secondary": "#7c3aed",
-        "md_secondary_container": "#ede9fe",
-        "md_on_secondary_container": "#4c1d95",
-        "md_tertiary": "#059669",
-        "md_tertiary_container": "#d1fae5",
-        "md_on_tertiary_container": "#064e3b",
-        "md_amber": "#d97706",
-        "md_amber_container": "#fef3c7",
-        "md_on_amber_container": "#78350f",
-        "md_error": "#dc2626",
-        "md_error_container": "#fee2e2",
-        "md_on_error_container": "#7f1d1d",
-        "md_cyan": "#0284c7",
-        "md_cyan_container": "#e0f2fe",
-        "md_on_cyan_container": "#0c4a6e",
-        "card_shadow": "rgba(42, 31, 22, 0.08)",
-        # Vibrant Module Buttons
-        "btn_tutor_bg": "#eff6ff",
-        "btn_tutor_border": "#2563eb",
-        "btn_tutor_text": "#1d4ed8",
-        "btn_quiz_bg": "#f5f3ff",
-        "btn_quiz_border": "#7c3aed",
-        "btn_quiz_text": "#6d28d9",
-        "btn_analytics_bg": "#ecfdf5",
-        "btn_analytics_border": "#059669",
-        "btn_analytics_text": "#047857",
-        "btn_teacher_bg": "#fffbeb",
-        "btn_teacher_border": "#d97706",
-        "btn_teacher_text": "#b45309",
-    },
 }
 
 
 def get_current_theme() -> Dict[str, str]:
     """Retrieves the active theme dictionary from session state."""
-    theme_name = st.session_state.get("theme", "Light")
-    if theme_name not in THEMES:
-        theme_name = "Light"
-        st.session_state.theme = "Light"
-    return THEMES[theme_name]
+    st.session_state.theme = "Dark"
+    return THEMES["Dark"]
 
 
 def inject_custom_css(theme_name: str = None) -> None:

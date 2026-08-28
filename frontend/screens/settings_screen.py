@@ -5,7 +5,6 @@ import streamlit as st
 from backend.curriculum.service import curriculum_service
 from frontend.components.navigation import render_back_to_home
 from frontend.state import navigate_to
-from frontend.styles import inject_custom_css
 
 
 def render_settings_screen() -> None:
@@ -51,7 +50,6 @@ def render_settings_screen() -> None:
         tabs = [
             ("AI Configuration", "AI Configuration", ":material/smart_toy:"),
             (profile_tab_label, "Profile", ":material/person:"),
-            ("Appearance", "Appearance", ":material/palette:"),
         ]
 
         for label, tab_id, icon_name in tabs:
@@ -268,27 +266,18 @@ def render_settings_screen() -> None:
                 )
 
                 st.write("")
-                col_cls, col_subj = st.columns(2)
-                with col_cls:
-                    curr_cls = get_student_class_level()
-                    selected_cls_label = st.radio(
-                        "Class / Standard",
-                        options=["Class 10", "Class 9"],
-                        index=0 if curr_cls == 10 else 1,
-                        help="Master standard setting (Class 10 or Class 9). Only one standard is active at a time.",
-                        key="settings_class_radio",
-                    )
-                    new_cls_int = 10 if selected_cls_label == "Class 10" else 9
+                curr_cls = get_student_class_level()
+                new_cls_int = curr_cls
+                st.markdown(f"**Assigned Class:** {curr_cls}")
 
-                with col_subj:
-                    curr_subj = get_student_subject()
-                    selected_subj = st.radio(
-                        "Subject",
-                        options=["Science", "Mathematics"],
-                        index=0 if curr_subj == "Science" else 1,
-                        help="Active subject for NCERT chapters, quizzes, SWAT analytics, and AI Tutor.",
-                        key="settings_subject_radio",
-                    )
+                curr_subj = get_student_subject()
+                selected_subj = st.radio(
+                    "Subject",
+                    options=["Science", "Mathematics"],
+                    index=0 if curr_subj == "Science" else 1,
+                    help="Active subject for NCERT chapters, quizzes, SWAT analytics, and AI Tutor.",
+                    key="settings_subject_radio",
+                )
 
                 st.write("")
                 chapter_options = ["All Chapters"]
@@ -319,23 +308,3 @@ def render_settings_screen() -> None:
                         f"Profile saved successfully! Master Standard set to Class {new_cls_int} ({selected_subj})."
                     )
                     st.rerun()
-
-        # Tab 3: Appearance
-        elif active_tab == "Appearance":
-            st.markdown("#### Theme & Display")
-            st.caption("Switch between Warm Cream (Light) and Warm Brown (Dark) palettes.")
-            st.write("")
-
-            theme_options = ["Light", "Dark"]
-            curr_theme = st.session_state.get("theme", "Light")
-            curr_theme_idx = theme_options.index(curr_theme) if curr_theme in theme_options else 0
-            selected_theme = st.selectbox(
-                "Theme Mode",
-                theme_options,
-                index=curr_theme_idx,
-                help="Switch between Cream (Light) and Brown (Dark) mode",
-            )
-            if selected_theme != st.session_state.get("theme"):
-                st.session_state.theme = selected_theme
-                inject_custom_css(selected_theme)
-                st.rerun()

@@ -5,7 +5,6 @@ from typing import Tuple
 import streamlit as st
 
 from backend.curriculum.service import curriculum_service
-from frontend.components.theme_switcher import render_theme_switcher
 
 
 def render_sidebar() -> Tuple[str, str, str, str]:
@@ -98,9 +97,6 @@ def render_sidebar() -> Tuple[str, str, str, str]:
             st.session_state.model = selected_model
 
             st.divider()
-
-            # 5. Theme Switcher
-            render_theme_switcher(location="sidebar")
 
         # Tab 2: Syllabus Explorer
         with tab_syllabus:
