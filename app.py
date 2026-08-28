@@ -25,6 +25,8 @@ try:
     pass
 except RuntimeError:
     print("Prisma client not found. Generating...")
+    import os
+
     os.system("prisma generate")
 
 from frontend import (
