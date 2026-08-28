@@ -16,11 +16,34 @@ def init_firebase():
         cred_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "firebase-adminsdk.json"
         )
+
+        # 1. Try to load from local file first
         if os.path.exists(cred_path):
             cred = credentials.Certificate(cred_path)
             firebase_admin.initialize_app(cred)
         else:
-            raise FileNotFoundError(f"Firebase credentials not found at {cred_path}")
+            # 2. Try to load from Streamlit Secrets
+            try:
+                import streamlit as st
+
+                if "firebase" in st.secrets:
+                    # Convert AttrDict to normal dict for Firebase
+                    firebase_creds = dict(st.secrets["firebase"])
+                    # Ensure private key is formatted correctly with newlines
+                    if "private_key" in firebase_creds:
+                        firebase_creds["private_key"] = firebase_creds["private_key"].replace(
+                            "\\n", "\n"
+                        )
+
+                    cred = credentials.Certificate(firebase_creds)
+                    firebase_admin.initialize_app(cred)
+                    return
+            except Exception:
+                pass
+
+            raise FileNotFoundError(
+                f"Firebase credentials not found at {cred_path} and not in Streamlit Secrets"
+            )
 
 
 def sign_in_with_email_and_password(email, password):
