@@ -26,8 +26,17 @@ try:
 except RuntimeError:
     print("Prisma client not found. Generating...")
     import os
+    import subprocess
+    import sys
 
-    os.system("prisma generate")
+    # Run generation reliably using python -m
+    subprocess.check_call([sys.executable, "-m", "prisma", "generate"])
+
+    # Force reload the prisma module so Python sees the newly generated files
+    if "prisma" in sys.modules:
+        del sys.modules["prisma"]
+
+    # Now it should succeed
 
 from frontend import (
     get_user_role,
