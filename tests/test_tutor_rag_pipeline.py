@@ -45,7 +45,11 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
 
     def tearDown(self):
         if os.path.exists(self.db_path):
-            os.remove(self.db_path)
+            try:
+                os.remove(self.db_path)
+            except Exception:
+                pass
+
 
     def test_phase_7_8_prompt_three_states_and_rules(self):
         """Phase 7 & 8: Verify prompt contains explicit State A, State B, State C and conflict resolution."""

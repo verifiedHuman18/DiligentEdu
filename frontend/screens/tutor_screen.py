@@ -232,7 +232,29 @@ def _get_fresh_suggestions(
     else:
         ncert_pool = list(CLASS_9_SUGGESTIONS if class_level == 9 else CLASS_10_SUGGESTIONS)
 
+    ref_suggestions = []
+    if student_id:
+        try:
+            from backend.storage.repository import study_material_repository
+            docs = study_material_repository.get_student_documents(
+                student_id=student_id, class_level=class_level, subject=subject
+            )
+            for doc in docs:
+                m_name = doc.get("material_name") or doc.get("filename") or "Ref Material"
+                chap = doc.get("chapter") or "Reference"
+                ref_suggestions.append(
+                    (f"Ref: {m_name[:18]}", f"Explain key concepts from {m_name} regarding {chap}.")
+                )
+        except Exception:
+            pass
+
+    if ref_suggestions:
+        ref_pick = random.sample(ref_suggestions, min(2, len(ref_suggestions)))
+        ncert_pick = random.sample(ncert_pool, min(4 - len(ref_pick), len(ncert_pool)))
+        return ref_pick + ncert_pick
+
     return random.sample(ncert_pool, min(4, len(ncert_pool)))
+
 
 
 async def render_tutor_screen(
@@ -241,12 +263,17 @@ async def render_tutor_screen(
     selected_class: Optional[str] = None,
     student_id: Optional[str] = None,
 ) -> None:
-    """Renders the conversational NCERT Q&A Tutor screen bound to master profile class and subject."""
+    """Renders the conversational NCERT Q&A Tutor screen bound to master profile class and subject with Voice STT/TTS support."""
     streaming_speed = 0.025
 
     # Top Navigation Back to Home (Phases 1-19)
     render_back_to_home("tutor")
 
+    from backend.ai.speech_normalizer import normalize_voice_transcript
+    from frontend.components.voice_assistant import (
+        render_tts_player_component,
+        render_voice_recorder_component,
+    )
     from frontend.state import get_student_subject
 
     class_level = get_student_class_level()
@@ -267,7 +294,7 @@ async def render_tutor_screen(
     st.write("")
     st.markdown(f"### Ask a Doubt — Class {class_level} · {subject}")
     st.caption(
-        f"Ask conceptual {subject.lower()} questions with verified citations grounded in **NCERT Class {class_level} {subject}** and your uploaded study materials."
+        f"Ask conceptual {subject.lower()} questions via voice or text with verified citations grounded in **NCERT Class {class_level} {subject}** and your uploaded study materials."
     )
 
     # Active Sources Bar (M3 Chip Group)
@@ -319,25 +346,58 @@ async def render_tutor_screen(
 
     st.write("")
 
-    # Chat History
-    for message in st.session_state.get("messages", []):
+    # Chat History with TTS Audio Playback
+    for msg_idx, message in enumerate(st.session_state.get("messages", [])):
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            # Add Speech Audio Player for Assistant Answers
+            if message["role"] == "assistant" and len(message.get("content", "").strip()) > 10:
+                render_tts_player_component(
+                    display_text=message["content"],
+                    message_idx=msg_idx,
+                    button_label="Listen to Answer",
+                    auto_play=False,
+                )
+
+    # Direct In-Textbar Microphone Injector
+    render_voice_recorder_component(
+        component_key=f"voice_rec_{class_level}_{subject}",
+        class_level=class_level,
+        subject=subject,
+    )
 
     # Chat Input
     prompt_input = st.chat_input(
         f"Ask any question from NCERT Class {class_level} {subject} or your notes..."
     )
     prompt = prompt_input or st.session_state.pop("active_prompt", None)
+    input_method = st.session_state.pop("last_input_method", "text")
 
     if prompt:
-        clean_prompt = prompt.strip()
+        is_voice = False
+        raw_prompt = prompt.strip()
+        if "\u200B[voice]" in raw_prompt:
+            is_voice = True
+            raw_prompt = raw_prompt.replace("\u200B[voice]", "").strip()
+            clean_prompt = normalize_voice_transcript(raw_prompt)
+            input_method = "voice"
+        elif input_method == "voice":
+            is_voice = True
+            clean_prompt = normalize_voice_transcript(raw_prompt)
+        else:
+            clean_prompt = raw_prompt
+            input_method = "text"
+
         if len(clean_prompt) >= 2:
             if "messages" not in st.session_state:
                 st.session_state.messages = []
 
-            # Append user message
-            st.session_state.messages.append({"role": "user", "content": clean_prompt})
+            # Append user message (preserves input_method for multi-turn conversational history)
+            st.session_state.messages.append({
+                "role": "user",
+                "content": clean_prompt,
+                "input_method": input_method,
+            })
             with st.chat_message("user"):
                 st.markdown(clean_prompt)
 
@@ -367,6 +427,17 @@ async def render_tutor_screen(
                         await asyncio.sleep(streaming_speed)
 
                     message_placeholder.markdown(full_response)
+                    
+                    # Render TTS Audio Player with auto-play ONLY if question was asked by voice
+                    render_tts_player_component(
+                        display_text=full_response,
+                        message_idx=len(st.session_state.messages),
+                        button_label="Listen to Answer",
+                        auto_play=is_voice,
+                    )
+
+
+
                 except GeminiQuotaExhaustedError:
                     message_placeholder.empty()
                     st.warning(
@@ -404,3 +475,4 @@ async def render_tutor_screen(
 
             # Append assistant message
             st.session_state.messages.append({"role": "assistant", "content": full_response})
+
