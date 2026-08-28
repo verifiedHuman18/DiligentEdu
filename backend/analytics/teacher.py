@@ -51,7 +51,12 @@ def get_all_students_from_db() -> List[Dict[str, Any]]:
     students = db.user.find_many(where={"role": "student"})
     db.disconnect()
     return [
-        {"id": s.id, "email": s.email, "name": s.name or s.id, "class_level": s.class_level}
+        {
+            "id": s.id,
+            "email": s.email,
+            "name": s.name if s.name else (s.email.split("@")[0] if s.email else "Student"),
+            "class_level": s.class_level,
+        }
         for s in students
     ]
 

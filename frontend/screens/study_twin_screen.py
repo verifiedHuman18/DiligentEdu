@@ -1,7 +1,6 @@
 """Study Twin Screen for DiligentEdu (Anonymous Academic Peer Compatibility Hub)."""
 
 import textwrap
-from typing import Optional
 
 import streamlit as st
 
@@ -16,7 +15,7 @@ from frontend.state import (
 
 
 def render_study_twin_screen(student_id: str = "student_001") -> None:
-    """Renders the comprehensive, anonymous Study Twin compatibility screen."""
+    """Renders the comprehensive Study Twin compatibility screen."""
     render_back_to_home("study_twin")
 
     class_level = get_student_class_level()
@@ -84,7 +83,9 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
 
     # 2. State: No Candidates or Low Similarity
     if match.status in ("no_candidates", "no_strong_match"):
-        score_display = f" (Closest match: {match.similarity_score}%)" if match.similarity_score > 0 else ""
+        score_display = (
+            f" (Closest match: {match.similarity_score}%)" if match.similarity_score > 0 else ""
+        )
         no_cand_html = textwrap.dedent(f"""\
 <div style="background: var(--surface-container); border: 1px solid var(--outline-variant); border-radius: 16px; padding: 32px 24px; text-align: center; margin: 12px 0;">
     <div style="font-size: 2.0rem; margin-bottom: 8px;">🔍</div>
@@ -112,7 +113,25 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
 
     # 3. State: Active Study Twin Match Found (Phases 17-18)
     sim_score = match.similarity_score
-    score_color = "var(--md-primary)" if sim_score >= 70 else ("var(--md-amber)" if sim_score >= 50 else "var(--md-cyan)")
+    score_color = (
+        "var(--md-primary)"
+        if sim_score >= 70
+        else ("var(--md-amber)" if sim_score >= 50 else "var(--md-cyan)")
+    )
+    # Fetch Twin's real name from DB
+    from prisma import Prisma
+
+    db = Prisma()
+    if not db.is_connected():
+        db.connect()
+    twin_user = db.user.find_unique(where={"id": match.twin_student_id})
+    twin_name = (
+        twin_user.name
+        if twin_user and twin_user.name
+        else twin_user.email.split("@")[0]
+        if twin_user and twin_user.email
+        else "Peer Student"
+    )
 
     hero_card_html = textwrap.dedent(f"""\
 <div style="background: var(--surface-container); border: 1px solid var(--outline-variant); border-radius: 18px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.18);">
@@ -123,7 +142,7 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
             </div>
             <div>
                 <div style="font-size: 1.25rem; font-weight: 700; color: var(--on-surface); display: flex; align-items: center; gap: 8px;">
-                    Anonymous Study Twin
+                    {twin_name}
                     <span style="background: var(--surface-container-high); color: var(--on-surface-variant); font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--outline-variant);">Class {class_level} · {subject}</span>
                 </div>
                 <div style="font-size: 0.86rem; color: var(--on-surface-variant); margin-top: 2px;">
@@ -199,7 +218,9 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
         st.progress(comps.get("weak_topics_similarity", 0) / 100.0)
 
     with col_m2:
-        st.write(f"**Current Syllabus Focus Overlap:** {comps.get('current_topics_similarity', 0)}%")
+        st.write(
+            f"**Current Syllabus Focus Overlap:** {comps.get('current_topics_similarity', 0)}%"
+        )
         st.progress(comps.get("current_topics_similarity", 0) / 100.0)
 
         st.write(f"**Mastery Vector Closeness:** {comps.get('mastery_profile_similarity', 0)}%")
@@ -247,14 +268,10 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
 
     st.write("")
     st.write("")
-
-    # Privacy Guarantee Badge (Phase 18)
-    privacy_html = textwrap.dedent("""\
-<div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px;">
-    <div style="font-size: 1.4rem;">🛡️</div>
-    <div style="font-size: 0.82rem; color: var(--on-surface-variant); line-height: 1.5;">
-        <strong>Privacy by Design:</strong> Study Twin matching is 100% anonymous. Your name, email, individual marks, private action notes, and uploaded PDF documents are never shared or visible to other students.
-    </div>
-</div>
-""")
-    st.markdown(privacy_html, unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style="font-size: 0.8rem; color: var(--on-surface-variant); text-align: center; margin-top: 30px; line-height: 1.5; padding: 0 20px;">
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )

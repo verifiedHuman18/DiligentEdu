@@ -12,7 +12,7 @@ Matches students based on:
 import logging
 import math
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from backend.analytics.action_plan import generate_action_plan
 from backend.analytics.swat import get_student_swat
@@ -246,19 +246,21 @@ def _generate_deterministic_explanation(
     """Generates deterministic, transparent match explanation without LLM calls (Phase 16)."""
     clauses = []
     if shared_current:
-        topics_str = ", ".join(f"**{t}**" for t in shared_current[:2])
+        topics_str = ", ".join(f"<strong>{t}</strong>" for t in shared_current[:2])
         clauses.append(f"are both currently studying {topics_str}")
 
     if shared_weak:
-        weak_str = ", ".join(f"**{w}**" for w in shared_weak[:2])
+        weak_str = ", ".join(f"<strong>{w}</strong>" for w in shared_weak[:2])
         clauses.append(f"both need practice in {weak_str}")
 
     if shared_actions:
-        act_str = ", ".join(f"**{a}**" for a in shared_actions[:2])
+        act_str = ", ".join(f"<strong>{a}</strong>" for a in shared_actions[:2])
         clauses.append(f"share priority goals for {act_str}")
 
     if not clauses:
-        return f"You both share curriculum focus and study momentum in Class {class_level} {subject}."
+        return (
+            f"You both share curriculum focus and study momentum in Class {class_level} {subject}."
+        )
 
     if len(clauses) == 1:
         return f"You and your Study Twin {clauses[0]} in Class {class_level} {subject}."
