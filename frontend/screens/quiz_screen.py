@@ -7,18 +7,18 @@ from typing import Any, Dict, List
 
 import streamlit as st
 
-from frontend.components.cards import render_citation_box
-from frontend.components.navigation import render_back_to_home
-from frontend.state import get_student_class_level
-from src.academic_rag.analytics.swat import get_available_chapters
-from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
-from src.academic_rag.quiz.generator import create_student_quiz
-from src.academic_rag.quiz.socrates import (
+from backend.analytics.swat import get_available_chapters
+from backend.quiz.evaluator import submit_and_grade_quiz
+from backend.quiz.generator import create_student_quiz
+from backend.quiz.socrates import (
     enrich_quiz_with_socrates,
     generate_socrates_hints,
     generate_socrates_misconception,
     stream_socrates_dialogue,
 )
+from frontend.components.cards import render_citation_box
+from frontend.components.navigation import render_back_to_home
+from frontend.state import get_student_class_level
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +162,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
             f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level})..."
         ):
             try:
-                from src.academic_rag.exceptions import (
+                from backend.exceptions import (
                     GeminiAuthError,
                     GeminiConfigurationError,
                     GeminiQuotaExhaustedError,

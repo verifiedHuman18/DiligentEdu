@@ -2,7 +2,7 @@
 
 import unittest
 
-from src.academic_rag.scholarships.search import ScholarshipSearchEngine, search_scholarships
+from backend.scholarships.search import ScholarshipSearchEngine, search_scholarships
 
 
 class TestScholarshipSearch(unittest.TestCase):

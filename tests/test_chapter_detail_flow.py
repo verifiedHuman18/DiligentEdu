@@ -4,12 +4,12 @@ import unittest
 
 import streamlit as st
 
+from backend.curriculum.service import curriculum_service
 from frontend.screens.chapter_screen import render_chapter_screen
 from frontend.state import (
     init_session_state,
     set_student_class_level,
 )
-from src.academic_rag.curriculum.service import curriculum_service
 
 
 class TestChapterDetailFlow(unittest.TestCase):

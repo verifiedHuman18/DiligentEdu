@@ -2,10 +2,10 @@
 
 import streamlit as st
 
+from backend.curriculum.service import curriculum_service
 from frontend.components.navigation import render_back_to_home
 from frontend.state import navigate_to
 from frontend.styles import inject_custom_css
-from src.academic_rag.curriculum.service import curriculum_service
 
 
 def render_settings_screen() -> None:
@@ -86,7 +86,7 @@ def render_settings_screen() -> None:
     with content_col:
         # Tab 1: AI Configuration (Phases 7, 8, 9, 14, 18, 19, 24, 25)
         if active_tab in ("AI Configuration", "Authentication", "AI & Model"):
-            from src.academic_rag.ai import (
+            from backend.ai import (
                 get_api_status,
                 has_user_fallback_api_key,
                 remove_user_fallback_api_key,

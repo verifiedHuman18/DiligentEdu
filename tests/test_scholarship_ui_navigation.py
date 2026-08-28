@@ -2,16 +2,16 @@
 
 import unittest
 
-from frontend.components.scholarship_official_info import (
-    get_canonical_portal_info,
-)
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     EligibilityStatus,
     normalize_student_profile,
 )
-from src.academic_rag.scholarships.service import (
+from backend.scholarships.service import (
     ask_question,
     match_scholarships,
+)
+from frontend.components.scholarship_official_info import (
+    get_canonical_portal_info,
 )
 
 

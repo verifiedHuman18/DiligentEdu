@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import streamlit as st
 
-from src.academic_rag.ai.api_config import (
+from backend.ai.api_config import (
     get_active_api_mode,
     get_api_status,
     get_primary_api_key,
@@ -104,7 +104,7 @@ class TestAIApiResolution(unittest.TestCase):
             self.assertTrue(status["fallback_configured"])
             self.assertEqual(status["active_mode"], "primary")
 
-    @patch("src.academic_rag.ai.api_config.OpenAI")
+    @patch("backend.ai.api_config.OpenAI")
     def test_test_gemini_api_key_success(self, mock_openai):
         """Phase 14: Save & Test makes 1 lightweight call and returns success."""
         mock_client = MagicMock()
@@ -120,7 +120,7 @@ class TestAIApiResolution(unittest.TestCase):
         kwargs = mock_client.chat.completions.create.call_args[1]
         self.assertEqual(kwargs["max_tokens"], 1)
 
-    @patch("src.academic_rag.ai.api_config.OpenAI")
+    @patch("backend.ai.api_config.OpenAI")
     def test_test_gemini_api_key_quota_error(self, mock_openai):
         """Phase 14 & 20: Save & Test handles quota errors with actionable message."""
         mock_client = MagicMock()

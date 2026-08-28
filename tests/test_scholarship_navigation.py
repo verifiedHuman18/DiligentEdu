@@ -2,11 +2,11 @@
 
 import unittest
 
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     get_scholarship_primary_url,
     normalize_student_profile,
 )
-from src.academic_rag.scholarships.service import (
+from backend.scholarships.service import (
     get_available_scholarships,
     match_scholarships,
 )

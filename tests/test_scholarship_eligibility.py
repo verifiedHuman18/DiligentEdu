@@ -2,10 +2,10 @@
 
 import unittest
 
-from src.academic_rag.scholarships.eligibility import (
+from backend.scholarships.eligibility import (
     evaluate_scholarship,
 )
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     EligibilityCriteria,
     EligibilityStatus,
     FinancialAssistance,
@@ -14,7 +14,7 @@ from src.academic_rag.scholarships.models import (
     StructuredScholarship,
     StudentScholarshipProfile,
 )
-from src.academic_rag.scholarships.service import (
+from backend.scholarships.service import (
     get_available_scholarships,
     get_scholarship,
     get_scholarship_detail_view,

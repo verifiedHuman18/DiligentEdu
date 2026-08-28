@@ -18,18 +18,29 @@ def render_navbar(selected_class: str = "Class 10", student_id: str = "student_0
 
     # Profile Badge based on Role
     if role == "teacher":
-        teacher_id = st.session_state.get("teacher_id", "teacher_001")
+        teacher_name = st.session_state.get(
+            "user_name", st.session_state.get("teacher_id", "Teacher")
+        )
         badge_html = (
             f'<span style="background: var(--surface-container-high); color: var(--on-surface); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--outline-variant); display: inline-flex; align-items: center; gap: 4px;">'
             f'<span class="material-symbols-outlined" style="font-size: 0.95rem; color: var(--md-tertiary);">supervisor_account</span>'
-            f"{teacher_id} · Educator"
+            f"{teacher_name} · Educator"
+            f"</span>"
+        )
+    elif role == "admin":
+        admin_name = st.session_state.get("user_name", "Admin")
+        badge_html = (
+            f'<span style="background: var(--surface-container-high); color: var(--on-surface); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--outline-variant); display: inline-flex; align-items: center; gap: 4px;">'
+            f'<span class="material-symbols-outlined" style="font-size: 0.95rem; color: var(--md-error);">admin_panel_settings</span>'
+            f"{admin_name} · Class {class_level} Admin"
             f"</span>"
         )
     else:
+        student_name = st.session_state.get("user_name", student_id)
         badge_html = (
             f'<span style="background: var(--surface-container-high); color: var(--on-surface); font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--outline-variant); display: inline-flex; align-items: center; gap: 4px;">'
             f'<span class="material-symbols-outlined" style="font-size: 0.95rem; color: var(--md-primary);">person</span>'
-            f"{student_id} · Class {class_level}"
+            f"{student_name} · Class {class_level}"
             f"</span>"
         )
 
@@ -58,7 +69,9 @@ def render_navbar(selected_class: str = "Class 10", student_id: str = "student_0
             st.markdown(profile_bar_html, unsafe_allow_html=True)
         with r_c2:
             is_settings = current_screen == "settings"
-            default_home = "teacher" if role == "teacher" else "home"
+            default_home = (
+                "admin_home" if role == "admin" else ("teacher" if role == "teacher" else "home")
+            )
             if st.button(
                 "",
                 icon=":material/settings:",

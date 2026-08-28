@@ -5,12 +5,12 @@ import unittest
 
 import streamlit as st
 
+from backend.curriculum.service import get_chapter_pdf
 from frontend.screens.chapter_screen import render_chapter_screen
 from frontend.state import (
     init_session_state,
     set_student_class_level,
 )
-from src.academic_rag.curriculum.service import get_chapter_pdf
 
 
 class TestStaticPDFServing(unittest.TestCase):

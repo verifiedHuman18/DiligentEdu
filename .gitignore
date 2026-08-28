@@ -214,6 +214,7 @@ Thumbs.db
 .env.test
 .env.production
 *.env
+firebase-adminsdk.json
 
 # Log files
 *.log

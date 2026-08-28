@@ -2,8 +2,8 @@
 
 import unittest
 
-from src.academic_rag.scholarships.models import StudentScholarshipProfile
-from src.academic_rag.scholarships.qa import ScholarshipQAEngine, ask_scholarship_question
+from backend.scholarships.models import StudentScholarshipProfile
+from backend.scholarships.qa import ScholarshipQAEngine, ask_scholarship_question
 
 
 class TestScholarshipQA(unittest.TestCase):

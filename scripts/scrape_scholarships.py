@@ -10,8 +10,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.academic_rag.scholarships.scraper import NSPCatalogueScraper
-from src.academic_rag.scholarships.storage import ScholarshipStorage
+from backend.scholarships.scraper import NSPCatalogueScraper
+from backend.scholarships.storage import ScholarshipStorage
 
 logging.basicConfig(
     level=logging.INFO,

@@ -2,7 +2,7 @@
 
 import unittest
 
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     compute_profile_signature,
     normalize_student_profile,
 )

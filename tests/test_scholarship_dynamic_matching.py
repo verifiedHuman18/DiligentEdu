@@ -2,11 +2,11 @@
 
 import unittest
 
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     EligibilityStatus,
     normalize_student_profile,
 )
-from src.academic_rag.scholarships.service import match_scholarships
+from backend.scholarships.service import match_scholarships
 
 
 class TestScholarshipDynamicMatching(unittest.TestCase):

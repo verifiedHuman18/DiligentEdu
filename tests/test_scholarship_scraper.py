@@ -4,9 +4,9 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.academic_rag.scholarships.models import CatalogueItem, RawScholarshipData
-from src.academic_rag.scholarships.scraper import NSPCatalogueScraper
-from src.academic_rag.scholarships.storage import ScholarshipStorage
+from backend.scholarships.models import CatalogueItem, RawScholarshipData
+from backend.scholarships.scraper import NSPCatalogueScraper
+from backend.scholarships.storage import ScholarshipStorage
 
 
 class TestScholarshipScraper(unittest.TestCase):

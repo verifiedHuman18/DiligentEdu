@@ -2,8 +2,8 @@
 
 import unittest
 
-from src.academic_rag.scholarships.models import RawScholarshipData, StructuredScholarship
-from src.academic_rag.scholarships.parser import (
+from backend.scholarships.models import RawScholarshipData, StructuredScholarship
+from backend.scholarships.parser import (
     extract_clean_text,
     parse_categories,
     parse_classes,

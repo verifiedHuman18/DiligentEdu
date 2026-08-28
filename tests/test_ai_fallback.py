@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import streamlit as st
 
-from src.academic_rag.ai.client_factory import (
+from backend.ai.client_factory import (
     classify_gemini_error,
     execute_chat_completion,
     stream_chat_completion,
 )
-from src.academic_rag.exceptions import (
+from backend.exceptions import (
     GeminiAPIError,
     GeminiAuthError,
     GeminiQuotaExhaustedError,
@@ -72,7 +72,7 @@ class TestAIFallback(unittest.TestCase):
         err_400 = Exception("Error code: 400 - INVALID_ARGUMENT: Schema validation error")
         self.assertEqual(classify_gemini_error(err_400), "INVALID_REQUEST")
 
-    @patch("src.academic_rag.ai.client_factory.OpenAI")
+    @patch("backend.ai.client_factory.OpenAI")
     def test_normal_operation_uses_primary_key(self, mock_openai_cls):
         """Test A (Phase 22): Normal operation with primary key available."""
         os.environ["GEMINI_API_KEY"] = "primary-app-key"
@@ -91,7 +91,7 @@ class TestAIFallback(unittest.TestCase):
             api_key="primary-app-key",
         )
 
-    @patch("src.academic_rag.ai.client_factory.OpenAI")
+    @patch("backend.ai.client_factory.OpenAI")
     def test_fallback_on_primary_429_quota_exhausted(self, mock_openai_cls):
         """Test B (Phase 22): When primary hits 429 quota exhaustion, fails over to fallback key."""
         os.environ["GEMINI_API_KEY"] = "primary-app-key"
@@ -122,7 +122,7 @@ class TestAIFallback(unittest.TestCase):
         self.assertEqual(result.choices[0].message.content, "Fallback Success")
         self.assertEqual(mock_openai_cls.call_count, 2)
 
-    @patch("src.academic_rag.ai.client_factory.OpenAI")
+    @patch("backend.ai.client_factory.OpenAI")
     def test_no_fallback_raises_quota_exhausted_error(self, mock_openai_cls):
         """Test C (Phase 22): Primary fails with 429 and no user key is configured -> raises GeminiQuotaExhaustedError."""
         os.environ["GEMINI_API_KEY"] = "primary-app-key"
@@ -139,7 +139,7 @@ class TestAIFallback(unittest.TestCase):
 
         self.assertIn("usage limit", str(ctx.exception).lower())
 
-    @patch("src.academic_rag.ai.client_factory.OpenAI")
+    @patch("backend.ai.client_factory.OpenAI")
     def test_invalid_fallback_raises_auth_error(self, mock_openai_cls):
         """Test D (Phase 20 & 22): Primary fails with 429, fallback is invalid 401 -> raises GeminiAuthError."""
         os.environ["GEMINI_API_KEY"] = "primary-app-key"
@@ -164,7 +164,7 @@ class TestAIFallback(unittest.TestCase):
         with self.assertRaises(GeminiAuthError):
             execute_chat_completion(messages)
 
-    @patch("src.academic_rag.ai.client_factory.OpenAI")
+    @patch("backend.ai.client_factory.OpenAI")
     def test_programming_error_does_not_blindly_fallback(self, mock_openai_cls):
         """Phase 6: A 400 Invalid Argument error must NOT trigger fallback or mask code bugs."""
         os.environ["GEMINI_API_KEY"] = "primary-app-key"
@@ -183,7 +183,7 @@ class TestAIFallback(unittest.TestCase):
         # Mock OpenAI was only called once (no fallback attempt)
         self.assertEqual(mock_openai_cls.call_count, 1)
 
-    @patch("src.academic_rag.ai.client_factory.AsyncOpenAI")
+    @patch("backend.ai.client_factory.AsyncOpenAI")
     def test_streaming_fallback_on_primary_429(self, mock_async_openai_cls):
         """Phase 13 & 22: Async streaming auto-fallback when primary connection fails."""
         os.environ["GEMINI_API_KEY"] = "primary-app-key"

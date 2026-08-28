@@ -5,15 +5,15 @@ import tempfile
 import unittest
 
 import backend
-from src.academic_rag.analytics.swat import get_available_chapters, get_student_swat
-from src.academic_rag.analytics.teacher import (
+from backend.analytics.swat import get_available_chapters, get_student_swat
+from backend.analytics.teacher import (
     get_student_status,
     get_teacher_chapter_statistics,
     get_teacher_student_overview,
     get_teacher_student_profile,
 )
-from src.academic_rag.quiz.evaluator import submit_and_grade_quiz
-from src.academic_rag.storage.repository import (
+from backend.quiz.evaluator import submit_and_grade_quiz
+from backend.storage.repository import (
     QuizRepository,
     get_student_class_history,
 )

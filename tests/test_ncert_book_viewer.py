@@ -6,13 +6,13 @@ import unittest
 import streamlit as st
 
 import backend
+from backend.curriculum.service import get_chapter_pdf
+from backend.exceptions import ChapterNotFoundError
 from frontend.screens.chapter_screen import render_chapter_screen
 from frontend.state import (
     init_session_state,
     set_student_class_level,
 )
-from src.academic_rag.curriculum.service import get_chapter_pdf
-from src.academic_rag.exceptions import ChapterNotFoundError
 
 
 class TestNCERTBookViewer(unittest.TestCase):

@@ -12,17 +12,17 @@ from typing import Any
 
 import streamlit as st
 
-from frontend.components.navigation import render_back_to_home
-from frontend.components.scholarship_official_info import render_official_scholarship_info
-from frontend.state import get_student_class_level
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     EligibilityStatus,
     normalize_student_profile,
 )
-from src.academic_rag.scholarships.service import (
+from backend.scholarships.service import (
     ask_question,
     match_scholarships,
 )
+from frontend.components.navigation import render_back_to_home
+from frontend.components.scholarship_official_info import render_official_scholarship_info
+from frontend.state import get_student_class_level
 
 
 def render_scholarships_screen() -> None:

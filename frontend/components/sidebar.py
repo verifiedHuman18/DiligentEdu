@@ -4,8 +4,8 @@ from typing import Tuple
 
 import streamlit as st
 
+from backend.curriculum.service import curriculum_service
 from frontend.components.theme_switcher import render_theme_switcher
-from src.academic_rag.curriculum.service import curriculum_service
 
 
 def render_sidebar() -> Tuple[str, str, str, str]:
@@ -26,7 +26,7 @@ def render_sidebar() -> Tuple[str, str, str, str]:
         with tab_config:
             # 1. AI Service Status
             st.markdown("#### AI Service")
-            from src.academic_rag.ai import get_api_status
+            from backend.ai import get_api_status
 
             api_status = get_api_status()
             if api_status["primary_configured"]:

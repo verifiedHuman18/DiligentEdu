@@ -5,16 +5,18 @@ from typing import Optional
 
 import streamlit as st
 
-from frontend.components.cards import render_metric_card, render_swat_columns
-from frontend.components.navigation import render_back_to_home
-from frontend.state import get_user_role
-from src.academic_rag.analytics.action_plan import (
+from backend.analytics.action_plan import (
     reset_teacher_action_plan,
     save_teacher_action_plan,
 )
-from src.academic_rag.analytics.teacher import get_teacher_student_profile
-from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.storage.repository import quiz_repository
+from backend.analytics.teacher import (
+    get_all_students_from_db,
+    get_teacher_student_profile,
+)
+from backend.curriculum.service import curriculum_service
+from frontend.components.cards import render_metric_card, render_swat_columns
+from frontend.components.navigation import render_back_to_home
+from frontend.state import get_user_role
 
 
 def render_teacher_screen(
@@ -25,11 +27,26 @@ def render_teacher_screen(
     if get_user_role() == "student":
         render_back_to_home("teacher")
 
-    # Fetch available student IDs from quiz database
-    all_students = quiz_repository.get_all_student_ids()
+    # Fetch available student IDs from DB
+    all_students_data = get_all_students_from_db()
+    if not all_students_data:
+        all_students_data = [
+            {
+                "id": student_id or st.session_state.get("student_id", "student_001"),
+                "name": "Test Student",
+                "class_level": 10,
+            }
+        ]
+
+    student_map = {
+        s["id"]: f"{s['name']} (Class {s['class_level'] or 10})" for s in all_students_data
+    }
+    student_class_map = {s["id"]: s["class_level"] or 10 for s in all_students_data}
+    student_ids = list(student_map.keys())
+
     default_student = student_id or st.session_state.get("student_id", "student_001")
-    if default_student not in all_students:
-        all_students = [default_student] + [s for s in all_students if s != default_student]
+    if default_student not in student_ids:
+        default_student = student_ids[0]
 
     t_c1, t_c2, t_c3 = st.columns([2.2, 1.4, 1.4])
     with t_c1:
@@ -40,22 +57,32 @@ def render_teacher_screen(
     with t_c2:
         curr_inspect_student = st.selectbox(
             "Select Student to Inspect",
-            options=all_students,
-            index=0,
+            options=student_ids,
+            format_func=lambda x: student_map.get(x, x),
+            index=student_ids.index(default_student) if default_student in student_ids else 0,
             key="teacher_inspect_student_select",
             help="Select a student from database records to inspect diagnostic telemetry.",
         )
-    with t_c3:
-        teacher_class = st.radio(
-            "Class to Inspect",
-            options=["Class 10", "Class 9"],
-            horizontal=True,
-            key="teacher_screen_class_toggle",
-            help="Inspect student performance strictly for Class 10 or Class 9.",
-        )
 
     target_student_id = curr_inspect_student or default_student
-    cls_int = 10 if teacher_class == "Class 10" else 9
+    student_current_class = student_class_map.get(target_student_id, 10)
+    target_student_name = student_map.get(target_student_id, target_student_id).split(" (Class")[0]
+
+    with t_c3:
+        view_options = [f"Class {student_current_class} (Current)"]
+        if student_current_class == 10:
+            view_options.append("Class 9 (Historical)")
+
+        selected_view = st.radio(
+            "View Academic Year",
+            options=view_options,
+            horizontal=True,
+            key="teacher_screen_historical_toggle",
+            help="Toggle between current and historical academic years.",
+        )
+
+    cls_int = 10 if "Class 10" in selected_view else 9
+    teacher_class = f"Class {cls_int}"
 
     prof = get_teacher_student_profile(target_student_id, class_level=cls_int)
     has_history = prof.get("has_data", False)
@@ -71,7 +98,7 @@ def render_teacher_screen(
 
     if not has_history:
         st.info(
-            f"No quiz data found for student `{target_student_id}` in {teacher_class}. "
+            f"No quiz data found for student `{target_student_name}` in {teacher_class}. "
             "You can assign a customized study action plan below to guide their onboarding."
         )
     else:
@@ -180,9 +207,6 @@ def render_teacher_screen(
             dir_str = st_status.get("trend", {}).get("direction", "stable").capitalize()
             render_metric_card("Trend", dir_str)
 
-    st.write("")
-    st.write("")
-
     # SECTION 2: Recommended Action Plan & Teacher Customization
     st.markdown(
         """
@@ -211,7 +235,7 @@ def render_teacher_screen(
             <div style="background: var(--surface-container); border-left: 4px solid var(--md-primary); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="background: var(--md-primary); color: var(--on-primary); font-weight: 700; font-size: 0.76rem; padding: 2px 8px; border-radius: 4px;">CUSTOM TEACHER PLAN ACTIVE</span>
-                    <span style="font-size: 0.82rem; color: var(--on-surface-variant);">Assigned specifically for {target_student_id} ({teacher_class})</span>
+                    <span style="font-size: 0.82rem; color: var(--on-surface-variant);">Assigned specifically for {target_student_name} ({teacher_class})</span>
                 </div>
                 {notes_html}
             </div>
@@ -272,7 +296,7 @@ def render_teacher_screen(
         icon=":material/tune:",
         expanded=is_customized,
     ):
-        st.markdown(f"##### Edit Study Plan for `{target_student_id}` ({teacher_class})")
+        st.markdown(f"##### Edit Study Plan for `{target_student_name}` ({teacher_class})")
         st.caption(
             "Select specific NCERT chapters, set difficulty levels, and provide tailored guidance. "
             "These priorities will immediately take top precedence in the student's Home Screen."
@@ -381,7 +405,7 @@ def render_teacher_screen(
                     teacher_notes=global_teacher_note,
                 )
                 st.success(
-                    f"Custom action plan successfully assigned to `{target_student_id}` for {teacher_class}!"
+                    f"Custom action plan successfully assigned to `{target_student_name}` for {teacher_class}!"
                 )
                 st.rerun()
 
@@ -395,7 +419,7 @@ def render_teacher_screen(
                 help="Clears teacher customizations and restores algorithmic SWAT recommendations based on quiz scores.",
             ):
                 reset_teacher_action_plan(student_id=target_student_id, class_level=cls_int)
-                st.info(f"Restored automated SWAT action plan for `{target_student_id}`.")
+                st.info(f"Restored automated SWAT action plan for `{target_student_name}`.")
                 st.rerun()
 
     st.write("")

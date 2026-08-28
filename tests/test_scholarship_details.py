@@ -2,8 +2,8 @@
 
 import unittest
 
-from src.academic_rag.scholarships.models import StudentScholarshipProfile
-from src.academic_rag.scholarships.service import (
+from backend.scholarships.models import StudentScholarshipProfile
+from backend.scholarships.service import (
     ask_question,
     get_scholarship_detail_view,
 )

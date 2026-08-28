@@ -4,7 +4,7 @@ import os
 import tempfile
 import unittest
 
-from src.academic_rag.storage.repository import QuizRepository
+from backend.storage.repository import QuizRepository
 
 
 class TestQuizRepository(unittest.TestCase):

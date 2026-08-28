@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import streamlit as st
 
-from src.academic_rag.config import config
+from backend.config import config
 
 VALID_CLASS_LEVELS = (9, 10)
 
@@ -123,6 +123,7 @@ def navigate_to(screen_name: str) -> None:
         if screen_name == "tutor":
             st.session_state.tutor_needs_refresh = True
     st.session_state.current_screen = screen_name
+    st.query_params["screen"] = screen_name
 
 
 def get_user_role() -> Any:
@@ -130,17 +131,26 @@ def get_user_role() -> Any:
     return st.session_state.get("user_role")
 
 
-def set_user_role(role: Any) -> None:
-    """Sets the active user role ('student' or 'teacher') and routes to the role's default landing screen."""
-    if role not in ("student", "teacher", None):
-        raise ValueError(f"Invalid role {role!r}. Allowed roles are 'student', 'teacher', or None.")
+def set_user_role(role: Any, restore_screen: bool = False) -> None:
+    """Sets the active user role ('student', 'teacher', or 'admin') and routes to the role's default landing screen."""
+    if role not in ("student", "teacher", "admin", None):
+        raise ValueError(
+            f"Invalid role {role!r}. Allowed roles are 'student', 'teacher', 'admin', or None."
+        )
     st.session_state.user_role = role
-    if role == "student":
-        st.session_state.current_screen = "home"
-    elif role == "teacher":
-        st.session_state.current_screen = "teacher"
-    else:
-        st.session_state.current_screen = "login"
+
+    if not restore_screen:
+        if role == "student":
+            st.session_state.current_screen = "home"
+            st.query_params["screen"] = "home"
+        elif role == "teacher":
+            st.session_state.current_screen = "teacher"
+            st.query_params["screen"] = "teacher"
+        elif role == "admin":
+            st.session_state.current_screen = "admin_home"
+            st.query_params["screen"] = "admin_home"
+        else:
+            st.session_state.current_screen = "login"
 
 
 def logout() -> None:
@@ -148,3 +158,7 @@ def logout() -> None:
     st.session_state.user_role = None
     st.session_state.login_step = "select_role"
     st.session_state.current_screen = "login"
+    if "uid" in st.query_params:
+        del st.query_params["uid"]
+    if "screen" in st.query_params:
+        del st.query_params["screen"]

@@ -76,12 +76,10 @@ class TestBackendFacade(unittest.TestCase):
     def test_quiz_generator_signature_compatibility(self):
         from unittest.mock import patch
 
-        from src.academic_rag.quiz.generator import create_student_quiz
+        from backend.quiz.generator import create_student_quiz
 
         mock_return = {"quiz_id": "test_123", "questions": []}
-        with patch(
-            "src.academic_rag.quiz.generator.generate_quiz", return_value=mock_return
-        ) as mock_gen:
+        with patch("backend.quiz.generator.generate_quiz", return_value=mock_return) as mock_gen:
             # Test create_student_quiz with model_name
             res1 = create_student_quiz(
                 student_id="test_student",

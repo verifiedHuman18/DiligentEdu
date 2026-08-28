@@ -35,6 +35,7 @@ from frontend import (
     render_teacher_screen,
     render_tutor_screen,
 )
+from frontend.screens.admin_screen import render_admin_screen
 
 
 def setup_logging():
@@ -82,6 +83,42 @@ async def main():
 
     user_role = get_user_role()
 
+    # Restore session from URL query parameters if available
+    if not user_role and "uid" in st.query_params:
+        uid = st.query_params["uid"]
+        from frontend.screens.login_screen import get_user_from_db
+
+        user = get_user_from_db(uid)
+        if user:
+            from frontend.state import set_student_class_level, set_user_role
+
+            st.session_state.user_name = user.name or uid
+
+            if user.role == "teacher":
+                st.session_state.teacher_id = user.id
+                st.session_state.teacher_subject = user.subject
+                set_user_role("teacher", restore_screen=True)
+            elif user.role == "admin":
+                cls_int = user.class_level if user.class_level else 10
+                set_student_class_level(cls_int)
+                set_user_role("admin", restore_screen=True)
+            else:
+                st.session_state.student_id = user.id
+                cls_int = user.class_level if user.class_level else 10
+                set_student_class_level(cls_int)
+                set_user_role("student", restore_screen=True)
+
+            if "screen" in st.query_params:
+                st.session_state.current_screen = st.query_params["screen"]
+            else:
+                st.session_state.current_screen = (
+                    "admin_home"
+                    if user.role == "admin"
+                    else ("teacher" if user.role == "teacher" else "home")
+                )
+
+            user_role = get_user_role()
+
     # If no role is selected or current screen is login, render the Login / Role Selection Screen
     if not user_role or st.session_state.get("current_screen") == "login":
         render_login_screen()
@@ -104,6 +141,11 @@ async def main():
             render_settings_screen()
         else:
             render_teacher_screen(student_id, selected_class=selected_class)
+    elif user_role == "admin":
+        if active_screen == "settings":
+            render_settings_screen()
+        else:
+            render_admin_screen(selected_class=selected_class)
     else:
         # Student Persona Routing
         if active_screen == "home":

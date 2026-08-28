@@ -11,11 +11,12 @@ def render_header(selected_class: str = "Class 10", student_id: str = "student_0
 
     cls_int = get_student_class_level()
     class_label = f"Class {cls_int}"
+    student_name = st.session_state.get("user_name", student_id)
 
     html = textwrap.dedent(f"""\
 <div class="hero-header-container">
 <div class="hero-title">NCERT Academic Science Assistant</div>
-<div class="hero-subtitle">Student: <b>{student_id}</b> | Class: <b>{class_label}</b></div>
+<div class="hero-subtitle">Student: <b>{student_name}</b> | Class: <b>{class_label}</b></div>
 </div>\
 """)
     st.markdown(html, unsafe_allow_html=True)

@@ -7,12 +7,12 @@ import unittest
 import streamlit as st
 
 import backend
+from backend.storage.repository import QuizRepository
 from frontend.state import (
     get_student_class_level,
     init_session_state,
     set_student_class_level,
 )
-from src.academic_rag.storage.repository import QuizRepository
 
 
 class TestFrontendApiCalls(unittest.TestCase):

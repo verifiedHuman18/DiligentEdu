@@ -4,8 +4,8 @@ import os
 import tempfile
 import unittest
 
-from src.academic_rag.analytics.teacher import get_teacher_student_profile
-from src.academic_rag.storage.repository import QuizRepository
+from backend.analytics.teacher import get_teacher_student_profile
+from backend.storage.repository import QuizRepository
 
 
 class TestTeacherActionPlanAndClassScoping(unittest.TestCase):

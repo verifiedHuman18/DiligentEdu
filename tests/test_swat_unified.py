@@ -4,8 +4,8 @@ import os
 import tempfile
 import unittest
 
-from src.academic_rag.analytics.swat import get_student_swat
-from src.academic_rag.storage.repository import QuizRepository
+from backend.analytics.swat import get_student_swat
+from backend.storage.repository import QuizRepository
 
 
 class TestUnifiedSwatOutput(unittest.TestCase):

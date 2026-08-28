@@ -4,14 +4,14 @@ import os
 import tempfile
 import unittest
 
-from src.academic_rag.analytics.teacher import (
+from backend.analytics.teacher import (
     get_student_status,
     get_teacher_chapter_statistics,
     get_teacher_quiz_history,
     get_teacher_student_overview,
     get_teacher_student_profile,
 )
-from src.academic_rag.storage.repository import QuizRepository
+from backend.storage.repository import QuizRepository
 
 
 class TestTeacherEngine(unittest.TestCase):

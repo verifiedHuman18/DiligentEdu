@@ -5,12 +5,12 @@ import os
 
 import streamlit as st
 
+from backend.analytics.swat import get_student_swat
+from backend.curriculum.service import get_chapter_pdf
+from backend.storage.repository import quiz_repository
 from frontend.components.cards import render_metric_card
 from frontend.components.navigation import render_back_to_home
 from frontend.state import get_student_class_level, navigate_to
-from src.academic_rag.analytics.swat import get_student_swat
-from src.academic_rag.curriculum.service import get_chapter_pdf
-from src.academic_rag.storage.repository import quiz_repository
 
 logger = logging.getLogger(__name__)
 

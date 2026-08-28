@@ -4,13 +4,13 @@ import unittest
 
 import streamlit as st
 
+from backend.analytics.swat import get_available_chapters
 from frontend.state import (
     get_student_class_level,
     get_student_profile,
     init_session_state,
     set_student_class_level,
 )
-from src.academic_rag.analytics.swat import get_available_chapters
 
 
 class TestFrontendClassState(unittest.TestCase):

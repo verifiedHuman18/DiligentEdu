@@ -2,7 +2,7 @@
 
 import unittest
 
-from src.academic_rag.quiz.adaptive import get_next_quiz_config
+from backend.quiz.adaptive import get_next_quiz_config
 
 
 class TestAdaptiveEngine(unittest.TestCase):

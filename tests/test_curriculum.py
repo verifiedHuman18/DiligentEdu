@@ -2,8 +2,8 @@
 
 import unittest
 
-from src.academic_rag.curriculum.service import curriculum_service
-from src.academic_rag.exceptions import ChapterNotFoundError, CurriculumError
+from backend.curriculum.service import curriculum_service
+from backend.exceptions import ChapterNotFoundError, CurriculumError
 
 
 class TestCurriculumService(unittest.TestCase):

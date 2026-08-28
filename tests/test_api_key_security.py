@@ -6,14 +6,14 @@ from unittest.mock import MagicMock, patch
 
 import streamlit as st
 
-from frontend.state import init_session_state
-from src.academic_rag.ai.api_config import (
+from backend.ai.api_config import (
     get_api_status,
     get_user_fallback_api_key,
     remove_user_fallback_api_key,
     set_user_fallback_api_key,
 )
-from src.academic_rag.ai.client_factory import execute_chat_completion
+from backend.ai.client_factory import execute_chat_completion
+from frontend.state import init_session_state
 
 
 class TestApiKeySecurity(unittest.TestCase):
@@ -59,7 +59,7 @@ class TestApiKeySecurity(unittest.TestCase):
         self.assertTrue(status["primary_configured"])
         self.assertTrue(status["fallback_configured"])
 
-    @patch("src.academic_rag.ai.client_factory.OpenAI")
+    @patch("backend.ai.client_factory.OpenAI")
     def test_logs_never_contain_raw_api_keys(self, mock_openai_cls):
         """Phase 11 & 21: Log statements must only state 'Using primary...' or 'Using session fallback...'."""
         mock_client = MagicMock()
@@ -70,7 +70,7 @@ class TestApiKeySecurity(unittest.TestCase):
 
         set_user_fallback_api_key(self.secret_fallback_key)
 
-        with self.assertLogs("src.academic_rag.ai", level="INFO") as log_cm:
+        with self.assertLogs("backend.ai", level="INFO") as log_cm:
             execute_chat_completion([{"role": "user", "content": "test"}])
 
             log_output = "\n".join(log_cm.output)

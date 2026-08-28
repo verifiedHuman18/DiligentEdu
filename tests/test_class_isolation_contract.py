@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 import backend
-from src.academic_rag.storage.repository import QuizRepository
+from backend.storage.repository import QuizRepository
 
 
 class TestClassIsolationContracts(unittest.TestCase):

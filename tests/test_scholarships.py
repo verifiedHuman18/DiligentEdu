@@ -4,25 +4,25 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.academic_rag.scholarships.eligibility import (
+from backend.scholarships.eligibility import (
     evaluate_rule,
     get_dynamic_questionnaire,
     match_scholarships,
 )
-from src.academic_rag.scholarships.models import (
+from backend.scholarships.models import (
     EligibilityRule,
     EligibilityStatus,
     RawScholarshipData,
     StudentScholarshipProfile,
 )
-from src.academic_rag.scholarships.parser import (
+from backend.scholarships.parser import (
     extract_clean_text,
     parse_categories,
     parse_classes,
     parse_income_ceiling,
     raw_to_structured,
 )
-from src.academic_rag.scholarships.storage import ScholarshipStorage
+from backend.scholarships.storage import ScholarshipStorage
 
 
 class TestScholarshipModule(unittest.TestCase):

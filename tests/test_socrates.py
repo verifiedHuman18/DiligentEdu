@@ -4,8 +4,8 @@ import asyncio
 import unittest
 from unittest.mock import MagicMock, patch
 
-from src.academic_rag.config import AppConfig
-from src.academic_rag.quiz.socrates import (
+from backend.config import AppConfig
+from backend.quiz.socrates import (
     _generate_fallback_hints,
     enrich_quiz_with_socrates,
     generate_socrates_dialogue_sync,
@@ -72,7 +72,7 @@ class TestSocratesHints(unittest.TestCase):
         self.assertIn("socratic_deduction", hints)
 
     @patch.object(AppConfig, "get_google_api_key", return_value="dummy-key")
-    @patch("src.academic_rag.quiz.socrates.OpenAI")
+    @patch("backend.quiz.socrates.OpenAI")
     def test_generate_socrates_hints_with_llm(self, mock_openai_cls, mock_api_key):
         """Verify LLM-based hint generation parses valid JSON."""
         mock_client = MagicMock()
@@ -127,7 +127,7 @@ class TestSocratesMisconception(unittest.TestCase):
         self.assertIn("Electricity", reflection)
 
     @patch.object(AppConfig, "get_google_api_key", return_value="dummy-key")
-    @patch("src.academic_rag.quiz.socrates.OpenAI")
+    @patch("backend.quiz.socrates.OpenAI")
     def test_misconception_llm(self, mock_openai_cls, mock_api_key):
         """Verify LLM-based misconception feedback."""
         mock_client = MagicMock()
@@ -197,11 +197,11 @@ class TestSocratesDialogue(unittest.TestCase):
         self.assertIn("Google Gemini API key", result)
 
     @patch(
-        "src.academic_rag.quiz.socrates.retrieve_ncert_context",
+        "backend.quiz.socrates.retrieve_ncert_context",
         return_value="[PAGE: 10] Refraction context.",
     )
     @patch.object(AppConfig, "get_google_api_key", return_value="dummy-key")
-    @patch("src.academic_rag.quiz.socrates.OpenAI")
+    @patch("backend.quiz.socrates.OpenAI")
     def test_sync_dialogue_with_llm(self, mock_openai_cls, mock_api_key, mock_retriever):
         """Verify sync dialogue calls LLM with Socratic prompt."""
         mock_client = MagicMock()

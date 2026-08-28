@@ -23,8 +23,8 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 load_dotenv()
-from src.academic_rag.rag.engine import stream_ncert_rag_response
-from src.academic_rag.rag.retriever import retrieve_ncert_context
+from backend.rag.engine import stream_ncert_rag_response
+from backend.rag.retriever import retrieve_ncert_context
 
 
 async def test_direct_rag():

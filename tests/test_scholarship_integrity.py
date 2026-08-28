@@ -2,9 +2,9 @@
 
 import unittest
 
-from src.academic_rag.scholarships.eligibility import match_scholarships
-from src.academic_rag.scholarships.models import EligibilityStatus, StudentScholarshipProfile
-from src.academic_rag.scholarships.service import (
+from backend.scholarships.eligibility import match_scholarships
+from backend.scholarships.models import EligibilityStatus, StudentScholarshipProfile
+from backend.scholarships.service import (
     get_available_scholarships,
     get_scholarship_detail_view,
 )
@@ -80,7 +80,7 @@ class TestScholarshipSourceIntegrity(unittest.TestCase):
 
     def test_profile_iterable_and_dict_conversion(self):
         """Verify that StudentScholarshipProfile is safely iterable and convertible to dict."""
-        from src.academic_rag.scholarships.models import normalize_student_profile
+        from backend.scholarships.models import normalize_student_profile
 
         profile = StudentScholarshipProfile(
             class_level=10,

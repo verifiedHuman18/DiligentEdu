@@ -5,13 +5,13 @@ import tempfile
 import unittest
 
 import backend
-from src.academic_rag.analytics.swat import (
+from backend.analytics.swat import (
     format_swat_report,
     get_attempted_chapters,
     get_student_swat,
     get_unattempted_chapters,
 )
-from src.academic_rag.storage.repository import QuizRepository
+from backend.storage.repository import QuizRepository
 
 
 class TestSwatUnattemptedChapters(unittest.TestCase):

@@ -7,9 +7,9 @@ from typing import List, Optional, Tuple
 
 import streamlit as st
 
+from backend.rag.engine import stream_ncert_rag_response
 from frontend.components.navigation import render_back_to_home
 from frontend.state import get_student_class_level
-from src.academic_rag.rag.engine import stream_ncert_rag_response
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +227,7 @@ async def render_tutor_screen(
                 full_response = ""
 
                 try:
-                    from src.academic_rag.exceptions import (
+                    from backend.exceptions import (
                         GeminiAuthError,
                         GeminiConfigurationError,
                         GeminiQuotaExhaustedError,

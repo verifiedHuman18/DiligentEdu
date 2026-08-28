@@ -5,12 +5,12 @@ import tempfile
 import unittest
 
 import backend
-from src.academic_rag.analytics.action_plan import (
+from backend.analytics.action_plan import (
     generate_action_plan,
     reset_teacher_action_plan,
     save_teacher_action_plan,
 )
-from src.academic_rag.storage.repository import QuizRepository
+from backend.storage.repository import QuizRepository
 
 
 class TestTeacherActionPlanCustomization(unittest.TestCase):
