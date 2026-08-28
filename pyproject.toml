@@ -47,6 +47,7 @@ exclude = [
     "data",
     "logs",
     "notebooks",
+    "prisma_test",
 ]
 
 [tool.ruff.lint]

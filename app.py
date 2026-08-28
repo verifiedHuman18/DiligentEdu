@@ -239,6 +239,7 @@ async def main():
     # If no role is selected or current screen is login, render the Login / Role Selection Screen
     if not user_role or st.session_state.get("current_screen") == "login":
         render_login_screen()
+        finalize_page_loader()
         return
 
     from frontend.state import get_student_class_level

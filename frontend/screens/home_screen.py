@@ -161,13 +161,13 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
                 with st.container(border=True):
                     st.markdown(
                         f"""
-                        <div style="height: 135px; display: flex; flex-direction: column; overflow: hidden; margin-bottom: 5px;">
+                        <div style="min-height: 135px; display: flex; flex-direction: column; margin-bottom: 5px;">
                             <div style="font-size: 0.78rem; font-weight: 700; color: var(--md-primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;">{p_label}</div>
-                            <div style="font-size: 0.98rem; font-weight: 700; color: var(--on-surface); margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-shrink: 0;">{ch_title}</div>
+                            <div style="font-size: 0.98rem; font-weight: 700; color: var(--on-surface); margin-bottom: 2px; flex-shrink: 0;">{ch_title}</div>
                             <div style="font-size: 0.84rem; color: var(--md-secondary); font-weight: 600; margin-bottom: 6px; flex-shrink: 0;">
                                 Score: {score_str} &nbsp;·&nbsp; Target: `{diff_str}`
                             </div>
-                            <div style="font-size: 0.8rem; color: var(--on-surface-variant); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{act["reason"]}</div>
+                            <div style="font-size: 0.8rem; color: var(--on-surface-variant);">{act["reason"]}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,

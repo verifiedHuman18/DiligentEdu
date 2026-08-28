@@ -1,0 +1,92 @@
+generator client {
+  provider             = "prisma-client-py"
+  interface            = "sync"
+  recursive_type_depth = 5
+  output               = "../prisma_test"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id // Firebase UID
+  email       String   @unique
+  name        String?
+  role        String // "student" or "teacher"
+  subject     String? // e.g. "science", "math"
+  class_level Int? // Only applicable for students (e.g. 9 or 10)
+  createdAt   DateTime @default(now())
+}
+
+model QuizAttempt {
+  quiz_id         String             @id
+  student_id      String
+  class_level     Int
+  subject         String?            @default("Science")
+  chapter         String
+  chapter_number  Int?
+  difficulty      String
+  score           Int
+  total_questions Int
+  percentage      Float
+  timestamp       String
+  responses       QuestionResponse[]
+}
+
+model QuestionResponse {
+  id             Int         @id @default(autoincrement())
+  quiz_id        String
+  question_id    String
+  question_text  String?
+  chapter        String
+  difficulty     String
+  user_answer    String?
+  correct_answer String?
+  is_correct     Int
+  source_pages   String?
+  concept_id     String?
+  quiz           QuizAttempt @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
+}
+
+model TeacherActionPlan {
+  id            Int     @id @default(autoincrement())
+  student_id    String
+  class_level   Int
+  subject       String? @default("Science")
+  plan_data     String
+  teacher_notes String?
+  updated_at    String
+
+  @@unique([student_id, class_level, subject])
+}
+
+model UploadedDocument {
+  document_id     String  @id
+  student_id      String
+  filename        String
+  material_name   String
+  class_level     Int
+  subject         String
+  chapter         String?
+  status          String
+  error_message   String?
+  page_count      Int     @default(0)
+  chunk_count     Int     @default(0)
+  file_size_bytes Int     @default(0)
+  uploaded_at     String
+}
+
+model StudyTwinMatch {
+  id               Int    @id @default(autoincrement())
+  student_id       String
+  twin_student_id  String
+  class_level      Int
+  subject          String
+  similarity_score Float
+  match_data       String
+  created_at       String
+
+  @@unique([student_id, class_level, subject])
+}
