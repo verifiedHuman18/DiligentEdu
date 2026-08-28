@@ -21,16 +21,37 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 # Streamlit Community Cloud: Generate Prisma client if not generated
-# We do this before ANY imports of prisma to prevent sys.modules poisoning.
+# We generate to /tmp/prisma because site-packages is read-only on Streamlit Cloud
 import os
 import subprocess
 import sys
 
-if not os.path.exists("/tmp/.prisma_generated"):
-    print("Prisma client not found. Generating...")
-    subprocess.check_call([sys.executable, "-m", "prisma", "generate"])
-    with open("/tmp/.prisma_generated", "w") as f:
-        f.write("done")
+if not os.path.exists("/tmp/prisma/client.py"):
+    print("Prisma client not found in /tmp. Generating...")
+
+    # Read the original schema
+    with open("prisma/schema.prisma", "r") as f:
+        schema = f.read()
+
+    # Inject the local output directory into the generator block
+    if "output" not in schema:
+        schema = schema.replace(
+            'provider             = "prisma-client-py"',
+            'provider             = "prisma-client-py"\n  output               = "/tmp/prisma"',
+        )
+
+    # Write the modified schema to a temporary location
+    with open("/tmp/schema.prisma", "w") as f:
+        f.write(schema)
+
+    # Generate the client using the modified schema
+    subprocess.check_call(
+        [sys.executable, "-m", "prisma", "generate", "--schema", "/tmp/schema.prisma"]
+    )
+
+# Prepend /tmp to sys.path so Python loads `prisma` from /tmp/prisma instead of site-packages
+if "/tmp" not in sys.path:
+    sys.path.insert(0, "/tmp")
 
 from frontend import (
     get_user_role,
