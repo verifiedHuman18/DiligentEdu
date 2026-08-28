@@ -52,7 +52,7 @@ def render_teacher_screen(
 
     current_subject = get_student_subject()
 
-    t_c1, t_c2, t_c3, t_c4 = st.columns([1.8, 1.3, 1.0, 1.3])
+    t_c1, t_c2 = st.columns([2.0, 2.0])
     with t_c1:
         st.markdown("### Teacher Diagnostics")
         st.caption("Pedagogical insights, 4-category SWAT breakdown, and action-plan statistics.")
@@ -70,32 +70,9 @@ def render_teacher_screen(
     student_current_class = student_class_map.get(target_student_id, 10)
     target_student_name = student_map.get(target_student_id, target_student_id).split(" (Class")[0]
 
-    with t_c3:
-        view_options = [f"Class {student_current_class} (Current)"]
-        if student_current_class == 10:
-            view_options.append("Class 9 (Historical)")
-
-        selected_view = st.radio(
-            "View Academic Year",
-            options=view_options,
-            horizontal=True,
-            key="teacher_screen_historical_toggle",
-            help="Toggle between current and historical academic years.",
-        )
-
-    with t_c4:
-        teacher_subject = st.radio(
-            "Subject",
-            options=["Science", "Mathematics"],
-            index=0 if current_subject == "Science" else 1,
-            horizontal=True,
-            key="teacher_screen_subject_toggle",
-            help="Inspect student performance strictly for Science or Mathematics.",
-        )
-
-    cls_int = 10 if "Class 10" in selected_view else 9
+    cls_int = student_current_class
     teacher_class = f"Class {cls_int}"
-    subject = teacher_subject
+    subject = current_subject
 
     prof = get_teacher_student_profile(target_student_id, class_level=cls_int, subject=subject)
     has_history = prof.get("has_data", False)
