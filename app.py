@@ -20,6 +20,13 @@ if PROJECT_ROOT not in sys.path:
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+# Streamlit Community Cloud: Generate Prisma client if not generated
+try:
+    pass
+except RuntimeError:
+    print("Prisma client not found. Generating...")
+    os.system("prisma generate")
+
 from frontend import (
     get_user_role,
     init_session_state,
