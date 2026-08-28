@@ -243,7 +243,7 @@ def _generate_interactive_graph_html(graph_data: Dict[str, Any], theme_mode: str
     <body>
     <div id="graph-viewport" class="graph-viewport">
         <div class="graph-background"></div>
-        <div class="canvas-header">🌌 Intra-Chapter Concept Map · {ch_title}</div>
+        <div class="canvas-header"> Intra-Chapter Concept Map · {ch_title}</div>
 
         <svg id="graph-svg" viewBox="0 0 1080 440" preserveAspectRatio="xMidYMid meet">
             <defs>
@@ -456,7 +456,7 @@ def render_knowledge_graph_screen(
 <div class="section-header-bar">
     <div>
         <h3 style="margin:0; font-size: 1.45rem; font-weight: 700; color: var(--on-surface);">
-            🌌 Knowledge Map — Class {class_level} · {subject}
+             Knowledge Map — Class {class_level} · {subject}
         </h3>
         <div class="section-subtitle-text">
             Explore deep concept-level dependency maps, assess mastery across subtopics, and target weak areas with one-click practice.
@@ -503,10 +503,10 @@ def render_knowledge_graph_screen(
 
     with col_stats:
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("🟢 Strong", f"{graph_data.get('strong_count', 0)}")
-        c2.metric("🟡 Moderate", f"{graph_data.get('moderate_count', 0)}")
-        c3.metric("🔴 Weak", f"{graph_data.get('weak_count', 0)}")
-        c4.metric("⚪ Unattempted", f"{graph_data.get('unattempted_count', 0)}")
+        c1.metric(" Strong", f"{graph_data.get('strong_count', 0)}")
+        c2.metric(" Moderate", f"{graph_data.get('moderate_count', 0)}")
+        c3.metric(" Weak", f"{graph_data.get('weak_count', 0)}")
+        c4.metric(" Unattempted", f"{graph_data.get('unattempted_count', 0)}")
 
     st.write("")
 
@@ -517,7 +517,7 @@ def render_knowledge_graph_screen(
     st.write("")
 
     # Concept Inspector & Learning Action Panel
-    st.markdown("#### 🔍 Concept Inspector & Target Practice")
+    st.markdown("####  Concept Inspector & Target Practice")
     nodes = graph_data.get("nodes", [])
 
     if not nodes:
@@ -538,13 +538,13 @@ def render_knowledge_graph_screen(
     # Card layout for selected node
     stat_val = selected_node.get("status", "unattempted")
     if stat_val == "strong":
-        badge_html = '<span style="background:#064e3b; color:#34d399; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #10b981;">🟢 STRONG</span>'
+        badge_html = '<span style="background:#064e3b; color:#34d399; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #10b981;"> STRONG</span>'
     elif stat_val == "moderate":
-        badge_html = '<span style="background:#451a03; color:#fbbf24; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #f59e0b;">🟡 MODERATE</span>'
+        badge_html = '<span style="background:#451a03; color:#fbbf24; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #f59e0b;"> MODERATE</span>'
     elif stat_val == "weak":
-        badge_html = '<span style="background:#450a0a; color:#f87171; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #ef4444;">🔴 WEAK GAP</span>'
+        badge_html = '<span style="background:#450a0a; color:#f87171; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #ef4444;"> WEAK GAP</span>'
     else:
-        badge_html = '<span style="background:#1e293b; color:#94a3b8; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #64748b;">⚪ UNATTEMPTED</span>'
+        badge_html = '<span style="background:#1e293b; color:#94a3b8; font-weight:700; padding:3px 10px; border-radius:12px; border:1px solid #64748b;"> UNATTEMPTED</span>'
 
     col_details, col_action = st.columns([3.2, 1.8])
 
@@ -572,10 +572,10 @@ def render_knowledge_graph_screen(
         {selected_node.get('description')}
     </div>
     <div style="display: flex; gap: 18px; font-size: 0.82rem; color: var(--on-surface); font-weight: 600; border-top: 1px solid var(--outline-variant); padding-top: 10px;">
-        <div>📊 Mastery: {mastery_display}</div>
-        <div>🎯 Attempts: {selected_node.get('attempts', 0)}</div>
-        <div>✅ Correct: {selected_node.get('correct', 0)}</div>
-        <div>🔒 Confidence: {selected_node.get('confidence', 'Unassessed')}</div>
+        <div> Mastery: {mastery_display}</div>
+        <div> Attempts: {selected_node.get('attempts', 0)}</div>
+        <div> Correct: {selected_node.get('correct', 0)}</div>
+        <div> Confidence: {selected_node.get('confidence', 'Unassessed')}</div>
     </div>
 </div>
 """)
@@ -584,7 +584,7 @@ def render_knowledge_graph_screen(
         # Linked Resources
         resources = selected_node.get("recommended_resources", [])
         if resources:
-            st.markdown("##### 📚 Recommended Study Materials")
+            st.markdown("##### :material/library_books: Recommended Study Materials")
             res_chips = []
             for r in resources:
                 if r.get("source_type") == "ncert":
@@ -616,7 +616,7 @@ def render_knowledge_graph_screen(
         st.write("")
 
         if st.button(
-            f"🎯 Practice '{selected_node.get('name')}'",
+            f" Practice '{selected_node.get('name')}'",
             type="primary",
             use_container_width=True,
             key=f"btn_practice_kg_{selected_node.get('id')}",
@@ -626,7 +626,7 @@ def render_knowledge_graph_screen(
             st.rerun()
 
         if st.button(
-            f"💬 Ask Tutor About '{selected_node.get('name')}'",
+            f" Ask Tutor About '{selected_node.get('name')}'",
             type="secondary",
             use_container_width=True,
             key=f"btn_ask_tutor_kg_{selected_node.get('id')}",

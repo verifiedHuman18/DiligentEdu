@@ -47,7 +47,7 @@ def render_study_material_screen(
 <div class="section-header-bar">
     <div>
         <h3 style="margin:0; font-size: 1.45rem; font-weight: 700; color: var(--on-surface);">
-            📚 My Study Material — Class {class_level} · {subject}
+             My Study Material — Class {class_level} · {subject}
         </h3>
         <div class="section-subtitle-text">
             Upload and manage reference books, notes, and study material. Automatically indexed with local embeddings for your Tutor and Practice Quizzes.
@@ -111,7 +111,7 @@ def render_study_material_screen(
                 selected_chapter = selected_ch_opt.split(":", 1)[1].strip()
 
         st.caption(
-            f"🔒 Bound automatically to your active profile: **Class {class_level} ({subject})**."
+            f" Bound automatically to your active profile: **Class {class_level} ({subject})**."
         )
 
         if st.button(
@@ -153,7 +153,7 @@ def render_study_material_screen(
         guide_html = textwrap.dedent(f"""\
 <div style="background: var(--surface-container); border-radius: 12px; padding: 18px; border-left: 4px solid var(--md-primary); margin-top: 10px;">
     <div style="font-weight: 700; font-size: 0.95rem; color: var(--on-surface); margin-bottom: 8px;">
-        🛡️ Privacy & Ingestion Architecture
+         Privacy & Ingestion Architecture
     </div>
     <div style="font-size: 0.83rem; color: var(--on-surface-variant); line-height: 1.6;">
         <ul style="padding-left: 18px; margin: 0;">
@@ -204,7 +204,7 @@ def render_study_material_screen(
             if status == "READY":
                 status_chip = '<span style="background: #1b5e20; color: #e8f5e9; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">✓ READY</span>'
             elif status == "PROCESSING":
-                status_chip = '<span style="background: #0d47a1; color: #e3f2fd; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">⏳ PROCESSING</span>'
+                status_chip = '<span style="background: #0d47a1; color: #e3f2fd; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;"> PROCESSING</span>'
             else:
                 status_chip = '<span style="background: #b71c1c; color: #ffebee; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;">✗ FAILED</span>'
 

@@ -343,7 +343,7 @@ def _render_scholarship_card(match: Any) -> None:
 
     if match.explanation.verification_needed:
         items = "".join(
-            f'<li style="margin-bottom: 2px;">{v.replace("⚠", "").strip()}</li>'
+            f'<li style="margin-bottom: 2px;">{v.replace("", "").strip()}</li>'
             for v in match.explanation.verification_needed
         )
         reasons_html_list.append(
@@ -352,7 +352,7 @@ def _render_scholarship_card(match: Any) -> None:
 
     if match.explanation.reasons_unmatched:
         items = "".join(
-            f'<li style="margin-bottom: 2px;">{u.replace("🔴", "").replace("✗", "").strip()}</li>'
+            f'<li style="margin-bottom: 2px;">{u.replace("", "").replace("✗", "").strip()}</li>'
             for u in match.explanation.reasons_unmatched
         )
         reasons_html_list.append(

@@ -140,13 +140,13 @@ def render_teacher_screen(
             for a in alerts:
                 msg = a.get("message") if isinstance(a, dict) else str(a)
                 # Clean any legacy emoji from alert message
-                clean_msg = msg.replace("⚠️", "").replace("⚠", "").strip()
+                clean_msg = msg.replace("", "").replace("", "").strip()
                 items_html.append(
                     f'<div style="font-size: 0.85rem; color: var(--danger-text); line-height: 1.4;"><strong>Attention:</strong> {clean_msg}</div>'
                 )
         if positive_notes:
             for p in positive_notes:
-                clean_p = p.replace("✨", "").replace("📈", "").strip()
+                clean_p = p.replace("", "").replace("", "").strip()
                 items_html.append(
                     f'<div style="font-size: 0.85rem; color: var(--md-tertiary); line-height: 1.4;"><strong>Strength:</strong> {clean_p}</div>'
                 )

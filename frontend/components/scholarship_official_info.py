@@ -84,7 +84,7 @@ def render_official_scholarship_info(
                 </div>
                 <div style="display: flex; flex-direction: column; justify-content: center; align-self: center;">
                     <a href="{url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; text-align: center; background: var(--md-primary); color: var(--on-primary); padding: 10px 18px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.15); white-space: nowrap;">
-                        Visit {name} ↗
+                        Visit {name}
                     </a>
                     <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-top: 6px;">
                         {info["domain"]} (New tab)

@@ -9,13 +9,10 @@ Provides:
 
 import json
 import logging
-from typing import Optional
 
-import streamlit as st
 import streamlit.components.v1 as components
 
 from backend.ai.speech_math import prepare_text_for_speech
-from backend.ai.speech_normalizer import normalize_voice_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +24,7 @@ def render_voice_recorder_component(
 ) -> None:
     """
     Directly injects an interactive Web Speech Recognition microphone button into Streamlit's bottom chat input textbar.
-    
+
     Zero separate UI cards or bars. When clicked, transcribes speech live into the text bar,
     tags voice input, and automatically submits on completion.
     """
@@ -113,7 +110,7 @@ def render_voice_recorder_component(
                 }};
 
                 const SpeechRec = (rootWin.SpeechRecognition || rootWin.webkitSpeechRecognition || window.SpeechRecognition || window.webkitSpeechRecognition);
-                
+
                 if (!SpeechRec) {{
                     micBtn.title = "Speech recognition is not supported in this browser";
                     micBtn.style.opacity = "0.35";
@@ -143,7 +140,7 @@ def render_voice_recorder_component(
                         micBtn.style.color = "#ffffff";
                         micBtn.style.boxShadow = "0 0 12px rgba(239, 68, 68, 0.9)";
                         micBtn.style.transform = "scale(1.12)";
-                        textArea.placeholder = "🔴 Listening... Speak your doubt now (Click mic to stop)";
+                        textArea.placeholder = " Listening... Speak your doubt now (Click mic to stop)";
                     }};
 
                     recognition.onresult = (event) => {{
@@ -175,8 +172,8 @@ def render_voice_recorder_component(
                     recognition.onend = () => {{
                         resetMic();
                         if (finalTranscript.trim()) {{
-                            // Tag voice input with invisible marker \u200B[voice]
-                            const voicePrompt = finalTranscript.trim() + "\u200B[voice]";
+                            // Tag voice input with invisible marker \u200b[voice]
+                            const voicePrompt = finalTranscript.trim() + "\u200b[voice]";
                             const nativeSetter = Object.getOwnPropertyDescriptor(rootWin.HTMLTextAreaElement.prototype, "value").set;
                             if (nativeSetter) nativeSetter.call(textArea, voicePrompt);
                             else textArea.value = voicePrompt;
@@ -245,7 +242,6 @@ def render_voice_recorder_component(
 render_bottom_voice_mic = render_voice_recorder_component
 
 
-
 def render_tts_player_component(
     display_text: str,
     message_idx: int,
@@ -254,7 +250,7 @@ def render_tts_player_component(
 ) -> None:
     """
     Renders a client-side Web Speech Synthesis (TTS) audio player underneath a Tutor response.
-    
+
     Converts mathematical expressions to speech phonetics, strips citations,
     and supports seamless rate changing from the current word position without restarting.
     """
@@ -339,13 +335,13 @@ def render_tts_player_component(
     <body>
     <div class="tts-row">
         <button id="playBtn_{message_idx}" class="btn-tts" onclick="togglePlay()">
-            <span id="playIcon_{message_idx}">🔊</span> <span id="playLabel_{message_idx}">{button_label}</span>
+            <span id="playIcon_{message_idx}"></span> <span id="playLabel_{message_idx}">{button_label}</span>
         </button>
         <button id="pauseBtn_{message_idx}" class="btn-ctrl" onclick="pauseAudio()" style="display: none;" title="Pause">
-            ⏸ Pause
+             Pause
         </button>
         <button id="stopBtn_{message_idx}" class="btn-ctrl" onclick="stopAudio()" style="display: none;" title="Stop">
-            ⏹ Stop
+             Stop
         </button>
         <select id="rateSelect_{message_idx}" class="rate-select" onchange="changeRate()" title="Speech Speed">
             <option value="0.9">0.9x</option>
@@ -371,7 +367,7 @@ def render_tts_player_component(
 
         function startSpeakingFromOffset(offset) {{
             window.speechSynthesis.cancel();
-            
+
             const textRemaining = textToSpeak.slice(offset) || textToSpeak;
             utterance = new SpeechSynthesisUtterance(textRemaining);
             utterance.rate = parseFloat(rateSelect.value) || 1.0;
@@ -389,7 +385,7 @@ def render_tts_player_component(
                 isSpeaking = true;
                 isPaused = false;
                 playBtn.className = "btn-tts active";
-                playIcon.innerText = "🔊";
+                playIcon.innerText = "";
                 playLabel.innerText = "Playing...";
                 pauseBtn.style.display = "inline-flex";
                 stopBtn.style.display = "inline-flex";
@@ -418,9 +414,9 @@ def render_tts_player_component(
             if (isPaused) {{
                 window.speechSynthesis.resume();
                 isPaused = false;
-                playIcon.innerText = "🔊";
+                playIcon.innerText = "";
                 playLabel.innerText = "Playing...";
-                pauseBtn.innerText = "⏸ Pause";
+                pauseBtn.innerText = " Pause";
                 return;
             }}
 
@@ -437,15 +433,15 @@ def render_tts_player_component(
             if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {{
                 window.speechSynthesis.pause();
                 isPaused = true;
-                playIcon.innerText = "▶";
+                playIcon.innerText = "";
                 playLabel.innerText = "Resume";
-                pauseBtn.innerText = "▶ Resume";
+                pauseBtn.innerText = " Resume";
             }} else if (window.speechSynthesis.paused) {{
                 window.speechSynthesis.resume();
                 isPaused = false;
-                playIcon.innerText = "🔊";
+                playIcon.innerText = "";
                 playLabel.innerText = "Playing...";
-                pauseBtn.innerText = "⏸ Pause";
+                pauseBtn.innerText = " Pause";
             }}
         }}
 
@@ -466,7 +462,7 @@ def render_tts_player_component(
             isSpeaking = false;
             isPaused = false;
             playBtn.className = "btn-tts";
-            playIcon.innerText = "🔊";
+            playIcon.innerText = "";
             playLabel.innerText = "{button_label}";
             pauseBtn.style.display = "none";
             stopBtn.style.display = "none";
@@ -490,5 +486,3 @@ def render_tts_player_component(
     </html>
     """
     components.html(html_code, height=48, scrolling=False)
-
-

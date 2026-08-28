@@ -80,15 +80,15 @@ st.set_page_config(
 
 
 def render_page_loader():
-    """Renders a fullscreen loading animation that automatically fades out after the page loads."""
+    """Renders a fullscreen loading animation that stays on screen until explicitly removed."""
     if st.session_state.get("is_navigating", False):
         st.markdown(
             """
         <style>
-        @keyframes page-loader-fade {
-            0% { opacity: 1; visibility: visible; }
-            70% { opacity: 1; visibility: visible; }
-            100% { opacity: 0; visibility: hidden; }
+        @keyframes loader-appear {
+            0% { opacity: 0; }
+            99% { opacity: 0; }
+            100% { opacity: 1; }
         }
         .page-loader-overlay {
             position: fixed;
@@ -104,8 +104,9 @@ def render_page_loader():
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            animation: page-loader-fade 1.0s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             pointer-events: none;
+            opacity: 0;
+            animation: loader-appear 0.2s forwards;
         }
         .page-loader-spinner {
             width: 48px;
@@ -130,11 +131,29 @@ def render_page_loader():
             letter-spacing: 1px;
         }
         </style>
-        <div class="page-loader-overlay">
+        <div class="page-loader-overlay" id="page-loader">
             <div class="page-loader-spinner"></div>
             <div class="page-loader-text">Loading Workspace...</div>
         </div>
         """,
+            unsafe_allow_html=True,
+        )
+
+
+def finalize_page_loader():
+    """Fades out the loading animation after the page has fully finished rendering."""
+    if st.session_state.get("is_navigating", False):
+        st.markdown(
+            """
+            <style>
+            @keyframes page-loader-fade {
+                100% { opacity: 0; visibility: hidden; }
+            }
+            #page-loader {
+                animation: page-loader-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            </style>
+            """,
             unsafe_allow_html=True,
         )
         st.session_state.is_navigating = False
@@ -237,6 +256,8 @@ async def main():
             render_settings_screen()
         else:
             render_home_screen(selected_class=selected_class, student_id=student_id)
+
+    finalize_page_loader()
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
 
     cls_int = get_student_class_level()
 
-    st.markdown(f"### 🏫 Class {cls_int} Administrator Dashboard")
+    st.markdown(f"###  Class {cls_int} Administrator Dashboard")
     st.caption("Class-wide analytics, curriculum health, and student roster management.")
     st.write("")
 

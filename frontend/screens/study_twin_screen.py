@@ -24,7 +24,7 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
     # Header and Subject Toggle
     col_hdr_1, col_hdr_2 = st.columns([0.7, 0.3])
     with col_hdr_1:
-        st.markdown(f"### 👥 Study Twin — Class {class_level} · {subject}")
+        st.markdown(f"###  Study Twin — Class {class_level} · {subject}")
         st.caption(
             "Find an anonymous peer whose learning priorities, syllabus pace, and concept weaknesses align with yours."
         )
@@ -55,8 +55,8 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
     # 1. State: Insufficient Data (Phase 13)
     if match.status == "insufficient_data":
         insuf_html = textwrap.dedent(f"""\
-<div style="background: var(--surface-container); border: 1px dashed var(--outline-variant); border-radius: 16px; padding: 36px 24px; text-align: center; margin: 12px 0;">
-    <div style="font-size: 2.2rem; margin-bottom: 10px;">🎯</div>
+<div style="background: var(--surface-container-low); border: 1px dashed var(--outline-variant); border-radius: 16px; padding: 32px 24px; text-align: center; margin: 12px 0;">
+    <div style="font-size: 2.0rem; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--md-primary);">assignment_ind</span></div>
     <div style="font-size: 1.2rem; font-weight: 700; color: var(--on-surface); margin-bottom: 8px;">
         Build Your Study Profile
     </div>
@@ -88,7 +88,7 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
         )
         no_cand_html = textwrap.dedent(f"""\
 <div style="background: var(--surface-container); border: 1px solid var(--outline-variant); border-radius: 16px; padding: 32px 24px; text-align: center; margin: 12px 0;">
-    <div style="font-size: 2.0rem; margin-bottom: 8px;">🔍</div>
+    <div style="font-size: 2.0rem; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--md-secondary);">search_off</span></div>
     <div style="font-size: 1.15rem; font-weight: 700; color: var(--on-surface); margin-bottom: 6px;">
         No Active Study Twin Found Yet{score_display}
     </div>
@@ -137,8 +137,8 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
 <div style="background: var(--surface-container); border: 1px solid var(--outline-variant); border-radius: 18px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.18);">
     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--surface-container-high); border: 2px solid {score_color}; display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
-                🧑‍🎓
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--surface-container-high); border: 2px solid {score_color}; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 700; color: {score_color};">
+                {twin_name[0].upper() if twin_name else "P"}
             </div>
             <div>
                 <div style="font-size: 1.25rem; font-weight: 700; color: var(--on-surface); display: flex; align-items: center; gap: 8px;">
@@ -170,33 +170,33 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
     col_p1, col_p2, col_p3 = st.columns(3)
 
     with col_p1:
-        st.markdown("##### 🎯 Current Focus")
+        st.markdown("##### :material/track_changes: Current Focus")
         if match.shared_current_chapters:
             for ch in match.shared_current_chapters:
                 st.markdown(
-                    f'<div style="background: var(--surface-container-low); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--md-cyan); margin-bottom: 6px; font-size: 0.85rem; font-weight: 600;">📖 {ch}</div>',
+                    f'<div style="background: var(--surface-container-low); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--md-cyan); margin-bottom: 6px; font-size: 0.85rem; font-weight: 600;"> {ch}</div>',
                     unsafe_allow_html=True,
                 )
         else:
             st.caption("No concurrent chapter overlap at this moment.")
 
     with col_p2:
-        st.markdown("##### ⚠️ Shared Weaknesses")
+        st.markdown("##### :material/warning: Shared Weaknesses")
         if match.shared_weak_topics:
             for ch in match.shared_weak_topics:
                 st.markdown(
-                    f'<div style="background: var(--surface-container-low); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--md-amber); margin-bottom: 6px; font-size: 0.85rem; font-weight: 600;">⚡ {ch}</div>',
+                    f'<div style="background: var(--surface-container-low); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--md-amber); margin-bottom: 6px; font-size: 0.85rem; font-weight: 600;"> {ch}</div>',
                     unsafe_allow_html=True,
                 )
         else:
             st.caption("No common weak topics identified.")
 
     with col_p3:
-        st.markdown("##### 🚀 Shared Action Goals")
+        st.markdown("##### :material/flag: Shared Action Goals")
         if match.shared_action_goals:
             for ch in match.shared_action_goals:
                 st.markdown(
-                    f'<div style="background: var(--surface-container-low); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--md-primary); margin-bottom: 6px; font-size: 0.85rem; font-weight: 600;">🎯 Practice {ch}</div>',
+                    f'<div style="background: var(--surface-container-low); padding: 8px 12px; border-radius: 8px; border-left: 3px solid var(--md-primary); margin-bottom: 6px; font-size: 0.85rem; font-weight: 600;"> Practice {ch}</div>',
                     unsafe_allow_html=True,
                 )
         else:
@@ -206,7 +206,7 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
     st.divider()
 
     # Detailed Similarity Breakdown Meters
-    st.markdown("##### 📊 Academic Alignment Breakdown")
+    st.markdown("##### :material/bar_chart: Academic Alignment Breakdown")
     comps = match.component_scores or {}
 
     col_m1, col_m2 = st.columns(2)

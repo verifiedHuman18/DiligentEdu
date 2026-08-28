@@ -197,15 +197,6 @@ small, .stCaption, [data-testid="stCaptionContainer"] {{
 }}
 
 /* Corner Brand Header */
-@keyframes page-transition {{
-    0% {{ opacity: 0; transform: translateY(8px); }}
-    100% {{ opacity: 1; transform: translateY(0); }}
-}}
-
-[data-testid="stMainBlockContainer"] {{
-    animation: page-transition 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}}
-
 .brand-corner {{
     font-family: 'Outfit', sans-serif;
     font-weight: 800;
