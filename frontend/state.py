@@ -194,9 +194,9 @@ def set_user_role(role: Any, restore_screen: bool = False) -> None:
 
 def logout() -> None:
     """Logs out the current user, clears role, and routes back to the login / role selection screen."""
-    st.session_state.user_role = None
-    st.session_state.login_step = "select_role"
-    st.session_state.current_screen = "login"
+    st.session_state.clear()
+    init_session_state()
+
     if "uid" in st.query_params:
         del st.query_params["uid"]
     if "screen" in st.query_params:

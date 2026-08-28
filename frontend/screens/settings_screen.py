@@ -204,10 +204,8 @@ def render_settings_screen() -> None:
             )
 
             if role == "teacher":
-                st.markdown("#### Teacher Profile & Diagnostic Settings")
-                st.caption(
-                    "Manage your educator identity and default class level/subject for telemetry inspection."
-                )
+                st.markdown("#### Teacher Profile Settings")
+                st.caption("View your educator identity.")
                 st.write("")
 
                 st.text_input(
@@ -218,38 +216,7 @@ def render_settings_screen() -> None:
                     key="settings_teacher_name_input",
                 )
 
-                st.write("")
-                col_cls, col_subj = st.columns(2)
-                with col_cls:
-                    curr_cls = get_student_class_level()
-                    selected_cls_label = st.radio(
-                        "Default Inspection Class",
-                        options=["Class 10", "Class 9"],
-                        index=0 if curr_cls == 10 else 1,
-                        key="settings_teacher_class_radio",
-                    )
-                    new_cls_int = 10 if selected_cls_label == "Class 10" else 9
-
-                with col_subj:
-                    curr_subj = get_student_subject()
-                    selected_subj = st.radio(
-                        "Default Inspection Subject",
-                        options=["Science", "Mathematics"],
-                        index=0 if curr_subj == "Science" else 1,
-                        key="settings_teacher_subject_radio",
-                    )
-
-                st.write("")
-                if st.button(
-                    "Save Changes",
-                    type="primary",
-                    key="save_teacher_profile_btn",
-                    icon=":material/save:",
-                ):
-                    set_student_class_level(new_cls_int)
-                    set_student_subject(selected_subj)
-                    st.success("Teacher profile saved successfully!")
-                    st.rerun()
+                # The teacher profile is read-only now, no save button needed.
             else:
                 st.markdown("#### Student Profile & Standard Settings")
                 st.caption(

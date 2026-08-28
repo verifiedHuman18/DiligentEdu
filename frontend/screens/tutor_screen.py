@@ -232,37 +232,7 @@ def _get_fresh_suggestions(
     else:
         ncert_pool = list(CLASS_9_SUGGESTIONS if class_level == 9 else CLASS_10_SUGGESTIONS)
 
-    uploaded_suggestions = []
-
-    # Check for student uploaded materials to inject source-aware suggestions (Phase 14 & 18)
-    if student_id:
-        try:
-            from backend.storage.repository import study_material_repository
-
-            docs = study_material_repository.get_student_documents(
-                student_id=student_id, class_level=class_level, subject=subject
-            )
-            ready_docs = [d for d in docs if d.get("status") == "READY"]
-            for d in ready_docs[:2]:
-                mat_name = d.get("material_name") or d.get("filename", "Reference Book")
-                ch_name = d.get("chapter") or subject
-                uploaded_suggestions.append(
-                    (
-                        f"Ref: {mat_name[:18]}",
-                        f"Explain concepts and examples from my uploaded reference material '{mat_name}' relating to {ch_name} in Class {class_level} {subject}.",
-                    )
-                )
-        except Exception:
-            pass
-
-    if uploaded_suggestions:
-        k_up = min(len(uploaded_suggestions), 2)
-        k_ncert = max(0, 4 - k_up)
-        return uploaded_suggestions[:k_up] + random.sample(
-            ncert_pool, min(k_ncert, len(ncert_pool))
-        )
-    else:
-        return random.sample(ncert_pool, min(4, len(ncert_pool)))
+    return random.sample(ncert_pool, min(4, len(ncert_pool)))
 
 
 async def render_tutor_screen(
