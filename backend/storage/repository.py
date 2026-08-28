@@ -621,13 +621,16 @@ def get_student_class_history(
 def get_student_study_materials(
     student_id: str,
     class_level: Optional[int] = None,
+    subject: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Standalone helper for retrieving student study materials."""
     repo = (
         study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
     )
-    return repo.get_student_documents(student_id=student_id, class_level=class_level)
+    return repo.get_student_documents(
+        student_id=student_id, class_level=class_level, subject=subject
+    )
 
 
 def delete_student_study_material(
@@ -640,3 +643,19 @@ def delete_student_study_material(
         study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
     )
     return repo.delete_document_record(document_id=document_id, student_id=student_id)
+
+
+def count_student_study_materials(
+    student_id: str,
+    class_level: Optional[int] = None,
+    subject: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> int:
+    """Standalone helper for counting student study materials."""
+    repo = (
+        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+    )
+    return repo.count_student_documents(
+        student_id=student_id, class_level=class_level, subject=subject
+    )
+

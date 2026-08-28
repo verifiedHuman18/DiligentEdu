@@ -17,7 +17,7 @@ class AppConfig:
 
     # Project directories
     project_root: Path = field(
-        default_factory=lambda: Path(__file__).resolve().parent.parent.parent
+        default_factory=lambda: Path(__file__).resolve().parent.parent
     )
 
     # Storage paths
