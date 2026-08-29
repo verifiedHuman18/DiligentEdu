@@ -7,7 +7,6 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.analytics.swat import get_student_swat
 from backend.storage.repository import QuizRepository, quiz_repository
 
 logger = logging.getLogger(__name__)
@@ -73,13 +72,14 @@ def generate_action_plan(
                 else:
                     _ACTION_PLAN_CACHE.pop(cache_key, None)
 
-    active_swat = (
-        swat
-        if swat is not None
-        else get_student_swat(
+    if swat is None:
+        from backend.analytics.swat import get_student_swat
+
+        active_swat = get_student_swat(
             clean_id, class_level=class_level, subject=subj_clean, db_path=db_path
         )
-    )
+    else:
+        active_swat = swat
     target_class = active_swat.get("class_level") or (
         int(class_level) if class_level is not None else 10
     )

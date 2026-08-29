@@ -14,6 +14,7 @@ _GENERATED_DIR = os.path.join(_PROJECT_ROOT, "generated")
 if os.path.exists(_GENERATED_DIR) and _GENERATED_DIR not in sys.path:
     sys.path.insert(0, _GENERATED_DIR)
 
+# Core configuration, curriculum, and storage foundations (must load first)
 from backend.analytics.action_plan import (
     generate_action_plan,
     get_teacher_action_plan,
@@ -36,6 +37,8 @@ from backend.analytics.study_twin import (
     calculate_twin_similarity,
     find_study_twin,
 )
+
+# Analytics services
 from backend.analytics.swat import (
     format_swat_report,
     get_attempted_chapters,
@@ -57,17 +60,10 @@ from backend.curriculum.service import (
     get_chapter_pdf,
     get_ncert_curriculum,
 )
+
+# Quiz & RAG services
 from backend.quiz.adaptive import get_next_quiz_config
 from backend.quiz.evaluator import submit_and_grade_quiz
-
-submit_quiz = submit_and_grade_quiz
-
-from backend.quiz.generator import (
-    create_student_quiz,
-    generate_quiz,
-)
-from backend.rag.engine import stream_ncert_rag_response
-from backend.rag.retriever import retrieve_ncert_context
 from backend.storage.repository import (
     QuizRepository,
     count_student_study_materials,
@@ -77,6 +73,15 @@ from backend.storage.repository import (
     quiz_repository,
     study_material_repository,
 )
+
+submit_quiz = submit_and_grade_quiz
+
+from backend.quiz.generator import (
+    create_student_quiz,
+    generate_quiz,
+)
+from backend.rag.engine import stream_ncert_rag_response
+from backend.rag.retriever import retrieve_ncert_context
 
 logger = logging.getLogger(__name__)
 
