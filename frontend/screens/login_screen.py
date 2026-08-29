@@ -75,29 +75,26 @@ def render_login_screen() -> None:
                         subject = "science"
                         student_id = uid
 
-                    # 3. Set Session State
+                    # 3. Atomically bootstrap session state
                     st.session_state.firebase_token = auth_data["idToken"]
-                    db_name = user.name if user and user.name else None
-                    st.session_state.user_name = (
-                        db_name or auth_data.get("displayName") or email.split("@")[0]
+                    display_name = (
+                        (user.name if user and user.name else None)
+                        or auth_data.get("displayName")
+                        or email.split("@")[0]
+                    )
+                    class_lvl = user.class_level if user and user.class_level else 10
+
+                    from frontend.state import bootstrap_authenticated_session
+
+                    bootstrap_authenticated_session(
+                        user_id=student_id,
+                        role=role,
+                        name=display_name,
+                        class_level=class_lvl,
+                        subject=subject,
+                        restore_screen=False,
                     )
 
-                    if role == "teacher":
-                        st.session_state.teacher_id = student_id
-                        st.session_state.teacher_subject = subject
-                        set_user_role("teacher")
-                    elif role == "admin":
-                        st.session_state.admin_id = student_id
-                        cls_int = user.class_level if user and user.class_level else 10
-                        set_student_class_level(cls_int)
-                        set_user_role("admin")
-                    else:
-                        st.session_state.student_id = student_id
-                        cls_int = user.class_level if user and user.class_level else 10
-                        set_student_class_level(cls_int)
-                        set_user_role("student")
-
-                    st.query_params["uid"] = uid
                     st.rerun()
 
                 except Exception as e:

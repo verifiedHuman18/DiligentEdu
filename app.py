@@ -117,91 +117,76 @@ st.set_page_config(
 )
 
 
-def render_page_loader():
-    """Renders a fullscreen loading animation that stays on screen until explicitly removed."""
-    if st.session_state.get("is_navigating", False):
-        st.markdown(
-            """
-        <style>
-        @keyframes loader-appear {
-            0% { opacity: 0; }
-            99% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-        .page-loader-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-app);
-            z-index: 9999999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none;
-            opacity: 0;
-            animation: loader-appear 0.2s forwards;
-        }
-        .page-loader-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid var(--surface-container-highest);
-            border-bottom-color: var(--md-primary);
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .page-loader-text {
-            color: var(--md-primary);
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-        </style>
-        <div class="page-loader-overlay" id="page-loader">
-            <div class="page-loader-spinner"></div>
-            <div class="page-loader-text">Loading Workspace...</div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
+async def render_screen_content(
+    active_screen: str,
+    user_role: str,
+    selected_class: str,
+    student_id: str,
+    selected_model: str,
+    user_api_key: str,
+) -> None:
+    """Centralized screen rendering boundary with robust error handling (Phases 3, 4, 18)."""
+    from frontend.components.transition import finish_transition
 
+    try:
+        if user_role == "teacher":
+            if active_screen == "settings":
+                render_settings_screen()
+            else:
+                render_teacher_screen(student_id, selected_class=selected_class)
+        elif user_role == "admin":
+            if active_screen == "settings":
+                render_settings_screen()
+            else:
+                render_admin_screen(selected_class=selected_class)
+        else:
+            # Student Persona Routing
+            if active_screen == "home":
+                render_home_screen(selected_class=selected_class, student_id=student_id)
+            elif active_screen == "tutor":
+                await render_tutor_screen(
+                    selected_model, user_api_key, selected_class, student_id=student_id
+                )
+            elif active_screen == "quiz":
+                await render_quiz_screen(student_id, user_api_key, selected_model)
+            elif active_screen == "knowledge_graph":
+                render_knowledge_graph_screen(student_id=student_id, user_api_key=user_api_key)
+            elif active_screen == "study_material":
+                render_study_material_screen(student_id=student_id, user_api_key=user_api_key)
+            elif active_screen == "study_twin":
+                render_study_twin_screen(student_id=student_id)
+            elif active_screen == "swat":
+                render_swat_screen(student_id, selected_class=selected_class)
+            elif active_screen == "scholarships":
+                render_scholarships_screen()
+            elif active_screen == "chapter":
+                render_chapter_screen(student_id, user_api_key, selected_model)
+            elif active_screen == "settings":
+                render_settings_screen()
+            else:
+                render_home_screen(selected_class=selected_class, student_id=student_id)
+    except Exception as screen_err:
+        logger.exception(f"Screen render error on '{active_screen}': {screen_err}")
+        from frontend.components.transition import render_error_boundary
 
-def finalize_page_loader():
-    """Fades out the loading animation after the page has fully finished rendering."""
-    if st.session_state.get("is_navigating", False):
-        st.markdown(
-            """
-            <style>
-            @keyframes page-loader-fade {
-                100% { opacity: 0; visibility: hidden; }
-            }
-            #page-loader {
-                animation: page-loader-fade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
+        render_error_boundary(
+            title="Unable to display this view",
+            message=f"A problem occurred while loading {active_screen.replace('_', ' ').title()}. Please retry or navigate home.",
+            retry_label="Reload Screen",
+            key_suffix=f"{active_screen}_boundary",
         )
-        st.session_state.is_navigating = False
+    finally:
+        finish_transition()
 
 
 async def main():
-    """Main application orchestrator with role selection portal and segregated routing."""
+    """Main application orchestrator with atomic bootstrap, stable shell, global transition layer, and single screen boundary."""
     init_session_state()
     inject_custom_css()
-    render_page_loader()
+
+    from frontend.components.transition import render_global_transition_layer
+
+    render_global_transition_layer()
 
     user_role = get_user_role()
 
@@ -212,40 +197,21 @@ async def main():
 
         user = get_user_from_db(uid)
         if user:
-            from frontend.state import set_student_class_level, set_user_role
+            from frontend.state import bootstrap_authenticated_session
 
-            st.session_state.user_name = user.name or uid
-
-            if user.role == "teacher":
-                st.session_state.teacher_id = user.id
-                st.session_state.teacher_subject = user.subject
-                set_user_role("teacher", restore_screen=True)
-            elif user.role == "admin":
-                st.session_state.admin_id = user.id
-                cls_int = user.class_level if user.class_level else 10
-                set_student_class_level(cls_int)
-                set_user_role("admin", restore_screen=True)
-            else:
-                st.session_state.student_id = user.id
-                cls_int = user.class_level if user.class_level else 10
-                set_student_class_level(cls_int)
-                set_user_role("student", restore_screen=True)
-
-            if "screen" in st.query_params:
-                st.session_state.current_screen = st.query_params["screen"]
-            else:
-                st.session_state.current_screen = (
-                    "admin_home"
-                    if user.role == "admin"
-                    else ("teacher" if user.role == "teacher" else "home")
-                )
-
+            bootstrap_authenticated_session(
+                user_id=user.id,
+                role=user.role,
+                name=user.name or uid,
+                class_level=user.class_level,
+                subject=user.subject,
+                restore_screen=True,
+            )
             user_role = get_user_role()
 
     # If no role is selected or current screen is login, render the Login / Role Selection Screen
     if not user_role or st.session_state.get("current_screen") == "login":
         render_login_screen()
-        finalize_page_loader()
         return
 
     from frontend.state import get_student_class_level
@@ -256,48 +222,19 @@ async def main():
     selected_model = st.session_state.get("model", "gemini-3.5-flash-lite")
     user_api_key = st.session_state.get("user_gemini_api_key", "")
 
-    # Top Navbar & Screen Selector
+    # Top Navbar (Persistent Application Shell Header)
     active_screen = render_navbar(selected_class=selected_class, student_id=student_id)
 
-    # Route based on User Role
-    if user_role == "teacher":
-        if active_screen == "settings":
-            render_settings_screen()
-        else:
-            render_teacher_screen(student_id, selected_class=selected_class)
-    elif user_role == "admin":
-        if active_screen == "settings":
-            render_settings_screen()
-        else:
-            render_admin_screen(selected_class=selected_class)
-    else:
-        # Student Persona Routing
-        if active_screen == "home":
-            render_home_screen(selected_class=selected_class, student_id=student_id)
-        elif active_screen == "tutor":
-            await render_tutor_screen(
-                selected_model, user_api_key, selected_class, student_id=student_id
-            )
-        elif active_screen == "quiz":
-            await render_quiz_screen(student_id, user_api_key, selected_model)
-        elif active_screen == "knowledge_graph":
-            render_knowledge_graph_screen(student_id=student_id, user_api_key=user_api_key)
-        elif active_screen == "study_material":
-            render_study_material_screen(student_id=student_id, user_api_key=user_api_key)
-        elif active_screen == "study_twin":
-            render_study_twin_screen(student_id=student_id)
-        elif active_screen == "swat":
-            render_swat_screen(student_id, selected_class=selected_class)
-        elif active_screen == "scholarships":
-            render_scholarships_screen()
-        elif active_screen == "chapter":
-            render_chapter_screen(student_id, user_api_key, selected_model)
-        elif active_screen == "settings":
-            render_settings_screen()
-        else:
-            render_home_screen(selected_class=selected_class, student_id=student_id)
-
-    finalize_page_loader()
+    # Render Screen Container Boundary
+    with st.container():
+        await render_screen_content(
+            active_screen=active_screen,
+            user_role=user_role,
+            selected_class=selected_class,
+            student_id=student_id,
+            selected_model=selected_model,
+            user_api_key=user_api_key,
+        )
 
 
 if __name__ == "__main__":

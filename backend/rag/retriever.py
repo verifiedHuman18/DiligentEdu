@@ -6,8 +6,11 @@ from typing import Any, Dict, Optional
 from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
 
+from functools import lru_cache
+
 from backend.config import config
 from backend.exceptions import AuthenticationError, RetrievalError
+from backend.utils.perf import measure
 
 logger = logging.getLogger(__name__)
 
@@ -16,16 +19,30 @@ _cached_pinecone_index = None
 
 
 def get_embeddings() -> HuggingFaceEmbeddings:
-    """Returns cached or newly initialized HuggingFace embeddings model."""
+    """Returns cached or newly initialized HuggingFace embeddings model (Phases 5 & 10)."""
     global _cached_embeddings
     if _cached_embeddings is None:
         logger.info(f"Initializing embedding model: {config.embedding_model_name}")
-        _cached_embeddings = HuggingFaceEmbeddings(model_name=config.embedding_model_name)
+        with measure("load_huggingface_embeddings_model", {"model": config.embedding_model_name}):
+            _cached_embeddings = HuggingFaceEmbeddings(model_name=config.embedding_model_name)
     return _cached_embeddings
 
 
+@lru_cache(maxsize=512)
+def _cached_embed_query(query_text: str) -> tuple:
+    """Caches query vector embeddings in memory to eliminate re-embedding identical/repeated queries."""
+    embeddings = get_embeddings()
+    return tuple(embeddings.embed_query(query_text))
+
+
+def embed_query_fast(query_text: str) -> list:
+    """Generates or retrieves cached vector embedding for query text."""
+    clean_text = str(query_text).strip()
+    return list(_cached_embed_query(clean_text))
+
+
 def get_pinecone_index(api_key: Optional[str] = None):
-    """Returns cached or newly initialized Pinecone Index connection."""
+    """Returns cached or newly initialized Pinecone Index connection (Phases 9 & 11)."""
     global _cached_pinecone_index
     # Guard against mistakenly passing a Google API key to Pinecone
     clean_override = api_key if (api_key and not str(api_key).startswith("AIza")) else None
@@ -34,16 +51,18 @@ def get_pinecone_index(api_key: Optional[str] = None):
         if not active_key:
             raise AuthenticationError("PINECONE_API_KEY is not set.")
         logger.info(f"Connecting to Pinecone index: {config.pinecone_index_name}")
-        pc = Pinecone(api_key=active_key)
-        return pc.Index(config.pinecone_index_name)
+        with measure("connect_pinecone_index_override"):
+            pc = Pinecone(api_key=active_key)
+            return pc.Index(config.pinecone_index_name)
 
     if _cached_pinecone_index is None:
         active_key = config.get_pinecone_api_key()
         if not active_key:
             raise AuthenticationError("PINECONE_API_KEY is not set.")
         logger.info(f"Connecting to Pinecone index: {config.pinecone_index_name}")
-        pc = Pinecone(api_key=active_key)
-        _cached_pinecone_index = pc.Index(config.pinecone_index_name)
+        with measure("connect_pinecone_index_singleton"):
+            pc = Pinecone(api_key=active_key)
+            _cached_pinecone_index = pc.Index(config.pinecone_index_name)
     return _cached_pinecone_index
 
 
@@ -60,30 +79,30 @@ def retrieve_ncert_context(
     Preserves exact class, subject, chapter name, chapter number, and page number metadata.
     """
     try:
-        embeddings = get_embeddings()
-        index = get_pinecone_index(api_key=api_key)
+        with measure("retrieve_ncert_context", {"top_k": top_k, "class": class_filter, "subject": subject_filter}):
+            index = get_pinecone_index(api_key=api_key)
 
-        filter_dict: Dict[str, Any] = {}
-        if class_filter is not None:
-            filter_dict["class"] = {"$eq": int(class_filter)}
-        if chapter_filter is not None:
-            filter_dict["chapter_number"] = {"$eq": int(chapter_filter)}
-        if subject_filter is not None:
-            subj_val = "Mathematics" if "math" in str(subject_filter).lower() else "Science"
-            filter_dict["subject"] = {"$eq": subj_val}
+            filter_dict: Dict[str, Any] = {}
+            if class_filter is not None:
+                filter_dict["class"] = {"$eq": int(class_filter)}
+            if chapter_filter is not None:
+                filter_dict["chapter_number"] = {"$eq": int(chapter_filter)}
+            if subject_filter is not None:
+                subj_val = "Mathematics" if "math" in str(subject_filter).lower() else "Science"
+                filter_dict["subject"] = {"$eq": subj_val}
 
-        query_vector = embeddings.embed_query(query)
+            query_vector = embed_query_fast(query)
 
-        query_kwargs = {
-            "vector": query_vector,
-            "top_k": top_k,
-            "include_metadata": True,
-        }
-        if filter_dict:
-            query_kwargs["filter"] = filter_dict
+            query_kwargs = {
+                "vector": query_vector,
+                "top_k": top_k,
+                "include_metadata": True,
+            }
+            if filter_dict:
+                query_kwargs["filter"] = filter_dict
 
-        results = index.query(**query_kwargs)
-        matches = results.get("matches", [])
+            results = index.query(**query_kwargs)
+            matches = results.get("matches", [])
 
         if not matches:
             return "No matching NCERT textbook content found for this query."
@@ -141,27 +160,27 @@ def retrieve_student_material_context(
                 )
             return ""
 
-        embeddings = get_embeddings()
-        index = get_pinecone_index(api_key=api_key)
+        with measure("retrieve_student_material_context", {"student_id": clean_student_id, "top_k": top_k}):
+            index = get_pinecone_index(api_key=api_key)
 
-        filter_dict: Dict[str, Any] = {
-            "student_id": {"$eq": clean_student_id},
-        }
-        if class_filter is not None:
-            filter_dict["class"] = {"$eq": int(class_filter)}
-        if subject_filter is not None:
-            subj_val = "Mathematics" if "math" in str(subject_filter).lower() else "Science"
-            filter_dict["subject"] = {"$eq": subj_val}
+            filter_dict: Dict[str, Any] = {
+                "student_id": {"$eq": clean_student_id},
+            }
+            if class_filter is not None:
+                filter_dict["class"] = {"$eq": int(class_filter)}
+            if subject_filter is not None:
+                subj_val = "Mathematics" if "math" in str(subject_filter).lower() else "Science"
+                filter_dict["subject"] = {"$eq": subj_val}
 
-        # Semantic retrieval is primary; chapter filter is applied loosely if available
-        query_vector = embeddings.embed_query(query)
-        results = index.query(
-            vector=query_vector,
-            top_k=top_k,
-            include_metadata=True,
-            filter=filter_dict,
-            namespace=PINECONE_STUDENT_NAMESPACE,
-        )
+            # Semantic retrieval is primary; chapter filter is applied loosely if available
+            query_vector = embed_query_fast(query)
+            results = index.query(
+                vector=query_vector,
+                top_k=top_k,
+                include_metadata=True,
+                filter=filter_dict,
+                namespace=PINECONE_STUDENT_NAMESPACE,
+            )
 
         matches = results.get("matches", [])
         if not matches:

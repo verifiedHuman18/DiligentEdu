@@ -15,27 +15,22 @@ def generate_action_plan(
     subject: str = "Science",
     db_path: Optional[str] = None,
     check_custom: bool = True,
+    swat: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Generates a prioritized, explainable, and actionable study recommendation plan
     based on the student's unified SWAT performance, unattempted chapters,
-    or active Teacher Customizations for a specific subject.
-
-    Recommendation Priority (when not customized):
-      1. Priority 1 (High)   — Weak chapters (< 50%) -> Practice quiz (medium/easy)
-      2. Priority 2 (Medium) — Unattempted chapters   -> Diagnostic quiz (easy)
-      3. Priority 3 (Normal) — Average chapters (50%-69%) -> Reinforce practice (medium)
-      4. Priority 4 (Low)    — Strong chapters (≥ 70%) -> Advanced challenge (hard)
-
-    Returns:
-        Structured Dict containing overall urgency, summary, ordered actionable items,
-        and customization metadata.
+    or active Teacher Customizations for a specific subject (Phases 13, 14, 18).
     """
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
-    swat = get_student_swat(
-        student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+    active_swat = (
+        swat
+        if swat is not None
+        else get_student_swat(
+            student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+        )
     )
-    target_class = swat.get("class_level") or (int(class_level) if class_level is not None else 10)
+    target_class = active_swat.get("class_level") or (int(class_level) if class_level is not None else 10)
     repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
 
     # 1. Check for Active Teacher Custom Action Plan
@@ -49,7 +44,7 @@ def generate_action_plan(
         plan = _build_custom_teacher_action_plan(
             student_id=student_id,
             target_class=target_class,
-            swat=swat,
+            swat=active_swat,
             custom_record=custom_record,
             db_path=db_path,
         )
@@ -60,7 +55,7 @@ def generate_action_plan(
     plan = _build_automated_swat_action_plan(
         student_id=student_id,
         target_class=target_class,
-        swat=swat,
+        swat=active_swat,
         db_path=db_path,
     )
     plan["subject"] = subj_clean

@@ -113,7 +113,9 @@ Welcome! Explore your curriculum, upload personal reference books, take practice
         """,
         unsafe_allow_html=True,
     )
-    plan = generate_action_plan(student_id, class_level=class_level, subject=subject)
+    plan = generate_action_plan(
+        student_id, class_level=class_level, subject=subject, swat=swat
+    )
     is_custom = plan.get("is_customized", False)
 
     if (has_data or is_custom) and plan.get("actions"):

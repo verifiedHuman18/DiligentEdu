@@ -330,7 +330,7 @@ async def render_tutor_screen(
         st.session_state.tutor_suggested_subject = subject
         st.session_state.tutor_needs_refresh = False
 
-    # Suggested Prompts tailored to active standard
+    # 1. Suggested Questions Region (Phases 3 & 9: Content-driven height only)
     st.markdown("##### Suggested Questions")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -343,135 +343,141 @@ async def render_tutor_screen(
             use_container_width=True,
         ):
             st.session_state.active_prompt = prompt_text
+            st.rerun()
 
     st.write("")
 
-    # Chat History with TTS Audio Playback
-    for msg_idx, message in enumerate(st.session_state.get("messages", [])):
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-            # Add Speech Audio Player for Assistant Answers
-            if message["role"] == "assistant" and len(message.get("content", "").strip()) > 10:
-                render_tts_player_component(
-                    display_text=message["content"],
-                    message_idx=msg_idx,
-                    button_label="Listen to Answer",
-                    auto_play=False,
-                )
+    # 2. Conversation Area (Phases 3, 4, 7, 8: Transparent when empty, clean message bubbles when populated)
+    conversation_container = st.container()
 
-    # Direct In-Textbar Microphone Injector
-    render_voice_recorder_component(
-        component_key=f"voice_rec_{class_level}_{subject}",
-        class_level=class_level,
-        subject=subject,
-    )
-
-    # Chat Input
+    # 3. Chat Composer Region (Phases 5, 11, 14: Anchored at bottom)
     prompt_input = st.chat_input(
         placeholder="Ask any question from the NCERT curriculum or your notes...",
     )
     prompt = prompt_input or st.session_state.pop("active_prompt", None)
     input_method = st.session_state.pop("last_input_method", "text")
 
-    if prompt:
-        is_voice = False
-        raw_prompt = prompt.strip()
-        if "\u200b[voice]" in raw_prompt:
-            is_voice = True
-            raw_prompt = raw_prompt.replace("\u200b[voice]", "").strip()
-            clean_prompt = normalize_voice_transcript(raw_prompt)
-            input_method = "voice"
-        elif input_method == "voice":
-            is_voice = True
-            clean_prompt = normalize_voice_transcript(raw_prompt)
-        else:
-            clean_prompt = raw_prompt
-            input_method = "text"
+    # In-Textbar Microphone Injector (100% invisible script injector)
+    render_voice_recorder_component(
+        component_key=f"voice_rec_{class_level}_{subject}",
+        class_level=class_level,
+        subject=subject,
+    )
 
-        if len(clean_prompt) >= 2:
-            if "messages" not in st.session_state:
-                st.session_state.messages = []
-
-            # Append user message (preserves input_method for multi-turn conversational history)
-            st.session_state.messages.append(
-                {
-                    "role": "user",
-                    "content": clean_prompt,
-                    "input_method": input_method,
-                }
-            )
-            with st.chat_message("user"):
-                st.markdown(clean_prompt)
-
-            # Generate Assistant Response with strict class and student isolation
-            with st.chat_message("assistant"):
-                message_placeholder = st.empty()
-                full_response = ""
-
-                try:
-                    from backend.exceptions import (
-                        GeminiAuthError,
-                        GeminiConfigurationError,
-                        GeminiQuotaExhaustedError,
-                    )
-
-                    async for chunk in stream_ncert_rag_response(
-                        query=clean_prompt,
-                        class_filter=class_level,
-                        subject=subject,
-                        student_id=active_student_id,
-                        api_key=user_api_key,
-                        model_name=selected_model,
-                        chat_history=st.session_state.messages[:-1],
-                    ):
-                        full_response += chunk
-                        message_placeholder.markdown(full_response + "▌")
-                        await asyncio.sleep(streaming_speed)
-
-                    message_placeholder.markdown(full_response)
-
-                    # Render TTS Audio Player with auto-play ONLY if question was asked by voice
+    with conversation_container:
+        # Render historical chat messages
+        for msg_idx, message in enumerate(st.session_state.get("messages", [])):
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                # Add Speech Audio Player for Assistant Answers
+                if message["role"] == "assistant" and len(message.get("content", "").strip()) > 10:
                     render_tts_player_component(
-                        display_text=full_response,
-                        message_idx=len(st.session_state.messages),
+                        display_text=message["content"],
+                        message_idx=msg_idx,
                         button_label="Listen to Answer",
-                        auto_play=is_voice,
+                        auto_play=False,
                     )
 
-                except GeminiQuotaExhaustedError:
-                    message_placeholder.empty()
-                    st.warning(
-                        "**AI service temporarily unavailable**\n\n"
-                        "The configured AI service has reached its current usage limit. "
-                        "You can add your own Gemini API key in Settings to continue."
-                    )
-                    from frontend.state import navigate_to
+        # Handle active new prompt submission inside conversation area
+        if prompt:
+            is_voice = False
+            raw_prompt = prompt.strip()
+            if "\u200b[voice]" in raw_prompt:
+                is_voice = True
+                raw_prompt = raw_prompt.replace("\u200b[voice]", "").strip()
+                clean_prompt = normalize_voice_transcript(raw_prompt)
+                input_method = "voice"
+            elif input_method == "voice":
+                is_voice = True
+                clean_prompt = normalize_voice_transcript(raw_prompt)
+            else:
+                clean_prompt = raw_prompt
+                input_method = "text"
 
-                    if st.button(
-                        "Open Settings", icon=":material/settings:", key="tutor_open_settings_btn"
-                    ):
-                        navigate_to("settings")
-                        st.rerun()
-                    full_response = "*(AI service reached usage limit. Add your fallback API key in Settings to continue.)*"
-                except (GeminiAuthError, GeminiConfigurationError) as auth_err:
-                    message_placeholder.empty()
-                    st.error(f"**Authentication Error:** {auth_err}")
-                    from frontend.state import navigate_to
+            if len(clean_prompt) >= 2:
+                if "messages" not in st.session_state:
+                    st.session_state.messages = []
 
-                    if st.button(
-                        "Configure API Key in Settings",
-                        icon=":material/key:",
-                        key="tutor_open_settings_auth_btn",
-                    ):
-                        navigate_to("settings")
-                        st.rerun()
-                    full_response = "*(API key configuration error. Please check Settings.)*"
-                except Exception as e:
-                    logger.error(f"Tutor response generation failed: {e}")
-                    st.error(f"Error generating answer: {e}")
-                    full_response = (
-                        "Sorry, I encountered an issue generating the answer. Please try again."
-                    )
+                # Append user message (preserves input_method for multi-turn conversational history)
+                st.session_state.messages.append(
+                    {
+                        "role": "user",
+                        "content": clean_prompt,
+                        "input_method": input_method,
+                    }
+                )
+                with st.chat_message("user"):
+                    st.markdown(clean_prompt)
 
-            # Append assistant message
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+                # Generate Assistant Response with strict class and student isolation
+                with st.chat_message("assistant"):
+                    message_placeholder = st.empty()
+                    full_response = ""
+
+                    try:
+                        from backend.exceptions import (
+                            GeminiAuthError,
+                            GeminiConfigurationError,
+                            GeminiQuotaExhaustedError,
+                        )
+
+                        async for chunk in stream_ncert_rag_response(
+                            query=clean_prompt,
+                            class_filter=class_level,
+                            subject=subject,
+                            student_id=active_student_id,
+                            api_key=user_api_key,
+                            model_name=selected_model,
+                            chat_history=st.session_state.messages[:-1],
+                        ):
+                            full_response += chunk
+                            message_placeholder.markdown(full_response + "▌")
+                            await asyncio.sleep(streaming_speed)
+
+                        message_placeholder.markdown(full_response)
+
+                        # Render TTS Audio Player with auto-play ONLY if question was asked by voice
+                        render_tts_player_component(
+                            display_text=full_response,
+                            message_idx=len(st.session_state.messages),
+                            button_label="Listen to Answer",
+                            auto_play=is_voice,
+                        )
+
+                    except GeminiQuotaExhaustedError:
+                        message_placeholder.empty()
+                        st.warning(
+                            "**AI service temporarily unavailable**\n\n"
+                            "The configured AI service has reached its current usage limit. "
+                            "You can add your own Gemini API key in Settings to continue."
+                        )
+                        from frontend.state import navigate_to
+
+                        if st.button(
+                            "Open Settings", icon=":material/settings:", key="tutor_open_settings_btn"
+                        ):
+                            navigate_to("settings")
+                            st.rerun()
+                        full_response = "*(AI service reached usage limit. Add your fallback API key in Settings to continue.)*"
+                    except (GeminiAuthError, GeminiConfigurationError) as auth_err:
+                        message_placeholder.empty()
+                        st.error(f"**Authentication Error:** {auth_err}")
+                        from frontend.state import navigate_to
+
+                        if st.button(
+                            "Configure API Key in Settings",
+                            icon=":material/key:",
+                            key="tutor_open_settings_auth_btn",
+                        ):
+                            navigate_to("settings")
+                            st.rerun()
+                        full_response = "*(API key configuration error. Please check Settings.)*"
+                    except Exception as e:
+                        logger.error(f"Tutor response generation failed: {e}")
+                        st.error(f"Error generating answer: {e}")
+                        full_response = (
+                            "Sorry, I encountered an issue generating the answer. Please try again."
+                        )
+
+                # Append assistant message
+                st.session_state.messages.append({"role": "assistant", "content": full_response})

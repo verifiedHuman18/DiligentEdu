@@ -135,12 +135,14 @@ def inject_custom_css(theme_name: str = None) -> None:
     --radius-full: 9999px;
 }}
 
-/* Base Streamlit App Overrides (Cream & Brown) */
+/* Base Streamlit App Overrides (Cream & Brown Stable Background Hierarchy) */
+html,
+body,
 .stApp,
 [data-testid="stAppViewContainer"],
 .main,
-header,
-body {{
+section.main,
+header {{
     background-color: var(--bg-app) !important;
     color: var(--text-primary) !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -160,6 +162,33 @@ body {{
     padding-right: 2.5rem !important;
     max-width: 1280px;
     background-color: transparent !important;
+    min-height: 85vh;
+}}
+
+/* Zero-height script injector components must be 100% invisible with zero layout presence (Phases 1, 2, 7) */
+iframe[height="0"],
+iframe[style*="height: 0px"],
+iframe[style*="height:0px"],
+[data-testid="stCustomComponentV1"],
+[data-testid="stCustomComponentV1"]:has(iframe[height="0"]),
+[data-testid="stCustomComponentV1"]:has(iframe[style*="height: 0px"]),
+[data-testid="stCustomComponentV1"]:has(iframe[style*="height:0px"]) {{
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}}
+
+/* Visible iframes with explicit non-zero height (e.g. Knowledge Graph) */
+iframe[height]:not([height="0"]),
+iframe[style*="height"]:not([style*="height: 0px"]):not([style*="height:0px"]) {{
+    display: block !important;
+    border-radius: var(--radius-md) !important;
 }}
 
 /* Global Typography */
@@ -1028,10 +1057,27 @@ summary[data-testid="stExpanderSummary"]:hover svg,
     color: var(--text-primary) !important;
 }}
 
+[data-testid="stChatMessageContent"] {{
+    color: var(--text-primary) !important;
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+}}
+
+[data-testid="stChatMessageContent"] p,
+[data-testid="stChatMessageContent"] li {{
+    color: var(--text-primary) !important;
+}}
+
+[data-testid="stBottom"] {{
+    background-color: var(--bg-app) !important;
+    padding-bottom: 1.25rem !important;
+}}
+
 [data-testid="stChatInput"] {{
     background-color: var(--bg-surface) !important;
     border: 1.5px solid var(--border-outline-variant) !important;
     border-radius: var(--radius-md) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }}
 
 [data-testid="stChatInput"]:focus-within {{

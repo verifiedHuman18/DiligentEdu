@@ -82,32 +82,46 @@ def classify_gemini_error(exc: Exception) -> str:
     return "UNKNOWN_ERROR"
 
 
+_sync_clients: Dict[str, OpenAI] = {}
+_async_clients: Dict[str, AsyncOpenAI] = {}
+
+
 def get_gemini_client(api_key: Optional[str] = None) -> OpenAI:
     """
-    Creates a synchronous OpenAI-compatible client targeting Google Gemini.
+    Creates or reuses a cached synchronous OpenAI-compatible client targeting Google Gemini (Phases 5 & 6).
+    Reuses existing client connection pools per effective API key.
     """
     effective_key = api_key or get_primary_api_key() or get_user_fallback_api_key()
     if not effective_key:
         raise GeminiConfigurationError("No Gemini API key is configured.")
 
-    return OpenAI(
-        base_url=config.gemini_base_url,
-        api_key=effective_key,
-    )
+    key_str = str(effective_key).strip()
+    if key_str not in _sync_clients:
+        _sync_clients[key_str] = OpenAI(
+            base_url=config.gemini_base_url,
+            api_key=key_str,
+        )
+
+    return _sync_clients[key_str]
 
 
 def get_async_gemini_client(api_key: Optional[str] = None) -> AsyncOpenAI:
     """
-    Creates an asynchronous OpenAI-compatible client targeting Google Gemini.
+    Creates or reuses a cached asynchronous OpenAI-compatible client targeting Google Gemini (Phases 5 & 6).
+    Reuses existing client connection pools per effective API key.
     """
     effective_key = api_key or get_primary_api_key() or get_user_fallback_api_key()
     if not effective_key:
         raise GeminiConfigurationError("No Gemini API key is configured.")
 
-    return AsyncOpenAI(
-        base_url=config.gemini_base_url,
-        api_key=effective_key,
-    )
+    key_str = str(effective_key).strip()
+    if key_str not in _async_clients:
+        _async_clients[key_str] = AsyncOpenAI(
+            base_url=config.gemini_base_url,
+            api_key=key_str,
+        )
+
+    return _async_clients[key_str]
 
 
 def execute_chat_completion(
@@ -134,7 +148,7 @@ def execute_chat_completion(
     # Explicit override takes direct precedence if provided
     if override_api_key and str(override_api_key).strip():
         logger.info("Using explicitly provided override Gemini API key")
-        client = OpenAI(base_url=config.gemini_base_url, api_key=str(override_api_key).strip())
+        client = get_gemini_client(api_key=str(override_api_key).strip())
         create_kwargs: Dict[str, Any] = {
             "model": target_model,
             "messages": messages,
@@ -166,7 +180,7 @@ def execute_chat_completion(
     if primary_key:
         logger.info("Using primary Gemini API")
         try:
-            client = OpenAI(base_url=config.gemini_base_url, api_key=primary_key)
+            client = get_gemini_client(api_key=primary_key)
             return client.chat.completions.create(**create_kwargs)
         except Exception as primary_err:
             category = classify_gemini_error(primary_err)
@@ -182,7 +196,7 @@ def execute_chat_completion(
             if fallback_key:
                 logger.info("Using session fallback Gemini API")
                 try:
-                    fb_client = OpenAI(base_url=config.gemini_base_url, api_key=fallback_key)
+                    fb_client = get_gemini_client(api_key=fallback_key)
                     return fb_client.chat.completions.create(**create_kwargs)
                 except Exception as fb_err:
                     fb_cat = classify_gemini_error(fb_err)
@@ -220,7 +234,7 @@ def execute_chat_completion(
     # 2. If only Fallback key is available
     logger.info("Using session fallback Gemini API")
     try:
-        client = OpenAI(base_url=config.gemini_base_url, api_key=fallback_key)
+        client = get_gemini_client(api_key=fallback_key)
         create_kwargs = {
             "model": target_model,
             "messages": messages,
@@ -259,7 +273,7 @@ async def stream_chat_completion(
     # Explicit override takes direct precedence if provided
     if override_api_key and str(override_api_key).strip():
         logger.info("Using explicitly provided override Gemini API key for streaming")
-        client = AsyncOpenAI(base_url=config.gemini_base_url, api_key=str(override_api_key).strip())
+        client = get_async_gemini_client(api_key=str(override_api_key).strip())
         stream_resp = await client.chat.completions.create(
             model=target_model,
             messages=messages,
@@ -284,7 +298,7 @@ async def stream_chat_completion(
     if primary_key:
         logger.info("Using primary Gemini API")
         try:
-            client = AsyncOpenAI(base_url=config.gemini_base_url, api_key=primary_key)
+            client = get_async_gemini_client(api_key=primary_key)
             stream_resp = await client.chat.completions.create(
                 model=target_model,
                 messages=messages,
@@ -308,7 +322,7 @@ async def stream_chat_completion(
             if fallback_key:
                 logger.info("Using session fallback Gemini API for streaming")
                 try:
-                    fb_client = AsyncOpenAI(base_url=config.gemini_base_url, api_key=fallback_key)
+                    fb_client = get_async_gemini_client(api_key=fallback_key)
                     stream_resp = await fb_client.chat.completions.create(
                         model=target_model,
                         messages=messages,

@@ -1,6 +1,6 @@
 """Session state initialization and helpers for DiligentEdu."""
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import streamlit as st
 
@@ -18,6 +18,8 @@ def init_session_state() -> None:
         "login_step": "select_role",
         "teacher_id": "teacher_001",
         "current_screen": "login",
+        "is_transitioning": False,
+        "transition_target": None,
         "messages": [],
         "class_level": 10,
         "selected_class": "Class 10",
@@ -51,6 +53,72 @@ def init_session_state() -> None:
     for key, val in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = val
+
+
+def invalidate_class_dependent_state() -> None:
+    """
+    Atomically clears all class/subject-dependent state (quizzes, hints, chat history, suggestions)
+    to prevent cross-class or cross-subject leakage during transitions (Phases 12 & 15).
+    """
+    st.session_state.current_quiz = None
+    st.session_state.quiz_submitted = False
+    st.session_state.quiz_user_answers = {}
+    st.session_state.last_submission_result = None
+    st.session_state.socrates_active_q = 1
+    st.session_state.socrates_hints_revealed = {}
+    st.session_state.socrates_chat_history = {}
+    st.session_state.socrates_attempts = {}
+    st.session_state.socrates_completed = False
+    st.session_state.tutor_needs_refresh = True
+    st.session_state.tutor_suggested_questions = None
+    st.session_state.messages = []
+
+
+def bootstrap_authenticated_session(
+    user_id: str,
+    role: str,
+    name: Optional[str] = None,
+    class_level: Optional[int] = 10,
+    subject: Optional[str] = "Science",
+    restore_screen: bool = False,
+) -> None:
+    """
+    Atomically initializes all authentication, role, class scope, and identity state
+    before the authenticated application shell renders (Phases 10 & 11).
+    """
+    st.session_state.user_role = role
+    st.session_state.user_name = name or user_id
+
+    # Resolve class scope
+    cls_int = class_level if class_level in VALID_CLASS_LEVELS else 10
+    st.session_state.class_level = cls_int
+    st.session_state.selected_class = f"Class {cls_int}"
+
+    # Resolve subject
+    target_subj = "Mathematics" if subject and "math" in str(subject).lower() else "Science"
+    st.session_state.subject = target_subj
+    st.session_state.selected_subject = target_subj
+
+    # Store role-specific IDs
+    if role == "teacher":
+        st.session_state.teacher_id = user_id
+        st.session_state.teacher_subject = target_subj
+        target_screen = "teacher"
+    elif role == "admin":
+        st.session_state.admin_id = user_id
+        target_screen = "admin_home"
+    else:
+        st.session_state.student_id = user_id
+        target_screen = "home"
+
+    if not restore_screen:
+        st.session_state.current_screen = target_screen
+        st.query_params["screen"] = target_screen
+    elif "screen" in st.query_params:
+        st.session_state.current_screen = st.query_params["screen"]
+
+    st.query_params["uid"] = user_id
+    invalidate_class_dependent_state()
 
 
 def get_student_class_level() -> int:
@@ -88,19 +156,8 @@ def set_student_class_level(class_level: int) -> None:
     st.session_state.class_level = target_level
     st.session_state.selected_class = f"Class {target_level}"
 
-    # Phase 15: If class level changed, reset current quiz and stale chapter selection
     if prev_level is not None and prev_level != target_level:
-        st.session_state.current_quiz = None
-        st.session_state.quiz_submitted = False
-        st.session_state.quiz_user_answers = {}
-        st.session_state.last_submission_result = None
-        st.session_state.socrates_active_q = 1
-        st.session_state.socrates_hints_revealed = {}
-        st.session_state.socrates_chat_history = {}
-        st.session_state.socrates_attempts = {}
-        st.session_state.socrates_completed = False
-        st.session_state.tutor_needs_refresh = True
-        st.session_state.tutor_suggested_questions = None
+        invalidate_class_dependent_state()
 
 
 def get_student_subject() -> str:
@@ -126,18 +183,7 @@ def set_student_subject(subject: str) -> None:
     st.session_state.selected_subject = target_subject
 
     if prev_subject is not None and prev_subject != target_subject:
-        st.session_state.current_quiz = None
-        st.session_state.quiz_submitted = False
-        st.session_state.quiz_user_answers = {}
-        st.session_state.last_submission_result = None
-        st.session_state.socrates_active_q = 1
-        st.session_state.socrates_hints_revealed = {}
-        st.session_state.socrates_chat_history = {}
-        st.session_state.socrates_attempts = {}
-        st.session_state.socrates_completed = False
-        st.session_state.tutor_needs_refresh = True
-        st.session_state.tutor_suggested_questions = None
-        st.session_state.messages = []
+        invalidate_class_dependent_state()
 
 
 def get_student_profile() -> Dict[str, Any]:
@@ -160,18 +206,24 @@ def set_state(key: str, value: Any) -> None:
     st.session_state[key] = value
 
 
-def navigate_to(screen_name: str) -> None:
-    """Navigates to a specific screen."""
-    if screen_name != st.session_state.get("current_screen"):
+def navigate_to(screen_name: str, message: Optional[str] = None) -> None:
+    """Navigates to a specific screen with centralized TransitionController lifecycle management (Phases 3-7, 11-13)."""
+    current = st.session_state.get("current_screen")
+    if screen_name != current:
         if screen_name == "tutor":
             st.session_state.tutor_needs_refresh = True
-        st.session_state.is_navigating = True
+        try:
+            from frontend.components.transition import start_transition
+            start_transition(screen_name, message)
+        except Exception:
+            pass
+
     st.session_state.current_screen = screen_name
     st.query_params["screen"] = screen_name
 
 
 def get_user_role() -> Any:
-    """Returns the active user role ('student', 'teacher', or None)."""
+    """Returns the active user role ('student', 'teacher', 'admin', or None)."""
     return st.session_state.get("user_role")
 
 
@@ -184,7 +236,6 @@ def set_user_role(role: Any, restore_screen: bool = False) -> None:
     st.session_state.user_role = role
 
     if not restore_screen:
-        st.session_state.is_navigating = True
         if role == "student":
             st.session_state.current_screen = "home"
             st.query_params["screen"] = "home"
@@ -202,7 +253,6 @@ def logout() -> None:
     """Logs out the current user, clears role, and routes back to the login / role selection screen."""
     st.session_state.clear()
     init_session_state()
-    st.session_state.is_navigating = True
 
     if "uid" in st.query_params:
         del st.query_params["uid"]
