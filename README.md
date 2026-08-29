@@ -1,12 +1,13 @@
 # DiligentEdu
 
-> **Intelligent NCERT Academic Science RAG Assistant, Socratic AI Tutor, Adaptive Diagnostic System & National Scholarship Discovery Platform**
+> **Intelligent NCERT Academic Science RAG Assistant, Socratic AI Tutor, Adaptive Diagnostic System, Study Twin Matchmaker and National Scholarship Discovery Platform**
 
 ![Python](https://img.shields.io/badge/python-v3.12+-blue.svg)
 ![Streamlit](https://img.shields.io/badge/streamlit-v1.49+-red.svg)
-![LangChain](https://img.shields.io/badge/langchain-v0.3+-green.svg)
+![Prisma](https://img.shields.io/badge/orm-prisma-2D3748.svg)
 ![Google Gemini](https://img.shields.io/badge/google%20gemini-2.5%20%2F%202.0%20%2F%201.5-orange.svg)
 ![Pinecone](https://img.shields.io/badge/vector%20store-pinecone-blueviolet.svg)
+![Firebase](https://img.shields.io/badge/auth-firebase-FFA611.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
@@ -14,96 +15,90 @@
 
 ## Overview
 
-**DiligentEdu** is an enterprise-grade, multi-role academic learning platform and intelligent tutoring system designed for Indian secondary education. Built specifically around the authoritative **NCERT Class 9 and Class 10 Science curriculum**, DiligentEdu combines advanced Retrieval-Augmented Generation (RAG), Socratic pedagogical guidance, continuous diagnostic assessment, early-warning analytics for educators, and a centralized government scholarship discovery engine.
+**DiligentEdu** is an enterprise-grade, multi-role academic learning platform and intelligent tutoring system designed for Indian secondary education. Built around the authoritative **NCERT Class 9 and Class 10 Science curriculum**, DiligentEdu integrates Retrieval-Augmented Generation (RAG), Socratic pedagogical guidance, continuous diagnostic assessment, collaborative peer matching, early-warning analytics for educators, administrative governance, and a centralized government scholarship matching engine.
 
-Whether a student needs step-by-step conceptual guidance on *Chemical Reactions and Equations*, an educator needs real-time mastery analytics to identify at-risk learners, or a family is searching for eligible National Scholarship schemes, DiligentEdu provides an integrated, curriculum-grounded solution.
+Whether a student needs step-by-step conceptual guidance on *Chemical Reactions and Equations*, an educator needs cohort mastery analytics to identify at-risk learners, an administrator needs curriculum scope management, or a family is searching for eligible National Scholarship schemes, DiligentEdu provides a unified, curriculum-grounded solution.
 
 ---
 
 ## Key Features
 
-### 🎓 1. NCERT Science RAG Assistant & Textbook Integration
-- **Curriculum-Grounded Retrieval**: Powered by Pinecone vector storage with strict class-level isolation (`class9`, `class10`) across all 25 NCERT Science chapters.
-- **Page-Level Verifiable Citations**: Every explanation includes direct chapter and page citations from the official NCERT textbooks.
-- **Built-in Textbook PDF Viewer**: Seamlessly view authoritative textbook PDFs directly within the application via static streaming.
-- **Real-Time Streaming**: Low-latency token streaming with dynamic visual indicators and responsive formatting.
+### 1. Interactive 3D Knowledge Universe Intro
+* **Three.js WebGL Landing Scene**: High-performance 3D scene featuring a pulsing Knowledge Core, counter-rotating wireframe cage, 3 angled orbital tracks, and 3 academic concept satellites.
+* **Cinematic Phased Assembly**: Dynamic particle convergence timeline (~3s) transitioning into branding without blocking AI or database initialization.
+* **Accessibility and Resilience**: Native prefers-reduced-motion support, WebGL fallback to static branding, and zero browser-level URL manipulation.
+* **Seamless State Handoff**: Single centered button triggering pure Python session transition directly into the authentication portal.
 
-### 🧠 2. Intelligent Socratic & Exploratory Tutor
-- **Dual Tutoring Modes**: Choose between *Exploratory Mode* (broad conceptual explanations) and *Socrates Mode* (guided inquiry prompting the student to deduce answers).
-- **Dynamic Suggested Questions**: Context-aware suggested prompts tailored specifically to the selected class and chapter.
-- **Mathematical & Chemical Precision**: Full LaTeX formula rendering and structured tables for reactions, equations, and physics laws.
+### 2. Multi-Role Authentication and Profile Isolation
+* **Firebase Authentication**: Secure email and password authentication integrated with institutional rosters.
+* **Role-Based Workspaces**: Dedicated interfaces and access controls for Students, Teachers, and Administrators.
+* **Session Persistence**: URL parameter session restoration (`?uid=...`) with persistent Prisma database state.
 
-### 📝 3. Adaptive Quiz & Diagnostic Engine
-- **Bloom's Taxonomy Progression**: Dynamic quiz generation scaling from foundational recall to conceptual understanding and analytical application.
-- **Interactive Socrates Quiz Mode**: Step-by-step question breakdown offering progressive hints without prematurely revealing solutions.
-- **Instant Automated Grading**: Real-time evaluation, point breakdown, and detailed explanations for every option.
+### 3. NCERT Science RAG Assistant and Textbook Viewer
+* **Curriculum-Grounded Retrieval**: Powered by Pinecone vector storage with strict class-level isolation (`class9`, `class10`) across all 25 NCERT Science chapters.
+* **Page-Level Verifiable Citations**: Explanations include direct chapter and page citations matching the official NCERT textbooks.
+* **Integrated Textbook PDF Viewer**: Built-in static PDF streaming allows students to review source textbooks alongside AI responses.
+* **Real-Time Token Streaming**: Low-latency token generation with full LaTeX formula rendering and structured tables for physics laws, chemical reactions, and mathematical proofs.
 
-### 📊 4. Student SWAT Performance Analysis
-- **SWAT Diagnostics**: Automated assessment of **S**trengths (≥75%), **W**eaknesses (<50%), **A**ptitude (50–74%), and **T**argets (unattempted chapters).
-- **Mastery Heatmaps & Radar Charts**: Visual score distributions tracking curriculum mastery over time.
-- **Prescriptive Action Plans**: Tailored recommendations and targeted revision pathways generated from individual quiz performance.
+### 4. Intelligent Socratic and Exploratory Tutor
+* **Dual Pedagogical Modes**: Choose between *Exploratory Mode* (direct conceptual explanations) and *Socrates Mode* (guided inquiry prompting the student to deduce answers).
+* **Contextual Suggested Prompts**: Context-aware questions tailored specifically to the selected class level and chapter.
+* **Mathematical and Scientific Formatting**: Full support for chemical equations, reaction conditions, and physics derivations.
 
-### 👩‍🏫 5. Educator / Teacher Early-Warning Dashboard
-- **Cohort-Wide Monitoring**: Class-level performance metrics, completion rates, and average score distributions.
-- **Early-Warning Alerts**: Immediate flagging of students requiring academic intervention or falling behind in core chapters.
-- **Customizable Action Plans**: Review, modify, or override AI-generated student action plans with custom educator remarks.
+### 5. Adaptive Quiz and Diagnostic Engine
+* **Bloom's Taxonomy Progression**: Dynamic question generation scaling from foundational recall to conceptual understanding and analytical application.
+* **Socrates Quiz Mode**: Interactive step-by-step breakdown offering progressive hints without prematurely revealing answers.
+* **Automated Evaluation and Explanations**: Instant scoring, point breakdown, and detailed rationales for correct and incorrect choices.
 
-### 🏛️ 6. National Scholarship Portal (NSP) Discovery Hub
-- **Curated Scholarship Catalog**: Comprehensive database of central and state schemes (Pre-Matric, PM-YASASVI, NMMS, Disabilities, Minorities).
-- **Multi-Factor Eligibility Matchmaker**: Instant scheme matching based on class, gender, social category, annual family income, and disability status.
-- **AI Scholarship Assistant**: Interactive Q&A engine answering questions about application timelines, document checklists, and eligibility criteria with official portal links.
+### 6. Student SWAT Performance Analytics
+* **Automated SWAT Diagnostics**: Classifies chapter performance into **S**trengths (>=75%), **W**eaknesses (<50%), **A**ptitudes (50-74%), and **T**argets (unattempted chapters).
+* **Mastery Radar and Trend Analysis**: Visual score distributions tracking curriculum mastery over time.
+* **Prescriptive Action Plans**: Personalized revision pathways generated from individual quiz performance.
 
-### 🔐 7. Dual-Key Resilient AI Architecture
-- **Primary + Fallback Resolution**: Seamless fallback from primary environment/secrets keys to user-provided session keys.
-- **Zero Disk Leakage**: Session API keys are retained exclusively in volatile memory and never persisted to disk or logs.
-- **Intelligent Error Categorization**: Automated recovery and clear guidance for authentication errors (HTTP 401/403), quota limits (HTTP 429), and service disruptions (HTTP 500/503).
+### 7. Interactive Knowledge Graph
+* **Visual Concept Maps**: Interactive graphical networks displaying relationships between core NCERT science topics, definitions, and formulas.
+* **Cross-Chapter Linkages**: Helps students discover prerequisites and conceptual connections across biology, chemistry, and physics.
+
+### 8. Study Twin and Collaborative Peer Matching
+* **Complementary Profile Matching**: Algorithmic matchmaker pairing learners based on mastery levels, active focus topics, and SWAT priorities.
+* **Peer Learning Facilitation**: Connects students who excel in specific chapters with peers targeting improvement in those areas.
+* **Persistent Matching Records**: Tracks similarity scores and historical study partnerships in the Prisma database.
+
+### 9. Educator and Teacher Early-Warning Dashboard
+* **Cohort-Wide Monitoring**: Class-level performance metrics, quiz completion rates, and average score distributions.
+* **Early-Warning Alerts**: Immediate flagging of students requiring academic intervention or falling behind in foundational chapters.
+* **Customizable Action Plans**: Review, modify, and augment AI-generated student action plans with educator remarks.
+
+### 10. Administrator Portal and Governance
+* **Class Scope Management**: Institutional toggles for curriculum visibility, active class levels, and academic years.
+* **User and Roster Management**: Overview of registered students, teachers, and system access logs.
+
+### 11. National Scholarship Portal (NSP) Matching Hub
+* **Curated Central and State Catalog**: Database of verified government schemes (Pre-Matric, PM-YASASVI, NMMS, Top Class Schools, PwD allowances).
+* **Multi-Factor Eligibility Matchmaker**: Instant evaluation based on class level, annual family income brackets, reservation category, school management type, and disability status.
+* **Direct Official Links**: Authoritative links to the National Scholarship Portal and Direct Benefit Transfer (DBT) guidelines.
+
+### 12. Dual-Key Resilient AI Architecture
+* **Primary and Fallback Resolution**: Automatic fallback from primary environment/secrets keys to user-provided session keys.
+* **Zero Disk Leakage**: Session API keys are retained exclusively in volatile memory and never written to disk or logs.
+* **Intelligent Error Categorization**: Automated handling for authentication errors (HTTP 401/403), quota limits (HTTP 429), and service disruptions (HTTP 500/503).
 
 ---
 
-## System Architecture
+## Tech Stack
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             STREAMLIT UI LAYER                              │
-│   ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐   │
-│   │ Student Space │ │ Socratic Quiz │ │ SWAT Analysis │ │ Teacher Radar │   │
-│   └───────┬───────┘ └───────┬───────┘ └───────┬───────┘ └───────┬───────┘   │
-│           │                 │                 │                 │           │
-│   ┌───────┴───────┐ ┌───────┴───────┐ ┌───────┴───────┐ ┌───────┴───────┐   │
-│   │ Chapter Hub   │ │ PDF Reader    │ │ Scholarships  │ │ Settings/Keys │   │
-│   └───────┬───────┘ └───────┬───────┘ └───────┬───────┘ └───────┬───────┘   │
-└───────────┼─────────────────┼─────────────────┼─────────────────┼───────────┘
-            ▼                 ▼                 ▼                 ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                   UNIFIED BACKEND FACADE (backend.py)                       │
-│  Central single-source-of-truth API orchestrating all subsystem operations   │
-└──────────────────────────────────────┬──────────────────────────────────────┘
-                                       │
-            ┌──────────────────────────┼──────────────────────────┐
-            ▼                          ▼                          ▼
-┌───────────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐
-│     RAG / TUTOR       │  │    DIAGNOSTICS &      │  │     SCHOLARSHIPS      │
-│      SUBSYSTEM        │  │       ANALYTICS       │  │       SUBSYSTEM       │
-│                       │  │                       │  │                       │
-│ • NCERT RAG Engine    │  │ • Adaptive Generator  │  │ • Eligibility Engine  │
-│ • Prompt Orchestrator │  │ • Socrates Evaluator  │  │ • Scheme Searcher     │
-│ • Suggested Prompts   │  │ • SWAT Diagnostic     │  │ • Scholarship QA Bot  │
-│ • PDF Page Resolver   │  │ • Teacher Action Plan │  │ • NSP Scraper/Parser  │
-└───────────┬───────────┘  └───────────┬───────────┘  └───────────┬───────────┘
-            │                          │                          │
-            ▼                          ▼                          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            AI & DATA LAYER                                  │
-│  ┌──────────────────────┐ ┌──────────────────────┐ ┌─────────────────────┐  │
-│  │ Google Gemini Models │ │ HuggingFace MiniLM   │ │ Pinecone Vector DB  │  │
-│  │ (2.5 Pro/Flash/Lite) │ │ Embeddings (384-dim) │ │ (class9 / class10)  │  │
-│  └──────────────────────┘ └──────────────────────┘ └─────────────────────┘  │
-│  ┌──────────────────────┐ ┌──────────────────────┐ ┌─────────────────────┐  │
-│  │ SQLite Database      │ │ Static NCERT PDFs    │ │ Scholarship Catalog │  │
-│  │ (quiz_history.db)    │ │ (/static/class{9,10})│ │ (sources.json)      │  │
-│  └──────────────────────┘ └──────────────────────┘ └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend Framework** | Streamlit (Python) | Interactive web application and multi-screen state orchestration |
+| **3D Graphics** | Three.js (r128 WebGL) | Fullscreen procedural 3D Knowledge Universe splash screen |
+| **Styling & Design System** | Material Design 3 / Custom CSS | Curated dark theme, glassmorphism, responsive cards, and tokens |
+| **Relational Database & ORM** | Prisma ORM, SQLite (`prisma/dev.db`) | User profiles, quiz attempts, question logs, action plans, study twins |
+| **Authentication** | Firebase Authentication REST API | Identity verification and token-based session management |
+| **AI / LLM Integration** | Google Gemini (via OpenAI Agents SDK) | Socratic tutoring, query answers, and adaptive quiz generation |
+| **Vector Database** | Pinecone | Cloud vector database partitioned by class namespaces (`class9`, `class10`) |
+| **Embeddings Model** | HuggingFace `all-MiniLM-L6-v2` | Dense 384-dimensional vector embeddings for textbook retrieval |
+| **Package Management** | `uv` / `pip` | High-speed dependency resolution and virtual environments |
+| **Code Quality & CI/CD** | Ruff, GitHub Actions | Strict linting, automated formatting, and unit testing |
 
 ---
 
@@ -137,7 +132,7 @@ Whether a student needs step-by-step conceptual guidance on *Chemical Reactions 
 6. **Chapter 6**: Control and Coordination
 7. **Chapter 7**: How do Organisms Reproduce?
 8. **Chapter 8**: Heredity
-9. **Chapter 9**: Light – Reflection and Refraction
+9. **Chapter 9**: Light: Reflection and Refraction
 10. **Chapter 10**: The Human Eye and the Colourful World
 11. **Chapter 11**: Electricity
 12. **Chapter 12**: Magnetic Effects of Electric Current
@@ -146,27 +141,61 @@ Whether a student needs step-by-step conceptual guidance on *Chemical Reactions 
 
 ---
 
-## Tech Stack
+## Project Structure
 
-| Component | Technology / Library | Description |
-| :--- | :--- | :--- |
-| **Frontend UI** | Streamlit, Custom Dark CSS | Responsive multi-role user interface |
-| **Backend Facade** | Python 3.12+ | Unified synchronous/asynchronous data layer |
-| **AI / LLM Integration** | Google Gemini (via OpenAI Agents SDK) | High-speed reasoning, tutoring, and quiz generation |
-| **Embeddings** | HuggingFace `sentence-transformers/all-MiniLM-L6-v2` | Dense 384-dimensional vector embeddings |
-| **Vector Database** | Pinecone | Managed vector store partitioned by grade namespaces |
-| **Relational Storage** | SQLite (`quiz_history.db`) | Student profiles, attempt histories, and action plans |
-| **Package Manager** | `uv` / `pip` | Fast dependency resolution and environment management |
-| **Code Quality** | Ruff, Pre-Commit | Strict linting, formatting, and type adherence |
+```
+academic-rag-assistant/
+├── app.py                              # Streamlit application entry point and screen routing
+├── backend/                            # Core business logic and database interfaces
+│   ├── auth/                           # Firebase authentication client
+│   ├── curriculum/                     # NCERT Class 9 and 10 metadata and PDF resolvers
+│   ├── rag/                            # Pinecone retriever, prompts, and streaming engine
+│   ├── quiz/                           # Socrates quiz generator, evaluators, and models
+│   ├── analytics/                      # SWAT diagnostic engine and teacher action plans
+│   ├── scholarships/                   # NSP guidelines, models, and eligibility matchmaker
+│   ├── storage/                        # Prisma client singleton and database repositories
+│   └── exceptions.py                   # Domain-specific exception hierarchy
+│
+├── frontend/                           # Streamlit UI presentation layer
+│   ├── assets/                         # Application logos and static illustrations
+│   ├── components/                     # Reusable widgets (navbar, transitions, cards, PDF viewer)
+│   ├── screens/                        # Screen views (intro, login, home, tutor, quiz, SWAT, etc.)
+│   ├── state.py                        # Unified session state management
+│   └── styles.py                       # Material Design 3 tokens and dark CSS stylesheets
+│
+├── prisma/                             # Database schema and migrations
+│   ├── schema.prisma                   # Prisma schema (User, QuizAttempt, QuestionResponse, etc.)
+│   └── dev.db                          # Local SQLite database instance
+│
+├── static/                             # Authoritative NCERT textbook PDFs
+│   ├── class9/                         # Class 9 science textbook PDFs
+│   └── class10/                        # Class 10 science textbook PDFs
+│
+├── scholarships/                       # Scholarship dataset and sources metadata
+│   └── sources.json                    # Canonical government scholarship guidelines
+│
+├── scripts/                            # Maintenance, benchmarking, and database seed scripts
+│   ├── provision_users.py              # User provisioning in Firebase and Prisma
+│   ├── seed_mock_data.py               # Generates sample student quiz attempts and SWAT history
+│   ├── ingest_corpus.py                # NCERT PDF chunking and vector index ingestion
+│   └── retrieval_benchmark.py          # Vector search accuracy and latency benchmarks
+│
+├── tests/                              # Automated test suite (unit, integration, regression)
+├── requirements.txt                    # Python runtime dependencies
+├── pyproject.toml                      # Project metadata, Ruff and Pyright configuration
+├── DockerFile                          # Docker container build specification
+└── LICENSE                             # GNU General Public License v3.0
+```
 
 ---
 
-## Quick Start
+## Getting Started
 
 ### 1. Prerequisites
-- **Python 3.12** or higher
-- **Google Gemini API Key** ([Google AI Studio](https://aistudio.google.com/app/apikey))
-- **Pinecone API Key** ([Pinecone Console](https://app.pinecone.io/)) with an index named `ncert-science`
+* **Python 3.12** or higher
+* **Google Gemini API Key** from [Google AI Studio](https://aistudio.google.com/app/apikey)
+* **Pinecone API Key** from [Pinecone Console](https://app.pinecone.io/) with an index named `ncert-science`
+* **Firebase Project** (optional for cloud auth, fallback mode available)
 
 ### 2. Clone the Repository
 ```bash
@@ -174,7 +203,7 @@ git clone https://github.com/verifiedHuman18/DiligentEdu.git
 cd DiligentEdu
 ```
 
-### 3. Install Dependencies
+### 3. Set Up Virtual Environment and Dependencies
 
 Using **`uv`** (recommended):
 ```bash
@@ -183,33 +212,39 @@ uv sync --group dev
 
 Or using standard **`pip`**:
 ```bash
+python -m venv .venv
+# On Windows:
+.\.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
+
 pip install -r requirements.txt
 ```
 
-### 4. Set Up Pre-Commit Git Hooks
-To enable automated linting and formatting on every commit:
+### 4. Initialize the Prisma Database
+Generate the Prisma client and apply the database schema:
 ```bash
-# 1-step automated setup
-bash scripts/setup_hooks.sh
-
-# Or via uv pre-commit
-uv run pre-commit install
+python -m prisma generate
+python -m prisma db push
 ```
 
-### 5. Configure Environment Variables
+### 5. Seed Initial User and Academic Data
+```bash
+python scripts/provision_users.py
+python scripts/seed_mock_data.py
+```
+
+### 6. Configure Environment Variables
 Create a `.env` file in the root directory (or `.streamlit/secrets.toml`):
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your API credentials:
 ```env
 GOOGLE_API_KEY=your_google_gemini_api_key_here
 PINECONE_API_KEY=your_pinecone_api_key_here
+PINECONE_INDEX_NAME=ncert-science
+FIREBASE_API_KEY=your_firebase_api_key_here
 ```
 
-### 6. Run the Application
+### 7. Run the Application
 ```bash
 streamlit run app.py
 ```
@@ -226,18 +261,19 @@ Open your browser and navigate to: **`http://localhost:8501`**
 | :--- | :---: | :--- | :--- |
 | `GOOGLE_API_KEY` | Optional* | None | Primary Google Gemini API key (*can also be entered in UI) |
 | `PINECONE_API_KEY` | Yes | None | Pinecone vector database API key |
-| `PINECONE_INDEX_NAME`| No | `ncert-science` | Target Pinecone vector index name |
+| `PINECONE_INDEX_NAME` | No | `ncert-science` | Target Pinecone vector index name |
+| `FIREBASE_API_KEY` | No | None | Firebase Authentication Web API key |
 
 ### Supported Gemini Models
 
-| Model Identifier | Capabilities & Use Case |
+| Model Identifier | Description and Recommended Use Case |
 | :--- | :--- |
-| `gemini-2.5-flash` | **Default / Recommended**: Ultra-fast responses and high accuracy |
-| `gemini-2.5-pro` | Advanced reasoning for complex multi-step physics and chemistry proofs |
-| `gemini-2.5-flash-lite` | Lightweight and cost-efficient for rapid query resolution |
-| `gemini-2.0-flash` | High throughput baseline model |
-| `gemini-1.5-pro` | High context window model for large document analysis |
-| `gemini-1.5-flash` | Fast baseline model |
+| `gemini-2.5-flash` | **Default / Recommended**: Ultra-fast responses and high conceptual precision |
+| `gemini-2.5-pro` | Advanced multi-step reasoning for complex physics derivations and chemical mechanisms |
+| `gemini-2.5-flash-lite` | Lightweight and cost-effective model for rapid query resolution |
+| `gemini-2.0-flash` | High-throughput baseline model |
+| `gemini-1.5-pro` | High context window model for large text analysis |
+| `gemini-1.5-flash` | Rapid general-purpose model |
 
 ---
 
@@ -257,114 +293,52 @@ Access the containerized instance at `http://localhost:8501`.
 
 ---
 
-## Project Structure
+## Testing and Quality Assurance
 
-```
-DiligentEdu/
-├── app.py                              # Main Streamlit application entry point
-├── backend.py                          # Unified backend facade (single source of truth)
-├── adaptive_engine.py                  # Adaptive quiz backward-compatibility module
-├── quiz_generator.py                   # Quiz generation backward-compatibility module
-├── quiz_storage.py                     # Quiz storage backward-compatibility module
-├── swat_analyzer.py                    # SWAT analytics backward-compatibility module
-├── teacher_engine.py                   # Teacher analytics backward-compatibility module
-│
-├── frontend/                           # Streamlit UI & Presentation Layer
-│   ├── assets/                         # UI illustrations and hero images
-│   ├── components/                     # Reusable UI widgets (navbar, sidebar, cards, etc.)
-│   ├── screens/                        # Role-specific screens (home, tutor, quiz, teacher, etc.)
-│   ├── state.py                        # Unified session state management
-│   └── styles.py                       # Custom themes and CSS styling system
-│
-├── src/academic_rag/                   # Core Business Logic & Algorithms
-│   ├── ai/                             # Centralized Gemini client factory & dual-key management
-│   ├── analytics/                      # SWAT diagnostic engine & teacher action plans
-│   ├── curriculum/                     # NCERT Class 9 & 10 curriculum service & PDF resolvers
-│   ├── models/                         # Domain data dataclasses (quiz, curriculum, analytics)
-│   ├── quiz/                           # Socrates tutor, quiz generator, and evaluators
-│   ├── rag/                            # Pinecone retriever, prompts, and streaming engine
-│   ├── scholarships/                   # NSP scraper, eligibility matchmaker, and QA engine
-│   ├── storage/                        # SQLite connection manager and repositories
-│   ├── config.py                       # Centralized application path and settings config
-│   └── exceptions.py                   # Domain-specific exception hierarchy
-│
-├── scholarships/                       # Scholarship dataset and sources metadata
-│   └── sources.json                    # Canonical government scholarship guidelines and portals
-│
-├── data/                               # Local storage and mapping metadata
-│   ├── metadata/                       # NCERT curriculum chapter JSON mappings
-│   └── storage/                        # SQLite databases (quiz_history.db)
-│
-├── static/                             # Authoritative NCERT textbook PDFs
-│   ├── class9/                         # Class 9 science textbook PDFs
-│   └── class10/                        # Class 10 science textbook PDFs
-│
-├── scripts/                            # Maintenance, benchmark, and ingestion scripts
-│   ├── ingest_corpus.py                # NCERT PDF chunking and vector index ingestion
-│   ├── retrieval_benchmark.py          # Vector search accuracy and latency benchmark
-│   └── setup_hooks.sh                  # One-step pre-commit hook setup
-│
-├── tests/                              # Comprehensive Unit & Integration Test Suite (203+ tests)
-├── .githooks/                          # Version-controlled Git pre-commit hooks
-├── .github/workflows/                  # GitHub Actions CI/CD workflows (lint & quality)
-├── requirements.txt                    # Python runtime dependencies
-├── pyproject.toml                      # Project metadata, Ruff & Pyright configurations
-├── DockerFile                          # Containerization build specification
-└── LICENSE                             # GNU General Public License v3.0
-```
+DiligentEdu maintains an automated test suite covering class isolation, RAG retriever accuracy, Socratic dialogs, SWAT analytics, teacher customization, 3D intro performance, and scholarship matching.
 
----
-
-## Testing & Quality Assurance
-
-DiligentEdu maintains an automated test suite comprising **203+ unit and integration tests** covering class isolation, RAG retriever integrity, Socrates evaluation, SWAT analytics, teacher customization, and scholarship match accuracy.
-
-### Running the Test Suite
+### Running Tests
 ```bash
-# Run all tests using unittest
-uv run python -m unittest discover -s tests
+# Run all unit tests
+python -m unittest discover -s tests
 
-# Or with verbose output
-uv run python -m unittest discover -s tests -v
+# Run with verbose output
+python -m unittest discover -s tests -v
 ```
 
-### Running Code Quality Checks
+### Running Code Quality and Lint Checks
 ```bash
 # Run Ruff lint checks
-uv run ruff check .
+ruff check .
 
 # Run Ruff formatting checks
-uv run ruff format --check .
+ruff format --check .
 
 # Auto-format all code
-uv run ruff format .
+ruff format .
 ```
 
 ---
 
 ## Contributing
 
-Contributions are welcome! To contribute:
+Contributions are welcome. To contribute:
 
 1. **Fork the repository** on GitHub.
 2. **Create a descriptive feature branch**:
    ```bash
-   git checkout -b feature/interactive-concept-map
+   git checkout -b feature/interactive-study-guide
    ```
-3. **Set up local development hooks**:
+3. **Make your changes** with thorough docstrings, type hints, and unit tests.
+4. **Ensure all linters and tests pass**:
    ```bash
-   bash scripts/setup_hooks.sh
+   ruff check . && python -m unittest discover -s tests
    ```
-4. **Make your changes** with thorough docstrings and unit tests.
-5. **Ensure all linters and tests pass**:
+5. **Commit your changes**:
    ```bash
-   uv run ruff check . && uv run python -m unittest discover -s tests
+   git commit -m "Add interactive study guide feature"
    ```
-6. **Commit your changes**:
-   ```bash
-   git commit -m "Add interactive concept map feature"
-   ```
-7. **Push to your branch and open a Pull Request**.
+6. **Push to your branch and open a Pull Request**.
 
 ---
 
@@ -376,6 +350,6 @@ DiligentEdu is open-source software licensed under the **GNU General Public Lice
 
 ## Acknowledgments
 
-- **National Council of Educational Research and Training (NCERT)** for standardizing and publishing open curriculum textbooks.
-- **National Scholarship Portal (NSP)** for central and state scholarship scheme guidelines.
-- **Streamlit**, **LangChain**, **Pinecone**, and **Google AI Studio** for the foundational technologies empowering this platform.
+* **National Council of Educational Research and Training (NCERT)** for publishing open curriculum textbooks and syllabi.
+* **National Scholarship Portal (NSP)** for central and state scholarship scheme guidelines.
+* **Streamlit**, **Three.js**, **Prisma**, **Pinecone**, and **Google AI Studio** for the technologies powering this platform.

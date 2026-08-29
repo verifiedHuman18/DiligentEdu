@@ -15,7 +15,6 @@ Architecture:
 import streamlit as st
 import streamlit.components.v1 as components
 
-
 # ---------------------------------------------------------------------------
 # 3D Scene — self-contained HTML / Three.js (visual only, no Streamlit comms)
 # ---------------------------------------------------------------------------

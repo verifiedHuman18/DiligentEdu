@@ -10,13 +10,11 @@ Verifies:
 - Reduced-motion CSS
 """
 
-import os
 import unittest
-from unittest.mock import patch
 
 import streamlit as st
 
-from frontend.screens.intro_screen import _INTRO_HTML, render_intro_screen
+from frontend.screens.intro_screen import _INTRO_HTML
 from frontend.state import init_session_state
 
 

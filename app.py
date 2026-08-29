@@ -191,6 +191,7 @@ async def main():
     # 3D Intro Splash Screen (Phases 1-23)
     if not st.session_state.get("intro_completed", False):
         from frontend.screens.intro_screen import render_intro_screen
+
         render_intro_screen()
         return
 

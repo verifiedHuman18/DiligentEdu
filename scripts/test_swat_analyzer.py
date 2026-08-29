@@ -173,9 +173,9 @@ def run_swat_tests():
     # Check strong categories
     strong_chapters = [c["chapter"] for c in swat["categories"]["strong"]]
     print(f"Strong Chapters: {strong_chapters}")
-    assert (
-        "Chemical Reactions and Equations" in strong_chapters
-    ), "Expected Chemical Reactions in Strong"
+    assert "Chemical Reactions and Equations" in strong_chapters, (
+        "Expected Chemical Reactions in Strong"
+    )
     assert "Light – Reflection and Refraction" in strong_chapters, "Expected Light in Strong"
 
     # Check average categories
@@ -188,9 +188,9 @@ def run_swat_tests():
     weak_chapters = [c["chapter"] for c in swat["categories"]["weak"]]
     print(f"Weak Chapters: {weak_chapters}")
     assert "Electricity" in weak_chapters, "Expected Electricity in Weak"
-    assert (
-        "Magnetic Effects of Electric Current" in weak_chapters
-    ), "Expected Magnetic Effects in Weak"
+    assert "Magnetic Effects of Electric Current" in weak_chapters, (
+        "Expected Magnetic Effects in Weak"
+    )
 
     # Check Highest & Lowest
     assert swat["highest_performing_chapter"]["chapter"] == "Chemical Reactions and Equations"
@@ -203,9 +203,9 @@ def run_swat_tests():
 
     # Check overall average
     expected_avg = 64.0
-    assert (
-        swat["overall_average"] == expected_avg
-    ), f"Expected {expected_avg}, got {swat['overall_average']}"
+    assert swat["overall_average"] == expected_avg, (
+        f"Expected {expected_avg}, got {swat['overall_average']}"
+    )
 
     print(f"\nOverall Average: {swat['overall_average']}%")
     print(

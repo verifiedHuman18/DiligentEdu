@@ -363,4 +363,3 @@ def _render_scholarship_card(match: Any) -> None:
     </div>
     """
     st.markdown(card_html, unsafe_allow_html=True)
-
