@@ -1,0 +1,14 @@
+.git
+.gitignore
+.venv
+.ruff_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+logs/
+notebooks/
+scratch*
+diligentedu.egg-info/
+test_prisma_out/
