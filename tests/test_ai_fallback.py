@@ -27,6 +27,11 @@ class TestAIFallback(unittest.TestCase):
         for k in list(st.session_state.keys()):
             del st.session_state[k]
 
+        from backend.ai import client_factory
+
+        client_factory._sync_clients.clear()
+        client_factory._async_clients.clear()
+
         # Patch st.secrets to empty dict by default
         self.secrets_patcher = patch.object(st, "secrets", {}, create=True)
         self.secrets_patcher.start()
@@ -41,6 +46,11 @@ class TestAIFallback(unittest.TestCase):
             del os.environ["GOOGLE_API_KEY"]
 
     def tearDown(self):
+        from backend.ai import client_factory
+
+        client_factory._sync_clients.clear()
+        client_factory._async_clients.clear()
+
         self.secrets_patcher.stop()
 
         # Restore environment

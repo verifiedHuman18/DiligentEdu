@@ -11,19 +11,49 @@ from backend.config import config
 from backend.exceptions import AuthenticationError, RetrievalError
 from backend.utils.perf import measure
 
+try:
+    import torch
+
+    # Prevent thread over-subscription on 1-vCPU/shared cloud containers
+    if torch.get_num_threads() > 2:
+        torch.set_num_threads(2)
+except Exception:
+    pass
+
 logger = logging.getLogger(__name__)
 
 _cached_embeddings = None
 _cached_pinecone_index = None
 
 
+def _init_embeddings_singleton() -> HuggingFaceEmbeddings:
+    """Internal initializer for HuggingFace embeddings."""
+    logger.info(f"Initializing embedding model: {config.embedding_model_name}")
+    with measure("load_huggingface_embeddings_model", {"model": config.embedding_model_name}):
+        return HuggingFaceEmbeddings(model_name=config.embedding_model_name)
+
+
+try:
+    import streamlit as st
+
+    @st.cache_resource(show_spinner=False)
+    def _get_st_cached_embeddings() -> HuggingFaceEmbeddings:
+        return _init_embeddings_singleton()
+except Exception:
+    _get_st_cached_embeddings = None
+
+
 def get_embeddings() -> HuggingFaceEmbeddings:
     """Returns cached or newly initialized HuggingFace embeddings model (Phases 5 & 10)."""
     global _cached_embeddings
+    if _get_st_cached_embeddings is not None:
+        try:
+            return _get_st_cached_embeddings()
+        except Exception:
+            pass
+
     if _cached_embeddings is None:
-        logger.info(f"Initializing embedding model: {config.embedding_model_name}")
-        with measure("load_huggingface_embeddings_model", {"model": config.embedding_model_name}):
-            _cached_embeddings = HuggingFaceEmbeddings(model_name=config.embedding_model_name)
+        _cached_embeddings = _init_embeddings_singleton()
     return _cached_embeddings
 
 

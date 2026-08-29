@@ -712,6 +712,7 @@ async def _render_socrates_quiz_mode(
             bot_placeholder = st.empty()
             full_bot_reply = ""
             try:
+                chunk_counter = 0
                 async for chunk in stream_socrates_dialogue(
                     question_text=q_data.get("question", ""),
                     options=q_data.get("options", []),
@@ -724,11 +725,13 @@ async def _render_socrates_quiz_mode(
                     model=selected_model,
                 ):
                     full_bot_reply += chunk
-                    bot_placeholder.markdown(
-                        f'<div class="socrates-chat-msg-bot"><strong>Socrates:</strong> {full_bot_reply}▌</div>',
-                        unsafe_allow_html=True,
-                    )
-                    await asyncio.sleep(0.015)
+                    chunk_counter += 1
+                    if chunk_counter % 2 == 0 or "\n" in chunk:
+                        bot_placeholder.markdown(
+                            f'<div class="socrates-chat-msg-bot"><strong>Socrates:</strong> {full_bot_reply}▌</div>',
+                            unsafe_allow_html=True,
+                        )
+                        await asyncio.sleep(0)
 
                 bot_placeholder.markdown(
                     f'<div class="socrates-chat-msg-bot"><strong>Socrates:</strong> {full_bot_reply}</div>',
