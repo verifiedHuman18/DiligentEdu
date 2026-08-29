@@ -17,7 +17,6 @@ from backend.scholarships.models import (
     normalize_student_profile,
 )
 from backend.scholarships.service import (
-    ask_question,
     match_scholarships,
 )
 from frontend.components.navigation import render_back_to_home
@@ -87,25 +86,6 @@ def render_scholarships_screen() -> None:
         unsafe_allow_html=True,
     )
     _render_matches_section(class_level)
-
-    st.write("")
-    st.write("")
-
-    # ==========================================
-    # SECTION 3: CONVERSATIONAL Q&A SECTION
-    # ==========================================
-    st.markdown(
-        """
-        <div class="section-header-bar">
-            <div>
-                <h4 class="section-title-text">Scholarship Q&A Assistant</h4>
-                <div class="section-subtitle-text">Instant verified answers to scholarship guidelines, documents required, and application criteria.</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    _render_qa_section(class_level)
 
     st.write("")
     st.write("")
@@ -384,78 +364,3 @@ def _render_scholarship_card(match: Any) -> None:
     """
     st.markdown(card_html, unsafe_allow_html=True)
 
-
-def _render_qa_section(class_level: int) -> None:
-    """Renders the inline rule-based Q&A section on the same page."""
-    st.caption("Have a question about scholarships? Ask below for instant, verified answers.")
-
-    # Contextual suggested questions respecting class_level (Phase 9)
-    st.markdown("**Try asking:**")
-    sugg_cols = st.columns(4)
-    suggested = [
-        "What scholarships are available?",
-        "What is the income limit for NMMSS?",
-        "Who can apply for PM-YASASVI?",
-        "What documents are commonly required?",
-    ]
-
-    selected_suggestion = None
-    for idx, (col, pr) in enumerate(zip(sugg_cols, suggested)):
-        with col:
-            if st.button(pr, key=f"unified_sugg_{idx}", use_container_width=True):
-                selected_suggestion = pr
-
-    # Search / Query Input (Phase 8)
-    query_text = st.text_input(
-        "Ask about scholarships:",
-        value=selected_suggestion if selected_suggestion else "",
-        placeholder="e.g. What is the income limit for NMMSS? or Who can apply for PM-YASASVI?",
-        key="unified_qa_query_input",
-    )
-
-    col_btn, _ = st.columns([1, 4])
-    with col_btn:
-        ask_clicked = st.button(
-            "Ask", type="primary", icon=":material/search:", key="btn_unified_ask"
-        )
-
-    # Inline response rendering (Phases 10 & 11)
-    if (ask_clicked or selected_suggestion) and query_text.strip():
-        canonical_profile = st.session_state.get("profile_canonical")
-        res = ask_question(
-            question=query_text.strip(),
-            student_profile=canonical_profile,
-            academic_year="2026-27",
-        )
-
-        st.write("")
-        st.markdown(
-            f"""
-            <div style="background: var(--surface-container-high); border: 1px solid var(--outline-variant); border-left: 4px solid var(--md-primary); border-radius: 12px; padding: 1.4rem; margin-top: 1rem;">
-                <div style="font-size: 0.82rem; font-weight: 700; color: var(--md-primary); text-transform: uppercase; margin-bottom: 4px;">
-                    Question
-                </div>
-                <div style="font-size: 1.05rem; font-weight: 600; color: var(--on-surface); margin-bottom: 12px;">
-                    "{query_text.strip()}"
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.markdown(
-            """
-            <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 12px; padding: 1.4rem; margin-top: 0.5rem; line-height: 1.6;">
-            """,
-            unsafe_allow_html=True,
-        )
-        st.markdown(res["answer_markdown"])
-        st.markdown(
-            """
-                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 12px; border-top: 1px dashed var(--outline-variant); padding-top: 8px;">
-                    <b>Source:</b> National Scholarship Portal (AY 2026-27 Guidelines)
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )

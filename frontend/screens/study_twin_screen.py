@@ -110,9 +110,9 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
         else ("var(--md-amber)" if sim_score >= 50 else "var(--md-cyan)")
     )
     # Fetch Twin's real name from DB
-    from prisma import Prisma
+    from backend.storage.repository import get_prisma_client
 
-    db = Prisma()
+    db = get_prisma_client()
     if not db.is_connected():
         db.connect()
     twin_user = db.user.find_unique(where={"id": match.twin_student_id})

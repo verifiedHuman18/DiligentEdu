@@ -15,30 +15,42 @@ _global_prisma: Optional[Prisma] = None
 _prisma_lock = threading.Lock()
 
 
+def _create_prisma_client() -> Prisma:
+    """Safely retrieves existing registered Prisma client or creates a new one."""
+    try:
+        import prisma
+
+        return prisma.get_client()
+    except Exception:
+        pass
+
+    try:
+        return Prisma(auto_register=True)
+    except Exception:
+        return Prisma(auto_register=False)
+
+
 def get_prisma_client() -> Prisma:
     """Returns a thread-safe, lazily connected singleton Prisma client instance."""
     global _global_prisma
-    if _global_prisma is None:
-        with _prisma_lock:
-            if _global_prisma is None:
-                _global_prisma = Prisma(auto_register=True)
+    with _prisma_lock:
+        if _global_prisma is None:
+            _global_prisma = _create_prisma_client()
 
-    if not _global_prisma.is_connected():
-        with _prisma_lock:
-            if not _global_prisma.is_connected():
+        if not _global_prisma.is_connected():
+            try:
+                _global_prisma.connect()
+            except Exception as e:
+                logger.warning(
+                    f"Prisma connect failed in get_prisma_client: {e}. Re-instantiating client..."
+                )
                 try:
+                    _global_prisma = Prisma(auto_register=False)
                     _global_prisma.connect()
-                except Exception as e:
-                    logger.warning(
-                        f"Prisma connect failed in get_prisma_client: {e}. Re-instantiating client..."
-                    )
-                    try:
-                        _global_prisma = Prisma(auto_register=True)
-                        _global_prisma.connect()
-                    except Exception as e2:
-                        logger.warning(f"Prisma fallback connect failed: {e2}")
+                except Exception as e2:
+                    logger.warning(f"Prisma fallback connect failed: {e2}")
 
-    return _global_prisma
+        return _global_prisma
 
 
 class QuizRepository:
@@ -1020,7 +1032,7 @@ def save_study_twin_match(
     ts = datetime.now(timezone.utc).isoformat()
     match_json = json.dumps(match_data)
     try:
-        db = Prisma()
+        db = get_prisma_client()
         if not db.is_connected():
             db.connect()
         existing = db.studytwinmatch.find_first(
@@ -1065,7 +1077,7 @@ def get_saved_study_twin_match(
     db_path: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     try:
-        db = Prisma()
+        db = get_prisma_client()
         if not db.is_connected():
             db.connect()
         match = db.studytwinmatch.find_first(
@@ -1096,7 +1108,7 @@ def clear_study_twin_match(
     db_path: Optional[str] = None,
 ) -> bool:
     try:
-        db = Prisma()
+        db = get_prisma_client()
         if not db.is_connected():
             db.connect()
         match = db.studytwinmatch.find_first(
@@ -1126,7 +1138,7 @@ def get_all_candidate_student_ids(
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
 
     try:
-        db = Prisma()
+        db = get_prisma_client()
         if not db.is_connected():
             db.connect()
 
