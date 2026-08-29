@@ -37,7 +37,7 @@ INSTRUCTIONS:
 - **Key Note:** "[Key explanation or example referenced from study material]"
 """
 
-QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE = """You are an expert NCERT Science Exam Creator and Teacher.
+QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE = """You are an expert NCERT Exam Creator and Teacher.
 Your task is to create a high-quality, concept-testing Multiple Choice Quiz (MCQ) for students based STRICTLY on the provided NCERT textbook excerpts.
 
 GUIDELINES:
@@ -50,11 +50,7 @@ GUIDELINES:
 4. Each question MUST have exactly 4 options prefixed as 'A) ...', 'B) ...', 'C) ...', 'D) ...'.
 5. 'correct_answer' MUST be a single letter string: 'A', 'B', 'C', or 'D'.
 6. 'source_pages' MUST be a list of integer page numbers corresponding to the [PAGE: X] tags in the excerpts where the concept is taught.
-7. 'explanation' MUST be a detailed, pedagogical explanation justifying why the correct answer is right and why other options are incorrect.
-8. 'socrates_hints' MUST provide a 3-tier progressive hint object for the question:
-   - "thought_starter": (Tier 1) An intuitive inquiry or thought-provoking question about the core phenomenon.
-   - "guiding_principle": (Tier 2) The foundational scientific law, NCERT definition, or formula relationship.
-   - "socratic_deduction": (Tier 3) A logical deduction clue that helps eliminate distractors without directly revealing the answer.
+7. 'explanation' MUST be a clear, concise pedagogical explanation (1-2 sentences) justifying the correct answer.
 
 OUTPUT FORMAT (JSON OBJECT):
 You MUST respond with a valid JSON object matching this exact JSON schema:
@@ -74,15 +70,10 @@ You MUST respond with a valid JSON object matching this exact JSON schema:
         "D) Option D text"
       ],
       "correct_answer": "B",
-      "explanation": "Step-by-step reasoning explaining the correct answer referencing NCERT textbook concepts.",
+      "explanation": "Concise step-by-step reasoning referencing NCERT textbook concepts.",
       "difficulty": "{difficulty}",
       "chapter": "{ch_title}",
-      "source_pages": [6],
-      "socrates_hints": {{
-        "thought_starter": "Intuitive question about the core concept...",
-        "guiding_principle": "Fundamental NCERT rule or formula...",
-        "socratic_deduction": "Clue to eliminate distractors..."
-      }}
+      "source_pages": [6]
     }}
   ]
 }}

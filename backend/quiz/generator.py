@@ -271,7 +271,7 @@ def generate_quiz(
         chapter_title=ch_title,
         subject=subj_clean,
         student_id=student_id,
-        top_k=8,
+        top_k=4,
         pinecone_api_key=pinecone_api_key,
     )
 
