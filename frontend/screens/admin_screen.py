@@ -150,13 +150,11 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
     if not students:
         st.info(f"No students currently registered in Class {cls_int}. Use the form above to add a student.")
     else:
-        # Table Header
+        # Section Subtitle
         st.markdown(
             """
-            <div style="display: grid; grid-template-columns: 3.5fr 1.5fr 3fr; padding: 10px 16px; background: var(--surface-container-high); border-radius: 8px 8px 0 0; font-weight: 700; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                <div>Student Identity</div>
-                <div>Class Level</div>
-                <div style="text-align: right;">Actions</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); font-family: 'Outfit', sans-serif; margin-bottom: 12px;">
+                Student Details
             </div>
             """,
             unsafe_allow_html=True,
