@@ -15,6 +15,7 @@ from frontend.components import (
 from frontend.screens import (
     render_chapter_screen,
     render_home_screen,
+    render_intro_screen,
     render_knowledge_graph_screen,
     render_login_screen,
     render_quiz_screen,
@@ -58,6 +59,7 @@ __all__ = [
     "render_screen_loader",
     "render_skeleton_card",
     "render_error_boundary",
+    "render_intro_screen",
     "render_login_screen",
     "render_chapter_screen",
     "render_home_screen",

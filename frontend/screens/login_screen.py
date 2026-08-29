@@ -26,6 +26,45 @@ def get_user_from_db(uid: str):
 
 def render_login_screen() -> None:
     """Renders the single Firebase authentication portal."""
+    st.markdown(
+        """
+        <style>
+            /* Reset any intro screen overrides so login screen is fully visible */
+            header[data-testid="stHeader"] {
+                display: block !important;
+                visibility: visible !important;
+                height: auto !important;
+            }
+            html, body, .stApp {
+                overflow: auto !important;
+                height: auto !important;
+                min-height: 100vh !important;
+            }
+            .main, [data-testid="stAppViewContainer"], [data-testid="stMainBlockContainer"], [data-testid="stVerticalBlock"], [data-testid="stVerticalBlockBorderWrapper"] {
+                height: auto !important;
+                overflow: visible !important;
+                max-width: 1200px !important;
+                margin: 0 auto !important;
+                padding: 1.5rem 1rem !important;
+            }
+            div[data-testid="stCustomComponentV1"] {
+                position: static !important;
+                width: auto !important;
+                height: auto !important;
+                z-index: auto !important;
+                background: transparent !important;
+            }
+            div[data-testid="stCustomComponentV1"] > iframe {
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                background: transparent !important;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     hero_html = textwrap.dedent("""\
 <div class="login-hero">
 <div class="login-brand">Diligent<span class="login-brand-accent">Edu</span></div>
