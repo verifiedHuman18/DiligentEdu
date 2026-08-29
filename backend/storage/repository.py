@@ -2,6 +2,7 @@
 
 import json
 import logging
+import threading
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -10,6 +11,7 @@ from backend.exceptions import StorageError
 from prisma import Prisma
 
 logger = logging.getLogger(__name__)
+_thread_local = threading.local()
 
 
 class QuizRepository:
@@ -24,11 +26,20 @@ class QuizRepository:
                 init_database(self.db_path)
             except Exception:
                 pass
-        self.db = Prisma()
 
     def _ensure_connected(self):
-        if not self.db.is_connected():
-            self.db.connect()
+        if not hasattr(_thread_local, "prisma_db"):
+            _thread_local.prisma_db = Prisma()
+
+        try:
+            if not _thread_local.prisma_db.is_connected():
+                _thread_local.prisma_db.connect()
+        except Exception:
+            # If it fails, recreate the client
+            _thread_local.prisma_db = Prisma()
+            _thread_local.prisma_db.connect()
+
+        self.db = _thread_local.prisma_db
 
     def record_attempt(
         self,
@@ -465,11 +476,19 @@ class StudyMaterialRepository:
                 init_database(self.db_path)
             except Exception:
                 pass
-        self.db = Prisma()
 
     def _ensure_connected(self):
-        if not self.db.is_connected():
-            self.db.connect()
+        if not hasattr(_thread_local, "prisma_db"):
+            _thread_local.prisma_db = Prisma()
+
+        try:
+            if not _thread_local.prisma_db.is_connected():
+                _thread_local.prisma_db.connect()
+        except Exception:
+            _thread_local.prisma_db = Prisma()
+            _thread_local.prisma_db.connect()
+
+        self.db = _thread_local.prisma_db
 
     def save_document_record(
         self,

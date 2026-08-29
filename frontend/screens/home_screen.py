@@ -38,7 +38,6 @@ def render_home_screen(
 
     swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     has_data = swat.get("has_data", False)
-    class_display = f"Class {class_level}"
     student_name = st.session_state.get("user_name", student_id)
 
     # Single-line clean SVG vector for hero header
@@ -61,8 +60,6 @@ def render_home_screen(
 Welcome, <span style="color: var(--md-primary);">{student_name}</span>
 </div>
 <div class="m3-chips-group">
-<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.1rem;">school</span> Class: {class_display}</span>
-<span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Subject: {subject}</span>
 <span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">description</span> Material: {uploaded_count} Active</span>
 </div>
 <div class="m3-stats-grid">
@@ -92,12 +89,10 @@ Welcome, <span style="color: var(--md-primary);">{student_name}</span>
 Welcome, <span style="color: var(--md-primary);">{student_name}</span>
 </div>
 <div class="m3-chips-group" style="margin-bottom: 0.8rem;">
-<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.1rem;">school</span> Class: {class_display}</span>
-<span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.1rem;">menu_book</span> Subject: {subject}</span>
 <span class="m3-chip m3-chip-cyan"><span class="material-symbols-outlined" style="font-size: 1.1rem;">description</span> Material: {uploaded_count} Active</span>
 </div>
 <div style="font-size: 1.0rem; color: var(--text-secondary); line-height: 1.5; max-width: 650px;">
-Welcome to NCERT {subject}! Explore your curriculum, upload personal reference books, take practice quizzes, or ask doubt questions below.
+Welcome! Explore your curriculum, upload personal reference books, take practice quizzes, or ask doubt questions below.
 </div>
 </div>
 </div>\
@@ -108,10 +103,10 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
 
     # SECTION 1: YOUR ACTION PLAN
     st.markdown(
-        f"""
+        """
         <div class="section-header-bar">
             <div>
-                <h4 class="section-title-text">Your Action Plan — Class {class_level} · {subject}</h4>
+                <h4 class="section-title-text">Your Action Plan</h4>
                 <div class="section-subtitle-text">Priority study recommendations tailored to your recent mastery and teacher guidance.</div>
             </div>
         </div>
@@ -190,11 +185,11 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
     else:
         # Unattempted Student Onboarding State
         st.markdown(
-            f"""
+            """
             <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: 10px; padding: 18px; text-align: center; margin-bottom: 12px;">
-                <div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px;">Start Exploring Your Class {class_level} Curriculum</div>
+                <div style="font-size: 1.05rem; font-weight: 700; color: var(--on-surface); margin-bottom: 4px;">Start Exploring Your Curriculum</div>
                 <div style="font-size: 0.86rem; color: var(--on-surface-variant); max-width: 540px; margin: 0 auto 12px auto;">
-                    You haven't attempted any quizzes in Class {class_level} Science yet. Take an introductory diagnostic quiz to unlock your personal mastery roadmap.
+                    You haven't attempted any quizzes yet. Take an introductory diagnostic quiz to unlock your personal mastery roadmap.
                 </div>
             </div>
             """,
@@ -307,10 +302,10 @@ Welcome to NCERT {subject}! Explore your curriculum, upload personal reference b
 
     # SECTION 3: NCERT Curriculum Navigator
     st.markdown(
-        f"""
+        """
         <div class="section-header-bar">
             <div>
-                <h4 class="section-title-text">NCERT {subject} Curriculum — Class {class_level}</h4>
+                <h4 class="section-title-text">NCERT Curriculum</h4>
                 <div class="section-subtitle-text">Click any chapter below to explore textbook PDF, practice quizzes, or ask questions.</div>
             </div>
         </div>

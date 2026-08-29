@@ -22,10 +22,8 @@ def render_swat_screen(student_id: str, selected_class: Optional[str] = None) ->
     subject = get_student_subject()
 
     st.write("")
-    st.markdown(f"### Performance & Topic Mastery — Class {class_level} · {subject}")
-    st.caption(
-        f"Comprehensive SWAT analysis and chapter-wise mastery based on your Class {class_level} {subject} profile."
-    )
+    st.markdown("### Performance & Topic Mastery")
+    st.caption("Comprehensive SWAT analysis and chapter-wise mastery based on your profile.")
 
     swat = get_student_swat(student_id, class_level=class_level, subject=subject)
     history = quiz_repository.get_student_history(
@@ -34,7 +32,7 @@ def render_swat_screen(student_id: str, selected_class: Optional[str] = None) ->
 
     if not swat.get("has_data"):
         st.info(
-            f"No quiz attempts recorded yet for Class {class_level} {subject}. Take a quiz in the Practice Quiz module to view your mastery data."
+            "No quiz attempts recorded yet. Take a quiz in the Practice Quiz module to view your mastery data."
         )
         return
 

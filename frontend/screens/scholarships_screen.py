@@ -34,15 +34,14 @@ def render_scholarships_screen() -> None:
 
     # Header section
     st.markdown(
-        textwrap.dedent(f"""\
+        textwrap.dedent("""\
 <div class="m3-hero-card" style="margin-bottom: 1.5rem; min-height: 130px;">
   <div class="m3-hero-content">
     <div class="m3-hero-title">
       <span style="color: var(--md-primary);">National Scholarships</span>
     </div>
     <div class="m3-chips-group" style="margin-bottom: 0.4rem;">
-      <span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.0rem;">school</span> Class {class_level}</span>
-      <span class="m3-chip m3-chip-purple"><span class="material-symbols-outlined" style="font-size: 1.0rem;">verified</span> National Scholarship Portal</span>
+      <span class="m3-chip m3-chip-amber"><span class="material-symbols-outlined" style="font-size: 1.0rem;">verified</span> Live Matching</span>
       <span class="m3-chip m3-chip-secondary"><span class="material-symbols-outlined" style="font-size: 1.0rem;">speed</span> Fast Eligibility Matching</span>
     </div>
     <div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.4;">
@@ -142,7 +141,7 @@ def _render_profile_section(class_level: int) -> None:
         expanded=True,
     ):
         st.caption(
-            f"Matching is active for **Class {class_level}**. *(To switch between Class 9 and 10, use the Class setting in the sidebar)*. "
+            "Matching is active based on your profile. *(To switch between Class 9 and 10, use the Class setting in the sidebar)*. "
             "No sensitive government identifiers (Aadhaar, OTR, bank details) are ever requested."
         )
 
@@ -394,7 +393,7 @@ def _render_qa_section(class_level: int) -> None:
     st.markdown("**Try asking:**")
     sugg_cols = st.columns(4)
     suggested = [
-        f"What scholarships are available for Class {class_level}?",
+        "What scholarships are available?",
         "What is the income limit for NMMSS?",
         "Who can apply for PM-YASASVI?",
         "What documents are commonly required?",
