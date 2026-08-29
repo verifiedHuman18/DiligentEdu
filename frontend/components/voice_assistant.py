@@ -1,10 +1,10 @@
 """Material Design 3 Voice Assistant Component for NCERT Tutor (Phases 1-20).
 
 Provides:
-- Top-level DOM injected Web Speech API Speech-to-Text (STT) mic button
+- In-textbar Web Speech API Speech-to-Text (STT) mic button seamlessly attached to Streamlit chat input
+- Resilient multi-context DOM resolver (window.parent, window.top, window) for local and deployed hosting
 - Comprehensive HTTPS / Secure Context / Microphone permission validation
 - Graceful error handling for 'not-allowed', 'no-speech', 'network', and unsupported browsers
-- Real-time audio waveform / listening status feedback
 - Browser Web Speech Synthesis Text-to-Speech (TTS) player with Math-to-Speech phonetic conversions
 - 100% ephemeral audio processing with zero server storage and zero extra API keys
 - Built-in Voice Diagnostic utilities for instant local vs deployed troubleshooting
@@ -12,7 +12,8 @@ Provides:
 
 import json
 import logging
-import streamlit as st
+
+import streamlit.components.v1 as components
 
 from backend.ai.speech_math import prepare_text_for_speech
 
@@ -27,15 +28,50 @@ def render_voice_recorder_component(
     """
     Directly injects an interactive Web Speech Recognition microphone button into Streamlit's bottom chat input bar.
 
-    Executes in the top-level document context (via native st.html) to ensure full compatibility
-    with HTTPS deployed domains, cross-origin security policies, and permissions delegations.
+    Resolves the active root window and document across iframe contexts to guarantee
+    instant attachment to the chat input container across both local and deployed environments.
     """
-    js_code = f"""
+    html_code = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8" />
+    <style>
+        body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+    </style>
+    </head>
+    <body>
     <script>
     (function initChatInputMic() {{
+        function getRootContext() {{
+            try {{
+                if (window.parent && window.parent.document && window.parent.document.querySelector('[data-testid="stChatInput"]')) {{
+                    return {{ win: window.parent, doc: window.parent.document }};
+                }}
+            }} catch (e) {{}}
+            try {{
+                if (window.top && window.top.document && window.top.document.querySelector('[data-testid="stChatInput"]')) {{
+                    return {{ win: window.top, doc: window.top.document }};
+                }}
+            }} catch (e) {{}}
+            try {{
+                if (window.document && window.document.querySelector('[data-testid="stChatInput"]')) {{
+                    return {{ win: window, doc: window.document }};
+                }}
+            }} catch (e) {{}}
+            return null;
+        }}
+
         function attachMicToInput() {{
             try {{
-                const rootDoc = window.document;
+                const ctx = getRootContext();
+                if (!ctx) {{
+                    setTimeout(attachMicToInput, 150);
+                    return;
+                }}
+
+                const rootWin = ctx.win;
+                const rootDoc = ctx.doc;
                 const chatContainer = rootDoc.querySelector('[data-testid="stChatInput"]');
                 if (!chatContainer) {{
                     setTimeout(attachMicToInput, 150);
@@ -101,7 +137,7 @@ def render_voice_recorder_component(
                     }}
                 }};
 
-                const SpeechRec = (window.SpeechRecognition || window.webkitSpeechRecognition || (window.parent && (window.parent.SpeechRecognition || window.parent.webkitSpeechRecognition)));
+                const SpeechRec = (rootWin.SpeechRecognition || rootWin.webkitSpeechRecognition || window.SpeechRecognition || window.webkitSpeechRecognition);
 
                 if (!SpeechRec) {{
                     micBtn.title = "Speech recognition is not supported in this browser (Use Chrome or Edge)";
@@ -149,7 +185,7 @@ def render_voice_recorder_component(
                         }}
                         const liveText = finalTranscript + (interim ? " " + interim : "");
                         if (liveText.trim()) {{
-                            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+                            const nativeSetter = Object.getOwnPropertyDescriptor(rootWin.HTMLTextAreaElement.prototype, "value").set;
                             if (nativeSetter) nativeSetter.call(textArea, liveText);
                             else textArea.value = liveText;
                             textArea.dispatchEvent(new Event('input', {{ bubbles: true }}));
@@ -173,7 +209,7 @@ def render_voice_recorder_component(
                         if (finalTranscript.trim()) {{
                             // Tag voice input with invisible marker \u200b[voice]
                             const voicePrompt = finalTranscript.trim() + "\\u200b[voice]";
-                            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+                            const nativeSetter = Object.getOwnPropertyDescriptor(rootWin.HTMLTextAreaElement.prototype, "value").set;
                             if (nativeSetter) nativeSetter.call(textArea, voicePrompt);
                             else textArea.value = voicePrompt;
                             textArea.dispatchEvent(new Event('input', {{ bubbles: true }}));
@@ -203,7 +239,7 @@ def render_voice_recorder_component(
                         if (isRecording) {{
                             recognition.stop();
                         }} else {{
-                            if (!window.isSecureContext && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {{
+                            if (!rootWin.isSecureContext && rootWin.location.hostname !== "localhost" && rootWin.location.hostname !== "127.0.0.1") {{
                                 alert("Microphone speech recognition requires a Secure Context (HTTPS). Please ensure the site is accessed over HTTPS.");
                                 return;
                             }}
@@ -236,8 +272,10 @@ def render_voice_recorder_component(
         setInterval(attachMicToInput, 1000);
     }})();
     </script>
+    </body>
+    </html>
     """
-    st.html(js_code)
+    components.html(html_code, height=0, scrolling=False)
 
 
 render_bottom_voice_mic = render_voice_recorder_component
@@ -262,218 +300,230 @@ def render_tts_player_component(
     escaped_speech = json.dumps(speech_text)
 
     html_code = f"""
-    <div class="tts-container-{message_idx}" style="margin-top: 6px; margin-bottom: 4px;">
-        <style>
-            .tts-row-{message_idx} {{
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                background: rgba(35, 27, 22, 0.9);
-                border: 1px solid #6b584c;
-                border-radius: 8px;
-                padding: 4px 10px;
-                user-select: none;
-            }}
-            .btn-tts-{message_idx} {{
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                background: transparent;
-                color: #fbbf24;
-                border: none;
-                font-size: 0.82rem;
-                font-weight: 600;
-                cursor: pointer;
-                padding: 4px 8px;
-                border-radius: 6px;
-                transition: all 0.2s ease;
-            }}
-            .btn-tts-{message_idx}:hover {{
-                background: rgba(251, 191, 36, 0.15);
-                color: #fef3c7;
-            }}
-            .btn-tts-{message_idx}.active {{
-                background: #fbbf24;
-                color: #191310;
-            }}
-            .btn-ctrl-{message_idx} {{
-                display: inline-flex;
-                align-items: center;
-                background: transparent;
-                color: #dac7b8;
-                border: none;
-                font-size: 0.8rem;
-                font-weight: 600;
-                cursor: pointer;
-                padding: 4px 6px;
-                border-radius: 4px;
-            }}
-            .btn-ctrl-{message_idx}:hover {{
-                color: #faf0e6;
-                background: rgba(250, 240, 230, 0.1);
-            }}
-            .rate-select-{message_idx} {{
-                background: #191310;
-                color: #dac7b8;
-                border: 1px solid #3f3129;
-                border-radius: 4px;
-                font-size: 0.75rem;
-                padding: 2px 4px;
-                cursor: pointer;
-            }}
-        </style>
-        <div class="tts-row-{message_idx}">
-            <button id="playBtn_{message_idx}" class="btn-tts-{message_idx}" onclick="toggleTTS_{message_idx}()">
-                <span id="playIcon_{message_idx}">🔊</span> <span id="playLabel_{message_idx}">{button_label}</span>
-            </button>
-            <button id="pauseBtn_{message_idx}" class="btn-ctrl-{message_idx}" onclick="pauseTTS_{message_idx}()" style="display: none;" title="Pause">
-                ⏸ Pause
-            </button>
-            <button id="stopBtn_{message_idx}" class="btn-ctrl-{message_idx}" onclick="stopTTS_{message_idx}()" style="display: none;" title="Stop">
-                ⏹ Stop
-            </button>
-            <select id="rateSelect_{message_idx}" class="rate-select-{message_idx}" onchange="changeRateTTS_{message_idx}()" title="Speech Speed">
-                <option value="0.9">0.9x</option>
-                <option value="1.0" selected>1.0x</option>
-                <option value="1.15">1.15x</option>
-                <option value="1.3">1.3x</option>
-            </select>
-        </div>
-        <script>
-        (function() {{
-            const textToSpeak = {escaped_speech};
-            const playBtn = document.getElementById("playBtn_{message_idx}");
-            const playIcon = document.getElementById("playIcon_{message_idx}");
-            const playLabel = document.getElementById("playLabel_{message_idx}");
-            const pauseBtn = document.getElementById("pauseBtn_{message_idx}");
-            const stopBtn = document.getElementById("stopBtn_{message_idx}");
-            const rateSelect = document.getElementById("rateSelect_{message_idx}");
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8" />
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }}
+        body {{
+            background: transparent;
+            color: #dac7b8;
+            padding: 4px 0;
+            user-select: none;
+        }}
+        .tts-row {{
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(35, 27, 22, 0.9);
+            border: 1px solid #6b584c;
+            border-radius: 8px;
+            padding: 4px 10px;
+        }}
+        .btn-tts {{
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            color: #fbbf24;
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }}
+        .btn-tts:hover {{
+            background: rgba(251, 191, 36, 0.15);
+            color: #fef3c7;
+        }}
+        .btn-tts.active {{
+            background: #fbbf24;
+            color: #191310;
+        }}
+        .btn-ctrl {{
+            display: inline-flex;
+            align-items: center;
+            background: transparent;
+            color: #dac7b8;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+        }}
+        .btn-ctrl:hover {{
+            color: #faf0e6;
+            background: rgba(250, 240, 230, 0.1);
+        }}
+        .rate-select {{
+            background: #191310;
+            color: #dac7b8;
+            border: 1px solid #3f3129;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            padding: 2px 4px;
+            cursor: pointer;
+        }}
+    </style>
+    </head>
+    <body>
+    <div class="tts-row">
+        <button id="playBtn_{message_idx}" class="btn-tts" onclick="togglePlay()">
+            <span id="playIcon_{message_idx}">🔊</span> <span id="playLabel_{message_idx}">{button_label}</span>
+        </button>
+        <button id="pauseBtn_{message_idx}" class="btn-ctrl" onclick="pauseAudio()" style="display: none;" title="Pause">
+            ⏸ Pause
+        </button>
+        <button id="stopBtn_{message_idx}" class="btn-ctrl" onclick="stopAudio()" style="display: none;" title="Stop">
+            ⏹ Stop
+        </button>
+        <select id="rateSelect_{message_idx}" class="rate-select" onchange="changeRate()" title="Speech Speed">
+            <option value="0.9">0.9x</option>
+            <option value="1.0" selected>1.0x</option>
+            <option value="1.15">1.15x</option>
+            <option value="1.3">1.3x</option>
+        </select>
+    </div>
 
-            let utterance = null;
-            let isSpeaking = false;
-            let isPaused = false;
-            let currentCharOffset = 0;
+    <script>
+        const textToSpeak = {escaped_speech};
+        const playBtn = document.getElementById("playBtn_{message_idx}");
+        const playIcon = document.getElementById("playIcon_{message_idx}");
+        const playLabel = document.getElementById("playLabel_{message_idx}");
+        const pauseBtn = document.getElementById("pauseBtn_{message_idx}");
+        const stopBtn = document.getElementById("stopBtn_{message_idx}");
+        const rateSelect = document.getElementById("rateSelect_{message_idx}");
 
-            window.startSpeakingFromOffset_{message_idx} = function(offset) {{
-                if (!("speechSynthesis" in window)) return;
-                window.speechSynthesis.cancel();
+        let utterance = null;
+        let isSpeaking = false;
+        let isPaused = false;
+        let currentCharOffset = 0;
 
-                const textRemaining = textToSpeak.slice(offset) || textToSpeak;
-                utterance = new SpeechSynthesisUtterance(textRemaining);
-                utterance.rate = parseFloat(rateSelect.value) || 1.0;
-                utterance.pitch = 1.0;
-                utterance.lang = "en-IN";
+        function startSpeakingFromOffset(offset) {{
+            window.speechSynthesis.cancel();
 
-                const baseOffset = offset;
-                utterance.onboundary = (event) => {{
-                    if (typeof event.charIndex === "number") {{
-                        currentCharOffset = baseOffset + event.charIndex;
-                    }}
-                }};
+            const textRemaining = textToSpeak.slice(offset) || textToSpeak;
+            utterance = new SpeechSynthesisUtterance(textRemaining);
+            utterance.rate = parseFloat(rateSelect.value) || 1.0;
+            utterance.pitch = 1.0;
+            utterance.lang = "en-IN";
 
-                utterance.onstart = () => {{
-                    isSpeaking = true;
-                    isPaused = false;
-                    if (playBtn) playBtn.className = "btn-tts-{message_idx} active";
-                    if (playIcon) playIcon.innerText = "🔊";
-                    if (playLabel) playLabel.innerText = "Playing...";
-                    if (pauseBtn) pauseBtn.style.display = "inline-flex";
-                    if (stopBtn) stopBtn.style.display = "inline-flex";
-                }};
-
-                utterance.onend = () => {{
-                    currentCharOffset = 0;
-                    window.resetTTSUI_{message_idx}();
-                }};
-
-                utterance.onerror = (e) => {{
-                    console.error("[VOICE] TTS Error:", e);
-                    currentCharOffset = 0;
-                    window.resetTTSUI_{message_idx}();
-                }};
-
-                window.speechSynthesis.speak(utterance);
-            }};
-
-            window.toggleTTS_{message_idx} = function() {{
-                if (!("speechSynthesis" in window)) {{
-                    alert("Speech Synthesis is not supported in this browser.");
-                    return;
-                }}
-
-                if (isPaused) {{
-                    window.speechSynthesis.resume();
-                    isPaused = false;
-                    if (playIcon) playIcon.innerText = "🔊";
-                    if (playLabel) playLabel.innerText = "Playing...";
-                    if (pauseBtn) pauseBtn.innerText = "⏸ Pause";
-                    return;
-                }}
-
-                if (isSpeaking) {{
-                    window.stopTTS_{message_idx}();
-                    return;
-                }}
-
-                currentCharOffset = 0;
-                window.startSpeakingFromOffset_{message_idx}(0);
-            }};
-
-            window.pauseTTS_{message_idx} = function() {{
-                if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {{
-                    window.speechSynthesis.pause();
-                    isPaused = true;
-                    if (playIcon) playIcon.innerText = "⏸";
-                    if (playLabel) playLabel.innerText = "Paused";
-                    if (pauseBtn) pauseBtn.innerText = "▶ Resume";
-                }} else if (window.speechSynthesis.paused) {{
-                    window.speechSynthesis.resume();
-                    isPaused = false;
-                    if (playIcon) playIcon.innerText = "🔊";
-                    if (playLabel) playLabel.innerText = "Playing...";
-                    if (pauseBtn) pauseBtn.innerText = "⏸ Pause";
+            const baseOffset = offset;
+            utterance.onboundary = (event) => {{
+                if (typeof event.charIndex === "number") {{
+                    currentCharOffset = baseOffset + event.charIndex;
                 }}
             }};
 
-            window.stopTTS_{message_idx} = function() {{
-                if ("speechSynthesis" in window) {{
-                    window.speechSynthesis.cancel();
-                }}
-                currentCharOffset = 0;
-                window.resetTTSUI_{message_idx}();
-            }};
-
-            window.changeRateTTS_{message_idx} = function() {{
-                if (isSpeaking && !isPaused) {{
-                    window.startSpeakingFromOffset_{message_idx}(currentCharOffset);
-                }}
-            }};
-
-            window.resetTTSUI_{message_idx} = function() {{
-                isSpeaking = false;
+            utterance.onstart = () => {{
+                isSpeaking = true;
                 isPaused = false;
-                if (playBtn) playBtn.className = "btn-tts-{message_idx}";
-                if (playIcon) playIcon.innerText = "🔊";
-                if (playLabel) playLabel.innerText = "{button_label}";
-                if (pauseBtn) pauseBtn.style.display = "none";
-                if (stopBtn) stopBtn.style.display = "none";
+                playBtn.className = "btn-tts active";
+                playIcon.innerText = "🔊";
+                playLabel.innerText = "Playing...";
+                pauseBtn.style.display = "inline-flex";
+                stopBtn.style.display = "inline-flex";
             }};
 
+            utterance.onend = () => {{
+                currentCharOffset = 0;
+                resetTTSUI();
+            }};
+
+            utterance.onerror = (e) => {{
+                console.error("[VOICE] TTS Error:", e);
+                currentCharOffset = 0;
+                resetTTSUI();
+            }};
+
+            window.speechSynthesis.speak(utterance);
+        }}
+
+        function togglePlay() {{
+            if (!("speechSynthesis" in window)) {{
+                alert("Speech Synthesis is not supported in this browser.");
+                return;
+            }}
+
+            if (isPaused) {{
+                window.speechSynthesis.resume();
+                isPaused = false;
+                playIcon.innerText = "🔊";
+                playLabel.innerText = "Playing...";
+                pauseBtn.innerText = "⏸ Pause";
+                return;
+            }}
+
+            if (isSpeaking) {{
+                stopAudio();
+                return;
+            }}
+
+            currentCharOffset = 0;
+            startSpeakingFromOffset(0);
+        }}
+
+        function pauseAudio() {{
+            if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {{
+                window.speechSynthesis.pause();
+                isPaused = true;
+                playIcon.innerText = "⏸";
+                playLabel.innerText = "Resume";
+                pauseBtn.innerText = "▶ Resume";
+            }} else if (window.speechSynthesis.paused) {{
+                window.speechSynthesis.resume();
+                isPaused = false;
+                playIcon.innerText = "🔊";
+                playLabel.innerText = "Playing...";
+                pauseBtn.innerText = "⏸ Pause";
+            }}
+        }}
+
+        function stopAudio() {{
+            window.speechSynthesis.cancel();
+            currentCharOffset = 0;
+            resetTTSUI();
+        }}
+
+        function changeRate() {{
+            if (isSpeaking && !isPaused) {{
+                // Seamlessly continue speaking from current word/character offset at new rate
+                startSpeakingFromOffset(currentCharOffset);
+            }}
+        }}
+
+        function resetTTSUI() {{
+            isSpeaking = false;
+            isPaused = false;
+            playBtn.className = "btn-tts";
+            playIcon.innerText = "🔊";
+            playLabel.innerText = "{button_label}";
+            pauseBtn.style.display = "none";
+            stopBtn.style.display = "none";
+        }}
+
+        // Auto-play speech if requested
+        window.addEventListener("DOMContentLoaded", () => {{
             const shouldAutoPlay = {json.dumps(auto_play)};
             if (shouldAutoPlay) {{
                 setTimeout(() => {{
                     try {{
-                        window.toggleTTS_{message_idx}();
+                        togglePlay();
                     }} catch (err) {{
                         console.log("[VOICE] Auto-TTS playback policy tolerance:", err);
                     }}
                 }}, 350);
             }}
-        }})();
-        </script>
-    </div>
+        }});
+    </script>
+    </body>
+    </html>
     """
-    st.html(html_code)
+    components.html(html_code, height=48, scrolling=False)
 
 
 def render_voice_diagnostics_modal() -> None:
@@ -535,4 +585,4 @@ def render_voice_diagnostics_modal() -> None:
         </script>
     </div>
     """
-    st.html(diag_html)
+    components.html(diag_html, height=180, scrolling=False)
