@@ -10,11 +10,18 @@ from prisma import Prisma
 
 
 def get_user_from_db(uid: str):
-    db = Prisma()
-    db.connect()
-    user = db.user.find_unique(where={"id": uid})
-    db.disconnect()
-    return user
+    try:
+        from backend.storage.repository import get_prisma_client
+
+        db = get_prisma_client()
+        if not db.is_connected():
+            db.connect()
+        return db.user.find_unique(where={"id": uid})
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).warning(f"Failed to query user {uid} from DB: {e}")
+        return None
 
 
 def render_login_screen() -> None:
@@ -80,6 +87,7 @@ def render_login_screen() -> None:
                         st.session_state.teacher_subject = subject
                         set_user_role("teacher")
                     elif role == "admin":
+                        st.session_state.admin_id = student_id
                         cls_int = user.class_level if user and user.class_level else 10
                         set_student_class_level(cls_int)
                         set_user_role("admin")

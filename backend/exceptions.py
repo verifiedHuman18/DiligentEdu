@@ -77,3 +77,21 @@ class GeminiConfigurationError(GeminiAPIError):
     """Raised when no valid Gemini API key (neither primary nor fallback) is configured."""
 
     pass
+
+
+class PermissionDeniedError(AcademicRAGError):
+    """Raised when an operation violates administrative scope or authorization invariants."""
+
+    pass
+
+
+class StudentValidationError(AcademicRAGError):
+    """Raised when student creation or update data is invalid."""
+
+    pass
+
+
+class StudentNotFoundError(AcademicRAGError):
+    """Raised when a requested student does not exist in the database."""
+
+    pass

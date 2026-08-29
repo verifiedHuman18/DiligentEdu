@@ -44,31 +44,38 @@ def _format_date(iso_str: Optional[str]) -> str:
 
 def get_all_students_from_db() -> List[Dict[str, Any]]:
     """Fetches all students from the Prisma database with their name and class_level."""
-    from prisma import Prisma
+    try:
+        from backend.storage.repository import get_prisma_client
 
-    db = Prisma()
-    db.connect()
-    students = db.user.find_many(where={"role": "student"})
-    db.disconnect()
-    return [
-        {
-            "id": s.id,
-            "email": s.email,
-            "name": s.name if s.name else (s.email.split("@")[0] if s.email else "Student"),
-            "class_level": s.class_level,
-        }
-        for s in students
-    ]
+        db = get_prisma_client()
+        if not db.is_connected():
+            db.connect()
+        students = db.user.find_many(where={"role": "student"})
+        return [
+            {
+                "id": s.id,
+                "email": s.email,
+                "name": s.name if s.name else (s.email.split("@")[0] if s.email else "Student"),
+                "class_level": s.class_level,
+            }
+            for s in students
+        ]
+    except Exception as e:
+        logger.error(f"Failed to fetch students from DB: {e}")
+        return []
 
 
 def promote_student_in_db(student_id: str, new_class_level: int) -> None:
     """Promotes a student to a new class level in the Prisma DB."""
-    from prisma import Prisma
+    try:
+        from backend.storage.repository import get_prisma_client
 
-    db = Prisma()
-    db.connect()
-    db.user.update(where={"id": student_id}, data={"class_level": new_class_level})
-    db.disconnect()
+        db = get_prisma_client()
+        if not db.is_connected():
+            db.connect()
+        db.user.update(where={"id": student_id}, data={"class_level": new_class_level})
+    except Exception as e:
+        logger.error(f"Failed to promote student {student_id} in DB: {e}")
 
 
 def get_teacher_student_overview(

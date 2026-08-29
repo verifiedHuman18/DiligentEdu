@@ -79,3 +79,29 @@ def get_user_by_uid(uid):
         return auth.get_user(uid)
     except Exception as e:
         raise Exception(f"Failed to fetch user: {e}")
+
+
+def create_or_get_firebase_user(
+    email: str, password: str = "Student@123", display_name: str = None
+) -> str:
+    """
+    Creates a user in Firebase Auth or retrieves an existing user's UID.
+    Updates password if user already exists and a new password was provided.
+    Returns the Firebase UID.
+    """
+    init_firebase()
+    from firebase_admin.exceptions import AlreadyExistsError
+
+    try:
+        user_record = auth.create_user(
+            email=email, password=password, display_name=display_name
+        )
+        return user_record.uid
+    except AlreadyExistsError:
+        user_record = auth.get_user_by_email(email)
+        if password:
+            try:
+                auth.update_user(user_record.uid, password=password)
+            except Exception:
+                pass
+        return user_record.uid

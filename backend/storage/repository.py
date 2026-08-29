@@ -12,6 +12,21 @@ from prisma import Prisma
 logger = logging.getLogger(__name__)
 
 
+_shared_prisma: Optional[Prisma] = None
+
+
+def get_prisma_client() -> Prisma:
+    """Returns a shared, lazily connected Prisma client instance to prevent multiple engine processes."""
+    global _shared_prisma
+    if _shared_prisma is None or not _shared_prisma.is_connected():
+        try:
+            _shared_prisma = Prisma()
+            _shared_prisma.connect()
+        except Exception as e:
+            logger.warning(f"Prisma connect failed in get_prisma_client: {e}")
+    return _shared_prisma
+
+
 class QuizRepository:
     """Provides type-safe CRUD operations for student quiz data using Prisma with SQLite fallback support."""
 
@@ -24,11 +39,20 @@ class QuizRepository:
                 init_database(self.db_path)
             except Exception:
                 pass
-        self.db = Prisma()
+        self._db = None
+
+    @property
+    def db(self) -> Prisma:
+        if self._db is None:
+            self._db = get_prisma_client()
+        return self._db
 
     def _ensure_connected(self):
         if not self.db.is_connected():
-            self.db.connect()
+            try:
+                self.db.connect()
+            except Exception as e:
+                logger.warning(f"Prisma reconnect failed in QuizRepository: {e}")
 
     def record_attempt(
         self,
@@ -337,6 +361,71 @@ class QuizRepository:
             include_questions=include_questions,
         )
 
+    def get_class_history(
+        self,
+        class_level: int,
+        subject: Optional[str] = None,
+        include_questions: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Retrieves all quiz attempts for an entire class level in a single query."""
+        class_int = int(class_level)
+        if self.db_path:
+            try:
+                import sqlite3
+
+                conn = sqlite3.connect(self.db_path)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                query = "SELECT * FROM quiz_attempts WHERE class_level = ?"
+                params: List[Any] = [class_int]
+                if subject is not None:
+                    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                    query += " AND subject = ?"
+                    params.append(subj_clean)
+                query += " ORDER BY timestamp ASC"
+                cursor.execute(query, tuple(params))
+                attempts = [dict(row) for row in cursor.fetchall()]
+                conn.close()
+                return attempts
+            except Exception as sq_err:
+                logger.debug(f"SQLite get_class_history query: {sq_err}")
+                return []
+
+        self._ensure_connected()
+        try:
+            where_clause = {"class_level": class_int}
+            if subject is not None:
+                subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                where_clause["subject"] = subj_clean
+
+            attempts = self.db.quizattempt.find_many(
+                where=where_clause,
+                include={"responses": True} if include_questions else None,
+                order={"timestamp": "asc"},
+            )
+
+            history = []
+            for attempt in attempts:
+                item = attempt.model_dump()
+                if include_questions and attempt.responses:
+                    q_list = []
+                    for qr in attempt.responses:
+                        qd = qr.model_dump()
+                        try:
+                            qd["source_pages"] = json.loads(qd.get("source_pages") or "[]")
+                        except Exception:
+                            qd["source_pages"] = []
+                        qd["is_correct"] = bool(qd.get("is_correct", 0))
+                        q_list.append(qd)
+                    item["questions"] = sorted(q_list, key=lambda x: x["id"])
+                history.append(item)
+
+            return history
+        except Exception as e:
+            if not self.db_path:
+                logger.error(f"Failed to fetch class history for class {class_level}: {e}")
+            return []
+
     def clear_student_data(self, student_id: str) -> None:
         self._ensure_connected()
         clean_id = str(student_id).strip()
@@ -346,6 +435,80 @@ class QuizRepository:
         except Exception as e:
             logger.error(f"Failed to clear data for {student_id}: {e}")
             raise StorageError(f"Failed to delete student records: {e}")
+
+    def delete_student_cascade(self, student_id: str) -> Dict[str, Any]:
+        """
+        Comprehensively deletes all records associated with a student across all database tables:
+        - QuestionResponse records (cascaded from QuizAttempt)
+        - QuizAttempt records
+        - TeacherActionPlan records
+        - UploadedDocument records
+        - StudyTwinMatch records
+        - User record
+        """
+        self._ensure_connected()
+        clean_id = str(student_id).strip()
+
+        # 1. SQLite fallback cleanup if db_path is configured
+        if self.db_path:
+            try:
+                import sqlite3
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute(
+                    "DELETE FROM question_responses WHERE quiz_id IN (SELECT quiz_id FROM quiz_attempts WHERE student_id = ?)",
+                    (clean_id,),
+                )
+                cursor.execute("DELETE FROM quiz_attempts WHERE student_id = ?", (clean_id,))
+                conn.commit()
+                conn.close()
+            except Exception as e:
+                logger.debug(f"SQLite cascade cleanup note: {e}")
+
+        # 2. Prisma relational cleanup
+        try:
+            # Delete StudyTwinMatch records where student is primary or twin
+            try:
+                self.db.studytwinmatch.delete_many(where={"student_id": clean_id})
+                self.db.studytwinmatch.delete_many(where={"twin_student_id": clean_id})
+            except Exception as e:
+                logger.debug(f"StudyTwinMatch deletion note: {e}")
+
+            # Delete UploadedDocument records
+            try:
+                self.db.uploadeddocument.delete_many(where={"student_id": clean_id})
+            except Exception as e:
+                logger.debug(f"UploadedDocument deletion note: {e}")
+
+            # Delete TeacherActionPlan records
+            try:
+                self.db.teacheractionplan.delete_many(where={"student_id": clean_id})
+            except Exception as e:
+                logger.debug(f"TeacherActionPlan deletion note: {e}")
+
+            # Delete QuestionResponse and QuizAttempt records
+            try:
+                attempts = self.db.quizattempt.find_many(where={"student_id": clean_id})
+                for att in attempts:
+                    try:
+                        self.db.questionresponse.delete_many(where={"quiz_id": att.quiz_id})
+                    except Exception:
+                        pass
+                self.db.quizattempt.delete_many(where={"student_id": clean_id})
+            except Exception as e:
+                logger.debug(f"QuizAttempt deletion note: {e}")
+
+            # Finally, delete User record
+            try:
+                self.db.user.delete(where={"id": clean_id})
+            except Exception as e:
+                logger.debug(f"User table deletion note: {e}")
+
+            return {"student_id": clean_id, "deleted": True}
+        except Exception as e:
+            logger.error(f"Failed to cascade delete student {clean_id}: {e}")
+            raise StorageError(f"Failed to cascade delete student: {e}")
 
     def get_all_student_ids(self) -> List[str]:
         self._ensure_connected()

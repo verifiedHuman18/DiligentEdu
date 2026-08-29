@@ -14,7 +14,11 @@ def render_navbar(selected_class: str = "Class 10", student_id: str = "student_0
     class_level = get_student_class_level()
 
     # Brand Title Subtext based on Role
-    brand_sub = "Teacher Portal" if role == "teacher" else "NCERT Science"
+    brand_sub = (
+        "Teacher Portal"
+        if role == "teacher"
+        else ("Admin Portal" if role == "admin" else "NCERT Science")
+    )
 
     # Profile Badge based on Role
     if role == "teacher":

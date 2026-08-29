@@ -20,38 +20,42 @@ if PROJECT_ROOT not in sys.path:
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-# Streamlit Community Cloud: Generate Prisma client if not generated
-# We generate to /tmp/prisma because site-packages is read-only on Streamlit Cloud
-import os
-import subprocess
-import sys
+# Ensure Prisma client is available (dynamic fallback for environments like Streamlit Cloud)
+try:
+    from prisma import Prisma
+except ImportError:
+    import tempfile
+    import subprocess
 
-if not os.path.exists("/tmp/prisma/client.py"):
-    print("Prisma client not found in /tmp. Generating...")
+    tmp_dir = tempfile.gettempdir()
+    prisma_out_dir = os.path.join(tmp_dir, "prisma")
+    custom_schema_path = os.path.join(tmp_dir, "schema.prisma")
 
-    # Read the original schema
-    with open("prisma/schema.prisma", "r") as f:
-        schema = f.read()
+    if not os.path.exists(os.path.join(prisma_out_dir, "client.py")):
+        print(f"Prisma client not found in environment. Generating into {prisma_out_dir}...")
 
-    # Inject the local output directory into the generator block
-    if "output" not in schema:
-        schema = schema.replace(
-            'provider             = "prisma-client-py"',
-            'provider             = "prisma-client-py"\n  output               = "/tmp/prisma"',
-        )
+        schema_file = os.path.join(PROJECT_ROOT, "prisma", "schema.prisma")
+        if os.path.exists(schema_file):
+            with open(schema_file, "r", encoding="utf-8") as f:
+                schema = f.read()
 
-    # Write the modified schema to a temporary location
-    with open("/tmp/schema.prisma", "w") as f:
-        f.write(schema)
+            out_dir_str = prisma_out_dir.replace("\\", "/")
+            if "output" not in schema:
+                schema = schema.replace(
+                    'provider             = "prisma-client-py"',
+                    f'provider             = "prisma-client-py"\n  output               = "{out_dir_str}"',
+                )
 
-    # Generate the client using the modified schema
-    subprocess.check_call(
-        [sys.executable, "-m", "prisma", "generate", "--schema", "/tmp/schema.prisma"]
-    )
+            os.makedirs(os.path.dirname(custom_schema_path), exist_ok=True)
+            with open(custom_schema_path, "w", encoding="utf-8") as f:
+                f.write(schema)
 
-# Prepend /tmp to sys.path so Python loads `prisma` from /tmp/prisma instead of site-packages
-if "/tmp" not in sys.path:
-    sys.path.insert(0, "/tmp")
+            subprocess.check_call(
+                [sys.executable, "-m", "prisma", "generate", "--schema", custom_schema_path]
+            )
+
+    if tmp_dir not in sys.path:
+        sys.path.insert(0, tmp_dir)
 
 from frontend import (
     get_user_role,
@@ -216,6 +220,7 @@ async def main():
                 st.session_state.teacher_subject = user.subject
                 set_user_role("teacher", restore_screen=True)
             elif user.role == "admin":
+                st.session_state.admin_id = user.id
                 cls_int = user.class_level if user.class_level else 10
                 set_student_class_level(cls_int)
                 set_user_role("admin", restore_screen=True)
