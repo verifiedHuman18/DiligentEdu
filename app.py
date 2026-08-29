@@ -188,6 +188,12 @@ async def main():
 
     render_global_transition_layer()
 
+    # 3D Intro Splash Screen (Phases 1-23)
+    if not st.session_state.get("intro_completed", False):
+        from frontend.screens.intro_screen import render_intro_screen
+        render_intro_screen()
+        return
+
     user_role = get_user_role()
 
     # Restore session from URL query parameters if available
