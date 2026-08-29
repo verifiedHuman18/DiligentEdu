@@ -1,4 +1,3 @@
-
 generator client {
   provider             = "prisma-client-py"
   interface            = "sync"
@@ -15,9 +14,9 @@ model User {
   id          String   @id // Firebase UID
   email       String   @unique
   name        String?
-  role        String   // "student" or "teacher"
-  subject     String?  // e.g. "science", "math"
-  class_level Int?     // Only applicable for students (e.g. 9 or 10)
+  role        String // "student" or "teacher"
+  subject     String? // e.g. "science", "math"
+  class_level Int? // Only applicable for students (e.g. 9 or 10)
   createdAt   DateTime @default(now())
 }
 
@@ -37,7 +36,7 @@ model QuizAttempt {
 }
 
 model QuestionResponse {
-  id             Int          @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   quiz_id        String
   question_id    String
   question_text  String?
@@ -48,14 +47,14 @@ model QuestionResponse {
   is_correct     Int
   source_pages   String?
   concept_id     String?
-  quiz           QuizAttempt  @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
+  quiz           QuizAttempt @relation(fields: [quiz_id], references: [quiz_id], onDelete: Cascade)
 }
 
 model TeacherActionPlan {
-  id            Int      @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
   student_id    String
   class_level   Int
-  subject       String?  @default("Science")
+  subject       String? @default("Science")
   plan_data     String
   teacher_notes String?
   updated_at    String
@@ -80,7 +79,7 @@ model UploadedDocument {
 }
 
 model StudyTwinMatch {
-  id               Int     @id @default(autoincrement())
+  id               Int    @id @default(autoincrement())
   student_id       String
   twin_student_id  String
   class_level      Int

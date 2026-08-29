@@ -2,10 +2,18 @@
 
 import json
 import logging
+import os
+import sys
 import threading
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+
+# Ensure generated Prisma client package is resolvable
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_GENERATED_DIR = os.path.join(_PROJECT_ROOT, "generated")
+if os.path.exists(_GENERATED_DIR) and _GENERATED_DIR not in sys.path:
+    sys.path.insert(0, _GENERATED_DIR)
 
 from backend.exceptions import StorageError
 from prisma import Prisma

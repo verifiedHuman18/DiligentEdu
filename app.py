@@ -11,74 +11,51 @@ from datetime import datetime
 
 import streamlit as st
 
-# Ensure project root in sys.path
+# Ensure project root and generated Prisma client package are in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
+
+GENERATED_DIR = os.path.join(PROJECT_ROOT, "generated")
+if os.path.exists(GENERATED_DIR) and GENERATED_DIR not in sys.path:
+    sys.path.insert(0, GENERATED_DIR)
 
 # Reconfigure stdout for UTF-8
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 
-# Ensure Prisma client is available (dynamic fallback for environments like Streamlit Cloud)
+# Ensure Prisma client is available (uses pre-generated bundle or dynamic fallback)
 def _ensure_prisma_client():
     try:
         from prisma import Prisma  # noqa: F401
 
         return
     except Exception as exc:
-        import subprocess
-
         schema_file = os.path.join(PROJECT_ROOT, "prisma", "schema.prisma")
         if not os.path.exists(schema_file):
             print(f"Warning: Prisma schema file not found at {schema_file}")
             return
 
-        print(f"Prisma client initialization required ({type(exc).__name__}). Generating client...")
+        print(
+            f"Prisma client initialization required ({type(exc).__name__}). Attempting generate..."
+        )
+        import subprocess
+
         try:
-            subprocess.check_call(
-                [sys.executable, "-m", "prisma", "generate", "--schema", schema_file]
+            subprocess.run(
+                [sys.executable, "-m", "prisma", "generate", "--schema", schema_file],
+                capture_output=True,
+                check=False,
             )
-        except Exception as gen_err:
-            print(
-                f"Direct prisma generate failed: {gen_err}. Falling back to temporary directory..."
-            )
-            import tempfile
+            for mod in list(sys.modules.keys()):
+                if mod == "prisma" or mod.startswith("prisma."):
+                    del sys.modules[mod]
+            from prisma import Prisma  # noqa: F401
 
-            tmp_dir = tempfile.gettempdir()
-            prisma_out_dir = os.path.join(tmp_dir, "prisma")
-            custom_schema_path = os.path.join(tmp_dir, "schema.prisma")
-
-            with open(schema_file, "r", encoding="utf-8") as f:
-                schema = f.read()
-
-            out_dir_str = prisma_out_dir.replace("\\", "/")
-            if "output" not in schema:
-                schema = schema.replace(
-                    'provider             = "prisma-client-py"',
-                    f'provider             = "prisma-client-py"\n  output               = "{out_dir_str}"',
-                )
-
-            os.makedirs(os.path.dirname(custom_schema_path), exist_ok=True)
-            with open(custom_schema_path, "w", encoding="utf-8") as f:
-                f.write(schema)
-
-            subprocess.check_call(
-                [sys.executable, "-m", "prisma", "generate", "--schema", custom_schema_path]
-            )
-
-            if tmp_dir not in sys.path:
-                sys.path.insert(0, tmp_dir)
-
-        # Clear cached prisma entries from sys.modules so the generated client is reloaded
-        for mod in list(sys.modules.keys()):
-            if mod == "prisma" or mod.startswith("prisma."):
-                del sys.modules[mod]
-
-        from prisma import Prisma  # noqa: F401
-
-        print("Prisma client successfully loaded.")
+            print("Prisma client successfully loaded.")
+        except Exception as fallback_err:
+            print(f"Warning: Could not initialize dynamic Prisma client: {fallback_err}")
 
 
 _ensure_prisma_client()

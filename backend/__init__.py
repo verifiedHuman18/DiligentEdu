@@ -4,7 +4,15 @@ __version__ = "0.1.0"
 
 import io
 import logging
+import os
+import sys
 from typing import Any, Dict, List, Optional, Union
+
+# Ensure generated Prisma client package is resolvable
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_GENERATED_DIR = os.path.join(_PROJECT_ROOT, "generated")
+if os.path.exists(_GENERATED_DIR) and _GENERATED_DIR not in sys.path:
+    sys.path.insert(0, _GENERATED_DIR)
 
 from backend.analytics.action_plan import (
     generate_action_plan,
