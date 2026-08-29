@@ -1,10 +1,13 @@
-"""Material Design 3 Voice Assistant Component for NCERT Tutor (Phases 2, 4, 5, 9, 10, 11, 14, 20).
+"""Material Design 3 Voice Assistant Component for NCERT Tutor (Phases 1-20).
 
 Provides:
-- Client-side Web Speech API Speech-to-Text (STT) recording component with state machine
-- Student review card with edit & direct submission
-- Browser Web Speech Synthesis Text-to-Speech (TTS) audio player with Math-to-Speech
-- 100% Ephemeral audio processing with zero server storage and zero extra API keys
+- In-textbar Web Speech API Speech-to-Text (STT) mic button seamlessly attached to Streamlit chat input
+- Resilient multi-context DOM resolver (window.parent, window.top, window) for local and deployed hosting
+- Comprehensive HTTPS / Secure Context / Microphone permission validation
+- Graceful error handling for 'not-allowed', 'no-speech', 'network', and unsupported browsers
+- Browser Web Speech Synthesis Text-to-Speech (TTS) player with Math-to-Speech phonetic conversions
+- 100% ephemeral audio processing with zero server storage and zero extra API keys
+- Built-in Voice Diagnostic utilities for instant local vs deployed troubleshooting
 """
 
 import json
@@ -23,10 +26,10 @@ def render_voice_recorder_component(
     subject: str = "Science",
 ) -> None:
     """
-    Directly injects an interactive Web Speech Recognition microphone button into Streamlit's bottom chat input textbar.
+    Directly injects an interactive Web Speech Recognition microphone button into Streamlit's bottom chat input bar.
 
-    Zero separate UI cards or bars. When clicked, transcribes speech live into the text bar,
-    tags voice input, and automatically submits on completion.
+    Resolves the active root window and document across iframe contexts to guarantee
+    instant attachment to the chat input container across both local and deployed environments.
     """
     html_code = f"""
     <!DOCTYPE html>
@@ -40,10 +43,35 @@ def render_voice_recorder_component(
     <body>
     <script>
     (function initChatInputMic() {{
+        function getRootContext() {{
+            try {{
+                if (window.parent && window.parent.document && window.parent.document.querySelector('[data-testid="stChatInput"]')) {{
+                    return {{ win: window.parent, doc: window.parent.document }};
+                }}
+            }} catch (e) {{}}
+            try {{
+                if (window.top && window.top.document && window.top.document.querySelector('[data-testid="stChatInput"]')) {{
+                    return {{ win: window.top, doc: window.top.document }};
+                }}
+            }} catch (e) {{}}
+            try {{
+                if (window.document && window.document.querySelector('[data-testid="stChatInput"]')) {{
+                    return {{ win: window, doc: window.document }};
+                }}
+            }} catch (e) {{}}
+            return null;
+        }}
+
         function attachMicToInput() {{
             try {{
-                const rootWin = window.parent || window;
-                const rootDoc = rootWin.document;
+                const ctx = getRootContext();
+                if (!ctx) {{
+                    setTimeout(attachMicToInput, 150);
+                    return;
+                }}
+
+                const rootWin = ctx.win;
+                const rootDoc = ctx.doc;
                 const chatContainer = rootDoc.querySelector('[data-testid="stChatInput"]');
                 if (!chatContainer) {{
                     setTimeout(attachMicToInput, 150);
@@ -57,7 +85,7 @@ def render_voice_recorder_component(
                     return;
                 }}
 
-                // Remove previous zombie mic button if exists to guarantee live listener binding
+                // Remove previous zombie mic button if exists
                 let existingMic = rootDoc.getElementById("stChatInputDirectMicBtn");
                 if (existingMic) {{
                     existingMic.remove();
@@ -112,9 +140,12 @@ def render_voice_recorder_component(
                 const SpeechRec = (rootWin.SpeechRecognition || rootWin.webkitSpeechRecognition || window.SpeechRecognition || window.webkitSpeechRecognition);
 
                 if (!SpeechRec) {{
-                    micBtn.title = "Speech recognition is not supported in this browser";
-                    micBtn.style.opacity = "0.35";
+                    micBtn.title = "Speech recognition is not supported in this browser (Use Chrome or Edge)";
+                    micBtn.style.opacity = "0.4";
                     micBtn.style.cursor = "not-allowed";
+                    micBtn.onclick = () => {{
+                        alert("Speech recognition is not natively supported in this browser. Please use Google Chrome or Microsoft Edge for voice input.");
+                    }};
                 }} else {{
                     let recognition = new SpeechRec();
                     recognition.continuous = false;
@@ -138,9 +169,9 @@ def render_voice_recorder_component(
                         micBtn.classList.add("recording");
                         micBtn.style.background = "#ef4444";
                         micBtn.style.color = "#ffffff";
-                        micBtn.style.boxShadow = "0 0 12px rgba(239, 68, 68, 0.9)";
+                        micBtn.style.boxShadow = "0 0 14px rgba(239, 68, 68, 0.9)";
                         micBtn.style.transform = "scale(1.12)";
-                        textArea.placeholder = " Listening... Speak your doubt now (Click mic to stop)";
+                        textArea.placeholder = "Listening... Speak your doubt now (Click mic to stop)";
                     }};
 
                     recognition.onresult = (event) => {{
@@ -162,10 +193,14 @@ def render_voice_recorder_component(
                     }};
 
                     recognition.onerror = (e) => {{
-                        console.error("Speech recognition error:", e);
+                        console.error("[VOICE] Speech recognition error:", e);
                         resetMic();
-                        if (e.error === "not-allowed") {{
-                            alert("Microphone permission was denied. Please allow microphone access in your browser settings to speak.");
+                        if (e.error === "not-allowed" || e.error === "permission-denied") {{
+                            alert("Microphone permission was denied. Please allow microphone access in your browser site settings and try again.");
+                        }} else if (e.error === "no-speech") {{
+                            // No speech detected, quietly reset
+                        }} else if (e.error === "network") {{
+                            alert("Speech recognition network error. Please check your internet connection.");
                         }}
                     }};
 
@@ -173,7 +208,7 @@ def render_voice_recorder_component(
                         resetMic();
                         if (finalTranscript.trim()) {{
                             // Tag voice input with invisible marker \u200b[voice]
-                            const voicePrompt = finalTranscript.trim() + "\u200b[voice]";
+                            const voicePrompt = finalTranscript.trim() + "\\u200b[voice]";
                             const nativeSetter = Object.getOwnPropertyDescriptor(rootWin.HTMLTextAreaElement.prototype, "value").set;
                             if (nativeSetter) nativeSetter.call(textArea, voicePrompt);
                             else textArea.value = voicePrompt;
@@ -204,11 +239,15 @@ def render_voice_recorder_component(
                         if (isRecording) {{
                             recognition.stop();
                         }} else {{
+                            if (!rootWin.isSecureContext && rootWin.location.hostname !== "localhost" && rootWin.location.hostname !== "127.0.0.1") {{
+                                alert("Microphone speech recognition requires a Secure Context (HTTPS). Please ensure the site is accessed over HTTPS.");
+                                return;
+                            }}
                             finalTranscript = "";
                             try {{
                                 recognition.start();
                             }} catch (err) {{
-                                console.error("Start recording error:", err);
+                                console.error("[VOICE] Start recording error:", err);
                             }}
                         }}
                     }}
@@ -218,19 +257,19 @@ def render_voice_recorder_component(
                     micBtn.onmousedown = (e) => {{ e.stopPropagation(); }};
                 }}
 
-                // Place mic button immediately before the submit button inside the textbar
+                // Place mic button immediately before submit button inside textbar
                 if (submitBtn && submitBtn.parentNode) {{
                     submitBtn.parentNode.insertBefore(micBtn, submitBtn);
                 }} else {{
                     chatContainer.appendChild(micBtn);
                 }}
             }} catch (err) {{
-                console.error("Chat input mic error:", err);
+                console.error("[VOICE] Chat input mic initialization error:", err);
             }}
         }}
 
         attachMicToInput();
-        setInterval(attachMicToInput, 1200);
+        setInterval(attachMicToInput, 1000);
     }})();
     </script>
     </body>
@@ -258,7 +297,6 @@ def render_tts_player_component(
     if not speech_text or len(speech_text.strip()) < 3:
         return
 
-    # Escape speech text safely for JS string literal
     escaped_speech = json.dumps(speech_text)
 
     html_code = f"""
@@ -335,13 +373,13 @@ def render_tts_player_component(
     <body>
     <div class="tts-row">
         <button id="playBtn_{message_idx}" class="btn-tts" onclick="togglePlay()">
-            <span id="playIcon_{message_idx}"></span> <span id="playLabel_{message_idx}">{button_label}</span>
+            <span id="playIcon_{message_idx}">🔊</span> <span id="playLabel_{message_idx}">{button_label}</span>
         </button>
         <button id="pauseBtn_{message_idx}" class="btn-ctrl" onclick="pauseAudio()" style="display: none;" title="Pause">
-             Pause
+            ⏸ Pause
         </button>
         <button id="stopBtn_{message_idx}" class="btn-ctrl" onclick="stopAudio()" style="display: none;" title="Stop">
-             Stop
+            ⏹ Stop
         </button>
         <select id="rateSelect_{message_idx}" class="rate-select" onchange="changeRate()" title="Speech Speed">
             <option value="0.9">0.9x</option>
@@ -385,7 +423,7 @@ def render_tts_player_component(
                 isSpeaking = true;
                 isPaused = false;
                 playBtn.className = "btn-tts active";
-                playIcon.innerText = "";
+                playIcon.innerText = "🔊";
                 playLabel.innerText = "Playing...";
                 pauseBtn.style.display = "inline-flex";
                 stopBtn.style.display = "inline-flex";
@@ -397,7 +435,7 @@ def render_tts_player_component(
             }};
 
             utterance.onerror = (e) => {{
-                console.error("TTS Error:", e);
+                console.error("[VOICE] TTS Error:", e);
                 currentCharOffset = 0;
                 resetTTSUI();
             }};
@@ -414,9 +452,9 @@ def render_tts_player_component(
             if (isPaused) {{
                 window.speechSynthesis.resume();
                 isPaused = false;
-                playIcon.innerText = "";
+                playIcon.innerText = "🔊";
                 playLabel.innerText = "Playing...";
-                pauseBtn.innerText = " Pause";
+                pauseBtn.innerText = "⏸ Pause";
                 return;
             }}
 
@@ -433,15 +471,15 @@ def render_tts_player_component(
             if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {{
                 window.speechSynthesis.pause();
                 isPaused = true;
-                playIcon.innerText = "";
+                playIcon.innerText = "⏸";
                 playLabel.innerText = "Resume";
-                pauseBtn.innerText = " Resume";
+                pauseBtn.innerText = "▶ Resume";
             }} else if (window.speechSynthesis.paused) {{
                 window.speechSynthesis.resume();
                 isPaused = false;
-                playIcon.innerText = "";
+                playIcon.innerText = "🔊";
                 playLabel.innerText = "Playing...";
-                pauseBtn.innerText = " Pause";
+                pauseBtn.innerText = "⏸ Pause";
             }}
         }}
 
@@ -462,7 +500,7 @@ def render_tts_player_component(
             isSpeaking = false;
             isPaused = false;
             playBtn.className = "btn-tts";
-            playIcon.innerText = "";
+            playIcon.innerText = "🔊";
             playLabel.innerText = "{button_label}";
             pauseBtn.style.display = "none";
             stopBtn.style.display = "none";
@@ -476,7 +514,7 @@ def render_tts_player_component(
                     try {{
                         togglePlay();
                     }} catch (err) {{
-                        console.log("Auto-TTS playback tolerance:", err);
+                        console.log("[VOICE] Auto-TTS playback policy tolerance:", err);
                     }}
                 }}, 350);
             }}
@@ -486,3 +524,65 @@ def render_tts_player_component(
     </html>
     """
     components.html(html_code, height=48, scrolling=False)
+
+
+def render_voice_diagnostics_modal() -> None:
+    """
+    Renders an interactive client-side developer & student diagnostic card
+    to test microphone permissions, secure context, SpeechRecognition, and TTS.
+    """
+    diag_html = """
+    <div style="background: rgba(30, 22, 16, 0.85); border: 1px solid #6b584c; border-radius: 12px; padding: 16px; margin: 12px 0;">
+        <h4 style="margin: 0 0 10px 0; color: #fbbf24; font-size: 1rem;">Voice & Audio Diagnostics</h4>
+        <div id="voiceDiagResults" style="font-size: 0.85rem; color: #dac7b8; line-height: 1.6;">
+            <div>Checking browser capabilities...</div>
+        </div>
+        <button id="runVoiceDiagBtn" type="button" style="margin-top: 10px; background: #fbbf24; color: #191310; border: none; border-radius: 6px; padding: 6px 14px; font-weight: 700; cursor: pointer;">
+            Test Microphone Access
+        </button>
+        <script>
+        (function() {
+            function updateDiag() {
+                const res = document.getElementById("voiceDiagResults");
+                if (!res) return;
+
+                const isSecure = window.isSecureContext;
+                const hasSTT = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+                const hasTTS = !!("speechSynthesis" in window);
+                const hasMediaDevices = !!(navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+                res.innerHTML = `
+                    <div><b>Secure Context (HTTPS/localhost):</b> ${isSecure ? '<span style="color: #4ade80;">Yes</span>' : '<span style="color: #ef4444;">No (Required for mic)</span>'}</div>
+                    <div><b>Speech Recognition API (STT):</b> ${hasSTT ? '<span style="color: #4ade80;">Available</span>' : '<span style="color: #ef4444;">Unavailable (Use Chrome/Edge)</span>'}</div>
+                    <div><b>Speech Synthesis API (TTS):</b> ${hasTTS ? '<span style="color: #4ade80;">Available</span>' : '<span style="color: #ef4444;">Unavailable</span>'}</div>
+                    <div><b>MediaDevices Audio Capture:</b> ${hasMediaDevices ? '<span style="color: #4ade80;">Supported</span>' : '<span style="color: #ef4444;">Not Supported</span>'}</div>
+                    <div id="micPermStatus" style="margin-top: 4px;"><b>Microphone Permission:</b> Testing on button click...</div>
+                `;
+            }
+
+            const btn = document.getElementById("runVoiceDiagBtn");
+            if (btn) {
+                btn.onclick = () => {
+                    const statusEl = document.getElementById("micPermStatus");
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        statusEl.innerHTML = "<b>Microphone Permission:</b> Requesting...";
+                        navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then(stream => {
+                                statusEl.innerHTML = '<b>Microphone Permission:</b> <span style="color: #4ade80;">Granted & Working</span>';
+                                stream.getTracks().forEach(track => track.stop());
+                            })
+                            .catch(err => {
+                                statusEl.innerHTML = `<b>Microphone Permission:</b> <span style="color: #ef4444;">Denied (${err.name})</span>`;
+                            });
+                    } else {
+                        statusEl.innerHTML = '<b>Microphone Permission:</b> <span style="color: #ef4444;">getUserMedia not supported</span>';
+                    }
+                };
+            }
+
+            updateDiag();
+        })();
+        </script>
+    </div>
+    """
+    components.html(diag_html, height=180, scrolling=False)
