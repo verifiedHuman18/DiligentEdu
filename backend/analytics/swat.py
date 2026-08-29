@@ -97,7 +97,7 @@ def get_student_swat(
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
     history = repo.get_student_history(
-        student_id, class_level=class_level, subject=subj_clean, include_questions=True
+        student_id, class_level=class_level, subject=subj_clean, include_questions=False
     )
 
     target_class = (

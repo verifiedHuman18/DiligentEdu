@@ -30,7 +30,9 @@ def generate_action_plan(
             student_id, class_level=class_level, subject=subj_clean, db_path=db_path
         )
     )
-    target_class = active_swat.get("class_level") or (int(class_level) if class_level is not None else 10)
+    target_class = active_swat.get("class_level") or (
+        int(class_level) if class_level is not None else 10
+    )
     repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
 
     # 1. Check for Active Teacher Custom Action Plan

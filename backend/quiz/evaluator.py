@@ -26,7 +26,6 @@ def submit_and_grade_quiz(
         raise ValueError("student_id cannot be empty.")
     clean_student_id = str(student_id).strip()
 
-
     chapter = str(quiz_data.get("chapter", "Science"))
     class_level = int(quiz_data.get("class_level", 10))
     subject = str(quiz_data.get("subject", "Science"))

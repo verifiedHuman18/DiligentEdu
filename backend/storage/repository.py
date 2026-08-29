@@ -11,25 +11,34 @@ from backend.exceptions import StorageError
 from prisma import Prisma
 
 logger = logging.getLogger(__name__)
-_thread_local = threading.local()
+_global_prisma: Optional[Prisma] = None
+_prisma_lock = threading.Lock()
 
 
 def get_prisma_client() -> Prisma:
-    """Returns a thread-local, lazily connected Prisma client instance to prevent engine conflicts across threads."""
-    if not hasattr(_thread_local, "prisma_db"):
-        _thread_local.prisma_db = Prisma()
+    """Returns a thread-safe, lazily connected singleton Prisma client instance."""
+    global _global_prisma
+    if _global_prisma is None:
+        with _prisma_lock:
+            if _global_prisma is None:
+                _global_prisma = Prisma(auto_register=True)
 
-    try:
-        if not _thread_local.prisma_db.is_connected():
-            _thread_local.prisma_db.connect()
-    except Exception:
-        try:
-            _thread_local.prisma_db = Prisma()
-            _thread_local.prisma_db.connect()
-        except Exception as e:
-            logger.warning(f"Prisma connect failed in get_prisma_client: {e}")
+    if not _global_prisma.is_connected():
+        with _prisma_lock:
+            if not _global_prisma.is_connected():
+                try:
+                    _global_prisma.connect()
+                except Exception as e:
+                    logger.warning(
+                        f"Prisma connect failed in get_prisma_client: {e}. Re-instantiating client..."
+                    )
+                    try:
+                        _global_prisma = Prisma(auto_register=True)
+                        _global_prisma.connect()
+                    except Exception as e2:
+                        logger.warning(f"Prisma fallback connect failed: {e2}")
 
-    return _thread_local.prisma_db
+    return _global_prisma
 
 
 class QuizRepository:
@@ -343,9 +352,36 @@ class QuizRepository:
 
             return history
         except Exception as e:
+            import os
+
+            from backend.config import config
+
+            fallback_db = self.db_path or str(config.default_db_path)
+            if fallback_db and os.path.exists(fallback_db):
+                try:
+                    import sqlite3
+
+                    conn = sqlite3.connect(fallback_db)
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    query = "SELECT * FROM quiz_attempts WHERE student_id = ?"
+                    params: List[Any] = [clean_id]
+                    if class_level is not None:
+                        query += " AND class_level = ?"
+                        params.append(int(class_level))
+                    if subject is not None:
+                        subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+                        query += " AND subject = ?"
+                        params.append(subj_clean)
+                    query += " ORDER BY timestamp ASC"
+                    cursor.execute(query, tuple(params))
+                    attempts = [dict(row) for row in cursor.fetchall()]
+                    conn.close()
+                    return attempts
+                except Exception:
+                    pass
             if not self.db_path:
-                logger.error(f"Failed to fetch student history for {student_id}: {e}")
-                raise StorageError(f"Database query failed: {e}")
+                logger.warning(f"Failed to fetch student history from Prisma for {student_id}: {e}")
             return []
 
     def get_student_class_history(
@@ -631,19 +667,18 @@ class StudyMaterialRepository:
                 init_database(self.db_path)
             except Exception:
                 pass
+        self._db = None
+
+    @property
+    def db(self) -> Prisma:
+        return get_prisma_client()
+
+    @db.setter
+    def db(self, value: Prisma):
+        self._db = value
 
     def _ensure_connected(self):
-        if not hasattr(_thread_local, "prisma_db"):
-            _thread_local.prisma_db = Prisma()
-
-        try:
-            if not _thread_local.prisma_db.is_connected():
-                _thread_local.prisma_db.connect()
-        except Exception:
-            _thread_local.prisma_db = Prisma()
-            _thread_local.prisma_db.connect()
-
-        self.db = _thread_local.prisma_db
+        get_prisma_client()
 
     def save_document_record(
         self,

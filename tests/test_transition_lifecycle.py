@@ -1,7 +1,6 @@
 """Unit tests for Global Rendering Architecture, Transition Lifecycle, and State Invalidation (Phases 1-30)."""
 
 import unittest
-from unittest.mock import MagicMock, patch
 
 import streamlit as st
 
@@ -13,7 +12,6 @@ from frontend.components.transition import (
 from frontend.state import (
     bootstrap_authenticated_session,
     get_student_class_level,
-    get_student_profile,
     get_student_subject,
     get_user_role,
     init_session_state,
@@ -22,7 +20,6 @@ from frontend.state import (
     navigate_to,
     set_student_class_level,
     set_student_subject,
-    set_user_role,
 )
 
 
@@ -173,7 +170,6 @@ class TestTransitionLifecycle(unittest.TestCase):
         """Verifies TransitionController start, query, contextual messaging, and completion."""
         from frontend.components.transition import (
             MODULE_TRANSITION_MESSAGES,
-            TransitionController,
             finish_transition,
             get_transition_message,
             is_transitioning,
@@ -208,7 +204,11 @@ class TestTransitionLifecycle(unittest.TestCase):
     def test_transition_controller_timeout_failsafe(self):
         """Verifies transition auto-expires after timeout to prevent hanging overlays (Phase 17)."""
         import time
-        from frontend.components.transition import TransitionController, is_transitioning, start_transition
+
+        from frontend.components.transition import (
+            is_transitioning,
+            start_transition,
+        )
 
         start_transition("tutor")
         self.assertTrue(is_transitioning())

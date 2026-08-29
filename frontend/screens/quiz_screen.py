@@ -11,8 +11,8 @@ from backend.analytics.swat import get_available_chapters
 from backend.quiz.evaluator import submit_and_grade_quiz
 from backend.quiz.generator import create_student_quiz
 from backend.quiz.socrates import (
+    _generate_fallback_hints,
     enrich_quiz_with_socrates,
-    generate_socrates_hints,
     generate_socrates_misconception,
     stream_socrates_dialogue,
 )
@@ -21,6 +21,13 @@ from frontend.components.navigation import render_back_to_home
 from frontend.state import get_student_class_level
 
 logger = logging.getLogger(__name__)
+
+
+def _invalidate_quiz_chapter_cache() -> None:
+    """Clears cached chapter metadata so SWAT status updates take effect after quiz submission."""
+    for k in list(st.session_state.keys()):
+        if k.startswith("quiz_chs_"):
+            del st.session_state[k]
 
 
 def _extract_options(raw_options: Any) -> tuple[List[str], Dict[str, str]]:
@@ -72,155 +79,199 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
     current_mode = st.session_state.get("quiz_mode", "socrates")
     is_socrates_mode = current_mode == "socrates"
 
-    m_col1, m_col2 = st.columns(2)
-    with m_col1:
-        if is_socrates_mode:
-            st.button(
-                "Socrates Learning Mode (Active)",
-                icon=":material/psychology:",
-                type="primary",
-                use_container_width=True,
-                key="mode_soc_btn_active",
+    curr_quiz = st.session_state.get("current_quiz")
+    is_quiz_active = bool(
+        curr_quiz
+        and curr_quiz.get("questions")
+        and not st.session_state.get("quiz_submitted")
+        and not st.session_state.get("socrates_completed")
+    )
+
+    if not is_quiz_active:
+        m_col1, m_col2 = st.columns(2)
+        with m_col1:
+            if is_socrates_mode:
+                st.button(
+                    "Socrates Learning Mode (Active)",
+                    icon=":material/psychology:",
+                    type="primary",
+                    use_container_width=True,
+                    key="mode_soc_btn_active",
+                )
+            else:
+                if st.button(
+                    "Switch to Socrates Mode",
+                    icon=":material/psychology:",
+                    type="secondary",
+                    use_container_width=True,
+                    key="mode_soc_btn_inactive",
+                ):
+                    st.session_state.quiz_mode = "socrates"
+                    st.rerun()
+
+        with m_col2:
+            if not is_socrates_mode:
+                st.button(
+                    "Standard Exam Mode (Active)",
+                    icon=":material/assignment:",
+                    type="primary",
+                    use_container_width=True,
+                    key="mode_std_btn_active",
+                )
+            else:
+                if st.button(
+                    "Switch to Standard Mode",
+                    icon=":material/assignment:",
+                    type="secondary",
+                    use_container_width=True,
+                    key="mode_std_btn_inactive",
+                ):
+                    st.session_state.quiz_mode = "standard"
+                    st.rerun()
+
+        st.write("")
+
+        # Controls Grid: Chapter, Difficulty, Question Count (Cached in session)
+        c1, c2, c3 = st.columns([3.0, 1.2, 1.2])
+
+        chs_cache_key = f"quiz_chs_{student_id}_{class_level}_{subject}"
+        if chs_cache_key not in st.session_state:
+            st.session_state[chs_cache_key] = get_available_chapters(
+                class_level, subject=subject, student_id=student_id
             )
-        else:
-            if st.button(
-                "Switch to Socrates Mode",
-                icon=":material/psychology:",
-                type="secondary",
-                use_container_width=True,
-                key="mode_soc_btn_inactive",
-            ):
-                st.session_state.quiz_mode = "socrates"
-                st.rerun()
+        available_chs = st.session_state[chs_cache_key]
 
-    with m_col2:
-        if not is_socrates_mode:
-            st.button(
-                "Standard Exam Mode (Active)",
-                icon=":material/assignment:",
-                type="primary",
-                use_container_width=True,
-                key="mode_std_btn_active",
+        with c1:
+            ch_display_map = {}
+            ch_labels = []
+            for ch in available_chs:
+                status_tag = (
+                    f"[{ch['status'].upper()}]"
+                    if ch["status"] not in ("unattempted", "not_attempted")
+                    else "[NEW]"
+                )
+                badge = f" ({ch['score']}%)" if ch["score"] is not None else ""
+                label = f"{status_tag} Ch {ch['chapter_number']}: {ch['chapter']}{badge}"
+                ch_display_map[label] = ch["chapter"]
+                ch_labels.append(label)
+
+            default_idx = 0
+            selected_ch_label = st.selectbox(
+                "Chapter", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
             )
-        else:
-            if st.button(
-                "Switch to Standard Mode",
-                icon=":material/assignment:",
-                type="secondary",
-                use_container_width=True,
-                key="mode_std_btn_inactive",
-            ):
-                st.session_state.quiz_mode = "standard"
-                st.rerun()
-
-    st.write("")
-
-    # Controls Grid: Chapter, Difficulty, Question Count
-    c1, c2, c3 = st.columns([3.0, 1.2, 1.2])
-
-    with c1:
-        available_chs = get_available_chapters(class_level, subject=subject, student_id=student_id)
-        ch_display_map = {}
-        ch_labels = []
-        for ch in available_chs:
-            status_tag = (
-                f"[{ch['status'].upper()}]"
-                if ch["status"] not in ("unattempted", "not_attempted")
-                else "[NEW]"
+            selected_ch_title = ch_display_map.get(
+                selected_ch_label,
+                available_chs[0]["chapter"] if available_chs else "Chapter 1",
             )
-            badge = f" ({ch['score']}%)" if ch["score"] is not None else ""
-            label = f"{status_tag} Ch {ch['chapter_number']}: {ch['chapter']}{badge}"
-            ch_display_map[label] = ch["chapter"]
-            ch_labels.append(label)
 
-        default_idx = 0
-        selected_ch_label = st.selectbox(
-            "Chapter", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
-        )
-        selected_ch_title = ch_display_map.get(
-            selected_ch_label,
-            available_chs[0]["chapter"] if available_chs else "Chapter 1",
-        )
+        with c2:
+            default_diff = st.session_state.get("quiz_difficulty", "medium").lower()
+            diff_opts = ["medium", "easy", "hard"]
+            diff_idx = diff_opts.index(default_diff) if default_diff in diff_opts else 0
+            quiz_diff = st.selectbox(
+                "Difficulty", diff_opts, index=diff_idx, key="screen_quiz_diff"
+            )
 
-    with c2:
-        default_diff = st.session_state.get("quiz_difficulty", "medium").lower()
-        diff_opts = ["medium", "easy", "hard"]
-        diff_idx = diff_opts.index(default_diff) if default_diff in diff_opts else 0
-        quiz_diff = st.selectbox("Difficulty", diff_opts, index=diff_idx, key="screen_quiz_diff")
+        with c3:
+            quiz_count = st.selectbox("Questions", [5, 3, 7, 10], index=0, key="screen_quiz_count")
 
-    with c3:
-        quiz_count = st.selectbox("Questions", [5, 3, 7, 10], index=0, key="screen_quiz_count")
-
-    btn_label = "Generate Socratic Quiz" if is_socrates_mode else "Generate Standard Quiz"
-    if st.button(
-        btn_label,
-        icon=":material/auto_awesome:",
-        type="primary",
-        use_container_width=True,
-    ):
-        with st.spinner(
-            f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level} {subject})..."
+        btn_label = "Generate Socratic Quiz" if is_socrates_mode else "Generate Standard Quiz"
+        if st.button(
+            btn_label,
+            icon=":material/auto_awesome:",
+            type="primary",
+            use_container_width=True,
         ):
-            try:
-                from backend.exceptions import (
-                    GeminiAuthError,
-                    GeminiConfigurationError,
-                    GeminiQuotaExhaustedError,
-                )
+            with st.spinner(
+                f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level} {subject})..."
+            ):
+                try:
+                    from backend.exceptions import (
+                        GeminiAuthError,
+                        GeminiConfigurationError,
+                        GeminiQuotaExhaustedError,
+                    )
 
-                generated = create_student_quiz(
-                    student_id=student_id,
-                    chapter=selected_ch_title,
-                    class_level=class_level,
-                    subject=subject,
-                    num_questions=quiz_count,
-                    difficulty=quiz_diff,
-                    api_key=user_api_key,
-                    model=selected_model,
-                )
-                # Enrich with Socratic hints
-                generated = enrich_quiz_with_socrates(
-                    generated, api_key=user_api_key, model=selected_model
-                )
-                st.session_state.current_quiz = generated
+                    generated = create_student_quiz(
+                        student_id=student_id,
+                        chapter=selected_ch_title,
+                        class_level=class_level,
+                        subject=subject,
+                        num_questions=quiz_count,
+                        difficulty=quiz_diff,
+                        api_key=user_api_key,
+                        model=selected_model,
+                    )
+                    # Enrich with Socratic hints
+                    generated = enrich_quiz_with_socrates(
+                        generated, api_key=user_api_key, model=selected_model
+                    )
+                    st.session_state.current_quiz = generated
+                    st.session_state.quiz_submitted = False
+                    st.session_state.quiz_user_answers = {}
+                    st.session_state.last_submission_result = None
+                    st.session_state.socrates_active_q = 1
+                    st.session_state.socrates_hints_revealed = {}
+                    st.session_state.socrates_chat_history = {}
+                    st.session_state.socrates_attempts = {}
+                    st.session_state.socrates_completed = False
+                    st.rerun()
+                except GeminiQuotaExhaustedError:
+                    st.warning(
+                        "**AI service temporarily unavailable**\n\n"
+                        "The configured AI service has reached its current usage limit. "
+                        "You can add your own Gemini API key in Settings to continue."
+                    )
+                    from frontend.state import navigate_to
+
+                    if st.button(
+                        "Open Settings",
+                        icon=":material/settings:",
+                        key="quiz_quota_open_settings_btn",
+                    ):
+                        navigate_to("settings")
+                        st.rerun()
+                except (GeminiAuthError, GeminiConfigurationError) as auth_err:
+                    st.error(f"**Authentication Error:** {auth_err}")
+                    from frontend.state import navigate_to
+
+                    if st.button(
+                        "Configure API Key in Settings",
+                        icon=":material/key:",
+                        key="quiz_auth_open_settings_btn",
+                    ):
+                        navigate_to("settings")
+                        st.rerun()
+                except Exception as e:
+                    logger.error(f"Quiz generation failed: {e}")
+                    st.error(f"Quiz generation failed: {e}")
+    else:
+        # Active Quiz Banner with Abandon / Restart Option
+        active_ch = curr_quiz.get("chapter", "Science")
+        q_len = len(curr_quiz.get("questions", []))
+        diff_str = curr_quiz.get("difficulty", "medium").capitalize()
+        mode_label = "Socrates Mode" if is_socrates_mode else "Standard Mode"
+
+        h_col1, h_col2 = st.columns([3.5, 1.5])
+        with h_col1:
+            st.info(
+                f"**Active Session:** {active_ch} · {q_len} Questions ({diff_str}) · {mode_label}"
+            )
+        with h_col2:
+            if st.button(
+                "New / Switch Chapter",
+                icon=":material/restart_alt:",
+                use_container_width=True,
+                key="abandon_quiz_btn",
+            ):
+                st.session_state.current_quiz = None
                 st.session_state.quiz_submitted = False
                 st.session_state.quiz_user_answers = {}
-                st.session_state.last_submission_result = None
                 st.session_state.socrates_active_q = 1
-                st.session_state.socrates_hints_revealed = {}
-                st.session_state.socrates_chat_history = {}
                 st.session_state.socrates_attempts = {}
+                st.session_state.socrates_chat_history = {}
                 st.session_state.socrates_completed = False
                 st.rerun()
-            except GeminiQuotaExhaustedError:
-                st.warning(
-                    "**AI service temporarily unavailable**\n\n"
-                    "The configured AI service has reached its current usage limit. "
-                    "You can add your own Gemini API key in Settings to continue."
-                )
-                from frontend.state import navigate_to
-
-                if st.button(
-                    "Open Settings",
-                    icon=":material/settings:",
-                    key="quiz_quota_open_settings_btn",
-                ):
-                    navigate_to("settings")
-                    st.rerun()
-            except (GeminiAuthError, GeminiConfigurationError) as auth_err:
-                st.error(f"**Authentication Error:** {auth_err}")
-                from frontend.state import navigate_to
-
-                if st.button(
-                    "Configure API Key in Settings",
-                    icon=":material/key:",
-                    key="quiz_auth_open_settings_btn",
-                ):
-                    navigate_to("settings")
-                    st.rerun()
-            except Exception as e:
-                logger.error(f"Quiz generation failed: {e}")
-                st.error(f"Quiz generation failed: {e}")
 
     # Active Quiz Display
     curr_quiz = st.session_state.get("current_quiz")
@@ -507,14 +558,12 @@ async def _render_socrates_quiz_mode(
     st.write("")
 
     # Unified Socratic Hints Expander (Compact)
-    hints = q_data.get("socrates_hints") or generate_socrates_hints(
+    hints = q_data.get("socrates_hints") or _generate_fallback_hints(
         question=q_data.get("question", ""),
         options=q_data.get("options", []),
+        explanation=q_data.get("explanation", ""),
         chapter=chapter_name,
         class_level=class_level,
-        explanation=q_data.get("explanation", ""),
-        api_key=user_api_key,
-        model=selected_model,
     )
     revealed_level = st.session_state.socrates_hints_revealed.get(str(active_q), 0)
 
@@ -737,6 +786,7 @@ async def _render_socrates_quiz_mode(
                     user_answers=user_answers,
                     quiz_data=curr_quiz,
                 )
+                _invalidate_quiz_chapter_cache()
                 st.session_state.last_submission_result = sub_result
                 st.session_state.socrates_completed = True
                 st.session_state.quiz_submitted = True
@@ -864,6 +914,7 @@ def _render_standard_quiz_mode(
                     user_answers=user_answers,
                     quiz_data=curr_quiz,
                 )
+                _invalidate_quiz_chapter_cache()
                 st.session_state.last_submission_result = sub_result
             except Exception as e:
                 logger.error(f"Failed to submit quiz: {e}")

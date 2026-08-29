@@ -23,7 +23,9 @@ def get_class_overview(class_level: int) -> Dict[str, Any]:
 
     # Filter attempts that belong to students in this class if student roster exists
     if student_ids:
-        class_attempts = [att for att in history if str(att.get("student_id", "")).strip() in student_ids]
+        class_attempts = [
+            att for att in history if str(att.get("student_id", "")).strip() in student_ids
+        ]
     else:
         class_attempts = history
 
@@ -32,8 +34,14 @@ def get_class_overview(class_level: int) -> Dict[str, Any]:
     total_questions_correct = sum(att.get("score", 0) for att in class_attempts)
     sum_percentages = sum(float(att.get("percentage", 0.0)) for att in class_attempts)
 
-    active_student_ids = {str(att.get("student_id", "")).strip() for att in class_attempts if att.get("student_id")}
-    active_students = len(active_student_ids.intersection(student_ids)) if student_ids else len(active_student_ids)
+    active_student_ids = {
+        str(att.get("student_id", "")).strip() for att in class_attempts if att.get("student_id")
+    }
+    active_students = (
+        len(active_student_ids.intersection(student_ids))
+        if student_ids
+        else len(active_student_ids)
+    )
 
     class_average = int(round(sum_percentages / total_quizzes)) if total_quizzes > 0 else 0
     class_accuracy = (
@@ -94,9 +102,7 @@ def get_class_chapter_performance(class_level: int) -> List[Dict[str, Any]]:
         if stats["quiz_count"] > 0:
             avg_score = int(round(stats["sum_scores"] / stats["quiz_count"]))
             accuracy = (
-                int(round((stats["correct"] / stats["total"]) * 100))
-                if stats["total"] > 0
-                else 0
+                int(round((stats["correct"] / stats["total"]) * 100)) if stats["total"] > 0 else 0
             )
             result.append(
                 {

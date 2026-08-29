@@ -23,9 +23,7 @@ class StudyTwinProfile:
     total_questions: int = 0
     has_sufficient_data: bool = False
     last_activity_timestamp: Optional[str] = None
-    last_updated: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    last_updated: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -46,9 +44,7 @@ class StudyTwinMatch:
     component_scores: Dict[str, float] = field(default_factory=dict)
     explanation: str = ""
     status: str = "active"  # "active", "insufficient_data", "no_strong_match"
-    created_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

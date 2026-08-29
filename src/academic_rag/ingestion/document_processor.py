@@ -19,7 +19,9 @@ def clean_extracted_text(text: str) -> str:
     # Normalize multiple newlines/tabs
     cleaned = re.sub(r"\r\n|\r", "\n", cleaned)
     # Remove control characters except tab and newline
-    cleaned = "".join(ch for ch in cleaned if ch == "\n" or ch == "\t" or (ord(ch) >= 32 and ord(ch) != 127))
+    cleaned = "".join(
+        ch for ch in cleaned if ch == "\n" or ch == "\t" or (ord(ch) >= 32 and ord(ch) != 127)
+    )
     # Normalize multiple consecutive blank lines
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     # Normalize repeated inline horizontal spaces

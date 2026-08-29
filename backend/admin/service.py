@@ -6,7 +6,7 @@ cascading data cleanup, promotion preservation, and audit logging.
 
 import logging
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from backend.admin.audit import log_admin_action
 from backend.exceptions import (
@@ -41,7 +41,7 @@ class AdminService:
     def get_admin_scope(self, admin_id: str) -> Dict[str, Any]:
         """
         Resolves and validates the authenticated administrator's scope from the database.
-        
+
         Raises:
             PermissionDeniedError: If the user is not an admin or lacks a valid class scope (9 or 10).
         """
@@ -94,7 +94,9 @@ class AdminService:
                     "email": s.email,
                     "class_level": s.class_level,
                     "subject": s.subject or "Science",
-                    "createdAt": s.createdAt.isoformat() if hasattr(s.createdAt, "isoformat") else str(s.createdAt),
+                    "createdAt": s.createdAt.isoformat()
+                    if hasattr(s.createdAt, "isoformat")
+                    else str(s.createdAt),
                 }
                 for s in students
             ]
@@ -106,7 +108,7 @@ class AdminService:
         """
         Creates a new student strictly within the administrator's class scope.
         The student's class level is derived solely from the authenticated admin's scope.
-        
+
         Raises:
             PermissionDeniedError: If caller lacks admin scope.
             StudentValidationError: If required fields are missing or email/identifier already exists.
@@ -115,7 +117,9 @@ class AdminService:
         self._ensure_connected()
 
         name = str(student_data.get("name", "")).strip()
-        email_or_roll = str(student_data.get("email", "") or student_data.get("roll_number", "")).strip()
+        email_or_roll = str(
+            student_data.get("email", "") or student_data.get("roll_number", "")
+        ).strip()
 
         if not name:
             raise StudentValidationError("Student name is required.")
@@ -142,9 +146,7 @@ class AdminService:
 
         # Validate uniqueness against database
         try:
-            existing = self.db.user.find_first(
-                where={"OR": [{"email": email}, {"id": student_id}]}
-            )
+            existing = self.db.user.find_first(where={"OR": [{"email": email}, {"id": student_id}]})
             if existing:
                 raise StudentValidationError(f"A student with email/roll '{email}' already exists.")
         except StudentValidationError:
@@ -172,7 +174,12 @@ class AdminService:
                 action="CREATE_STUDENT",
                 admin_id=admin_id,
                 student_id=created.id,
-                details={"name": name, "email": email, "class_level": target_class, "subject": None},
+                details={
+                    "name": name,
+                    "email": email,
+                    "class_level": target_class,
+                    "subject": None,
+                },
             )
 
             return {
@@ -190,7 +197,7 @@ class AdminService:
     def delete_student(self, admin_id: str, student_id: str) -> Dict[str, Any]:
         """
         Deletes a student and cascades all associated records after verifying class scope.
-        
+
         Raises:
             PermissionDeniedError: If caller is not authorized or if student's class != admin's class scope.
             StudentNotFoundError: If the target student does not exist.
@@ -258,7 +265,7 @@ class AdminService:
         """
         Promotes a Class 9 student to Class 10, preserving the existing promotion logic
         while enforcing Class 9 admin authorization.
-        
+
         Raises:
             PermissionDeniedError: If caller is not a Class 9 admin or target student is not Class 9.
             StudentNotFoundError: If the target student does not exist.
@@ -266,7 +273,9 @@ class AdminService:
         scope = self.get_admin_scope(admin_id)
 
         if scope["class_scope"] != 9:
-            raise PermissionDeniedError("Only Class 9 administrators can promote students to Class 10.")
+            raise PermissionDeniedError(
+                "Only Class 9 administrators can promote students to Class 10."
+            )
 
         self._ensure_connected()
         clean_student_id = str(student_id).strip()

@@ -3,21 +3,16 @@
 import os
 import tempfile
 import unittest
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
 
 from backend.analytics.study_twin import (
     build_study_twin_profile,
     calculate_twin_similarity,
     find_study_twin,
 )
-from backend.models.study_twin import StudyTwinMatch, StudyTwinProfile
 from backend.storage.database import init_database
 from backend.storage.repository import (
     QuizRepository,
-    clear_study_twin_match,
     get_saved_study_twin_match,
-    save_study_twin_match,
 )
 
 

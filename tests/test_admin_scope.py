@@ -88,10 +88,15 @@ class TestAdminScope(unittest.TestCase):
         """Class 9 admin creates student -> student.class_level is strictly 9 and subject is None."""
         self.mock_db.user.find_unique.return_value = self.admin_9
         self.mock_db.user.find_first.return_value = None  # No duplicate
-        created_mock = MockUser("new_s_1", "new1@school.edu", "New Student", "student", 9, subject=None)
+        created_mock = MockUser(
+            "new_s_1", "new1@school.edu", "New Student", "student", 9, subject=None
+        )
         self.mock_db.user.create.return_value = created_mock
 
-        res = self.service.create_student("admin_9_id", {"name": "New Student", "email": "new1@school.edu", "password": "MySecretPassword123"})
+        res = self.service.create_student(
+            "admin_9_id",
+            {"name": "New Student", "email": "new1@school.edu", "password": "MySecretPassword123"},
+        )
 
         self.assertEqual(res["class_level"], 9)
         self.mock_db.user.create.assert_called_once_with(
@@ -137,13 +142,15 @@ class TestAdminScope(unittest.TestCase):
         self.mock_db.user.find_first.return_value = self.student_9  # Existing student
 
         with self.assertRaises(StudentValidationError):
-            self.service.create_student("admin_9_id", {"name": "Duplicate", "email": "student9@school.edu"})
+            self.service.create_student(
+                "admin_9_id", {"name": "Duplicate", "email": "student9@school.edu"}
+            )
 
     @patch("backend.admin.service.quiz_repository")
     def test_delete_student_class_9_admin_success(self, mock_repo):
         """Class 9 admin can delete a Class 9 student."""
         self.mock_db.user.find_unique.side_effect = [
-            self.admin_9,    # get_admin_scope
+            self.admin_9,  # get_admin_scope
             self.student_9,  # lookup student
         ]
 
@@ -156,7 +163,7 @@ class TestAdminScope(unittest.TestCase):
     def test_cross_class_deletion_denied(self, mock_repo):
         """Class 9 admin cannot delete a Class 10 student (raises PermissionDeniedError)."""
         self.mock_db.user.find_unique.side_effect = [
-            self.admin_9,     # get_admin_scope (scope=9)
+            self.admin_9,  # get_admin_scope (scope=9)
             self.student_10,  # lookup student (class=10)
         ]
 

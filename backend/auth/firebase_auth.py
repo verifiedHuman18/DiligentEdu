@@ -93,9 +93,7 @@ def create_or_get_firebase_user(
     from firebase_admin.exceptions import AlreadyExistsError
 
     try:
-        user_record = auth.create_user(
-            email=email, password=password, display_name=display_name
-        )
+        user_record = auth.create_user(email=email, password=password, display_name=display_name)
         return user_record.uid
     except AlreadyExistsError:
         user_record = auth.get_user_by_email(email)

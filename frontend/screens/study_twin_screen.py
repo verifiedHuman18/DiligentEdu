@@ -1,7 +1,5 @@
 """Study Twin Screen for DiligentEdu (Academic Peer Compatibility Hub)."""
 
-import textwrap
-
 import streamlit as st
 
 from backend.analytics.study_twin import find_study_twin
@@ -59,9 +57,9 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
             '<div style="font-size: 2.0rem; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--md-primary);">assignment_ind</span></div>'
             '<div style="font-size: 1.2rem; font-weight: 700; color: var(--on-surface); margin-bottom: 8px;">Build Your Study Profile</div>'
             '<div style="font-size: 0.92rem; color: var(--on-surface-variant); max-width: 540px; margin: 0 auto 20px auto; line-height: 1.6;">'
-            'To pair you with an academically compatible Study Twin, the system needs a diagnostic baseline of your concept mastery and action priorities.'
-            '</div>'
-            '</div>'
+            "To pair you with an academically compatible Study Twin, the system needs a diagnostic baseline of your concept mastery and action priorities."
+            "</div>"
+            "</div>"
         )
         st.markdown(insuf_html, unsafe_allow_html=True)
         st.write("")
@@ -88,7 +86,7 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
             '<div style="font-size: 2.0rem; margin-bottom: 8px;"><span class="material-symbols-outlined" style="font-size: 2.5rem; color: var(--md-secondary);">search_off</span></div>'
             f'<div style="font-size: 1.15rem; font-weight: 700; color: var(--on-surface); margin-bottom: 6px;">No Active Study Twin Found Yet{score_display}</div>'
             f'<div style="font-size: 0.90rem; color: var(--on-surface-variant); max-width: 520px; margin: 0 auto 18px auto; line-height: 1.5;">{match.explanation}</div>'
-            '</div>'
+            "</div>"
         )
         st.markdown(no_cand_html, unsafe_allow_html=True)
         st.write("")
@@ -131,18 +129,18 @@ def render_study_twin_screen(student_id: str = "student_001") -> None:
         f'<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 14px;">'
         f'<div style="display: flex; align-items: center; gap: 12px;">'
         f'<div style="width: 52px; height: 52px; border-radius: 50%; background: var(--surface-container-high); border: 2px solid {score_color}; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 700; color: {score_color};">{twin_name[0].upper() if twin_name else "P"}</div>'
-        f'<div>'
+        f"<div>"
         f'<div style="font-size: 1.25rem; font-weight: 700; color: var(--on-surface); display: flex; align-items: center; gap: 8px;">{twin_name} <span style="background: var(--surface-container-high); color: var(--on-surface-variant); font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--outline-variant);">Match Active</span></div>'
         f'<div style="font-size: 0.86rem; color: var(--on-surface-variant); margin-top: 2px;">Matched via multidimensional topic mastery, active focus, and SWAT priorities</div>'
-        f'</div>'
-        f'</div>'
+        f"</div>"
+        f"</div>"
         f'<div style="background: var(--surface-container-high); border: 1px solid var(--outline-variant); border-radius: 14px; padding: 10px 18px; text-align: center;">'
         f'<div style="font-size: 1.65rem; font-weight: 800; color: {score_color}; line-height: 1;">{sim_score}%</div>'
         f'<div style="font-size: 0.74rem; font-weight: 600; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Study Similarity</div>'
-        f'</div>'
-        f'</div>'
+        f"</div>"
+        f"</div>"
         f'<div style="background: var(--surface-container-low); border-left: 4px solid {score_color}; border-radius: 8px; padding: 12px 16px; font-size: 0.90rem; color: var(--on-surface); line-height: 1.5;">{match.explanation}</div>'
-        f'</div>'
+        f"</div>"
     )
     st.markdown(hero_card_html, unsafe_allow_html=True)
 

@@ -7,7 +7,7 @@ interactive hover tooltips, and an executive trend summary card.
 import json
 import logging
 import textwrap
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -387,7 +387,7 @@ def render_performance_trend_section(
                 {status_label}
             </span>
             <span style="font-size: 0.88rem; font-weight: 600; color: var(--on-surface);">
-                Performance Trajectory ({n_assessments} Assessment{'s' if n_assessments != 1 else ''})
+                Performance Trajectory ({n_assessments} Assessment{"s" if n_assessments != 1 else ""})
             </span>
         </div>
         <div style="display: flex; gap: 18px; font-size: 0.84rem; color: var(--on-surface-variant); font-weight: 600;">

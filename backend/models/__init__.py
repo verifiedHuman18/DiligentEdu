@@ -31,7 +31,6 @@ from backend.models.study_material import (
     DocumentValidationResult,
     UploadedDocument,
 )
-
 from backend.models.study_twin import (
     StudyTwinMatch,
     StudyTwinProfile,

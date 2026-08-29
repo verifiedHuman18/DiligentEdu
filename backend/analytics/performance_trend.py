@@ -28,10 +28,21 @@ def _format_point_date(iso_str: Optional[str]) -> str:
         parts = iso_str.split("T")[0].split("-")
         if len(parts) == 3:
             months = [
-                "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                "",
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
             ]
-            y, m, d = parts[0], int(parts[1]), int(parts[2])
+            _y, m, d = parts[0], int(parts[1]), int(parts[2])
             return f"{months[m]} {d}"
     except Exception:
         pass
@@ -40,7 +51,7 @@ def _format_point_date(iso_str: Optional[str]) -> str:
 
 def calculate_linear_regression(y_vals: List[float]) -> Tuple[float, float, float]:
     """Calculates Ordinary Least Squares (OLS) regression slope (m), intercept (b), and R^2.
-    
+
     x values are assumed to be chronological assessment indices (0, 1, 2, ..., N-1).
     """
     n = len(y_vals)
@@ -53,7 +64,7 @@ def calculate_linear_regression(y_vals: List[float]) -> Tuple[float, float, floa
     sum_x_sq = sum(x * x for x in x_vals)
     sum_xy = sum(x * y for x, y in zip(x_vals, y_vals))
 
-    denom = (n * sum_x_sq) - (sum_x ** 2)
+    denom = (n * sum_x_sq) - (sum_x**2)
     if denom == 0:
         return 0.0, sum_y / n, 0.0
 
@@ -71,7 +82,7 @@ def calculate_linear_regression(y_vals: List[float]) -> Tuple[float, float, floa
 
 def classify_trend_from_scores(scores: List[float]) -> Dict[str, Any]:
     """Classifies a list of chronological scores into a trend dictionary.
-    
+
     Handles sparse data (0-1: insufficient, 2-3: preliminary, 4+: reliable)
     and applies OLS regression slope + window difference.
     """
@@ -173,7 +184,7 @@ def get_student_performance_trend(
     max_window: int = 15,
 ) -> Dict[str, Any]:
     """Extracts chronological quiz attempts, builds performance points, and calculates performance trend.
-    
+
     Strictly isolated by student_id, class_level, and subject.
     """
     clean_subj = "Mathematics" if "math" in str(subject).lower() else "Science"

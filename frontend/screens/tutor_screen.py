@@ -454,7 +454,9 @@ async def render_tutor_screen(
                         from frontend.state import navigate_to
 
                         if st.button(
-                            "Open Settings", icon=":material/settings:", key="tutor_open_settings_btn"
+                            "Open Settings",
+                            icon=":material/settings:",
+                            key="tutor_open_settings_btn",
                         ):
                             navigate_to("settings")
                             st.rerun()

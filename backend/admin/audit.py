@@ -15,13 +15,13 @@ def log_admin_action(
 ) -> Dict[str, Any]:
     """
     Records an administrative audit log entry for security and accountability.
-    
+
     Args:
         action: Identifier for the action (e.g. 'CREATE_STUDENT', 'DELETE_STUDENT', 'PROMOTE_STUDENT').
         admin_id: Identifier of the authenticated administrator performing the action.
         student_id: Optional identifier of the student affected.
         details: Additional context details (e.g. class_level, email, previous_class).
-    
+
     Returns:
         Structured audit record dict.
     """

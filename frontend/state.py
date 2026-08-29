@@ -214,6 +214,7 @@ def navigate_to(screen_name: str, message: Optional[str] = None) -> None:
             st.session_state.tutor_needs_refresh = True
         try:
             from frontend.components.transition import start_transition
+
             start_transition(screen_name, message)
         except Exception:
             pass

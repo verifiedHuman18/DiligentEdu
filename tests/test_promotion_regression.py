@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from backend.admin.service import AdminService
-from backend.exceptions import PermissionDeniedError, StudentNotFoundError
+from backend.exceptions import PermissionDeniedError
 
 
 class MockUser:
@@ -35,7 +35,7 @@ class TestPromotionRegression(unittest.TestCase):
     def test_class_9_admin_promote_class_9_student(self, mock_promote_db):
         """Class 9 admin successfully promotes Class 9 student to Class 10."""
         self.mock_db.user.find_unique.side_effect = [
-            self.admin_9,        # get_admin_scope
+            self.admin_9,  # get_admin_scope
             self.student_aarav,  # lookup student
         ]
 
@@ -76,16 +76,16 @@ class TestPromotionRegression(unittest.TestCase):
 
         # Step 2: Class 9 Admin tries to delete Aarav -> DENIED
         self.mock_db.user.find_unique.side_effect = [
-            self.admin_9,     # scope = 9
-            promoted_aarav,   # Aarav is now class 10
+            self.admin_9,  # scope = 9
+            promoted_aarav,  # Aarav is now class 10
         ]
         with self.assertRaises(PermissionDeniedError):
             self.service.delete_student("admin_9_id", "aarav_id")
 
         # Step 3: Class 10 Admin tries to delete Aarav -> SUCCESS
         self.mock_db.user.find_unique.side_effect = [
-            self.admin_10,    # scope = 10
-            promoted_aarav,   # Aarav is class 10
+            self.admin_10,  # scope = 10
+            promoted_aarav,  # Aarav is class 10
         ]
         res = self.service.delete_student("admin_10_id", "aarav_id")
         self.assertTrue(res["success"])

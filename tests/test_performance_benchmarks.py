@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import streamlit as st
 
 from backend.ai.client_factory import get_async_gemini_client, get_gemini_client
-from backend.rag.retriever import embed_query_fast, get_embeddings
+from backend.rag.retriever import embed_query_fast
 from backend.utils.perf import get_performance_summary, measure, reset_performance_metrics
 from frontend.state import init_session_state, navigate_to
 
@@ -44,7 +44,9 @@ class TestPerformanceBenchmarks(unittest.TestCase):
 
         async_client1 = get_async_gemini_client(api_key=test_key)
         async_client2 = get_async_gemini_client(api_key=test_key)
-        self.assertIs(async_client1, async_client2, "Async client instance was not reused from cache")
+        self.assertIs(
+            async_client1, async_client2, "Async client instance was not reused from cache"
+        )
 
     @patch("backend.rag.retriever.get_embeddings")
     def test_embed_query_lru_caching(self, mock_get_embeddings):

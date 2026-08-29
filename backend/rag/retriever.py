@@ -1,12 +1,11 @@
 """Vector Store Retriever for NCERT Science textbook content in Pinecone."""
 
 import logging
+from functools import lru_cache
 from typing import Any, Dict, Optional
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from pinecone import Pinecone
-
-from functools import lru_cache
 
 from backend.config import config
 from backend.exceptions import AuthenticationError, RetrievalError
@@ -79,7 +78,10 @@ def retrieve_ncert_context(
     Preserves exact class, subject, chapter name, chapter number, and page number metadata.
     """
     try:
-        with measure("retrieve_ncert_context", {"top_k": top_k, "class": class_filter, "subject": subject_filter}):
+        with measure(
+            "retrieve_ncert_context",
+            {"top_k": top_k, "class": class_filter, "subject": subject_filter},
+        ):
             index = get_pinecone_index(api_key=api_key)
 
             filter_dict: Dict[str, Any] = {}
@@ -160,7 +162,9 @@ def retrieve_student_material_context(
                 )
             return ""
 
-        with measure("retrieve_student_material_context", {"student_id": clean_student_id, "top_k": top_k}):
+        with measure(
+            "retrieve_student_material_context", {"student_id": clean_student_id, "top_k": top_k}
+        ):
             index = get_pinecone_index(api_key=api_key)
 
             filter_dict: Dict[str, Any] = {

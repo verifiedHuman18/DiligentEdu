@@ -6,6 +6,11 @@ from backend.analytics.knowledge_graph import (
     get_available_knowledge_map_chapters,
     get_chapter_knowledge_graph,
 )
+from backend.analytics.performance_trend import (
+    calculate_linear_regression,
+    classify_trend_from_scores,
+    get_student_performance_trend,
+)
 from backend.analytics.swat import (
     calculate_student_swat,
     format_swat_report,
@@ -13,11 +18,6 @@ from backend.analytics.swat import (
     get_available_chapters,
     get_student_swat,
     get_unattempted_chapters,
-)
-from backend.analytics.performance_trend import (
-    calculate_linear_regression,
-    classify_trend_from_scores,
-    get_student_performance_trend,
 )
 from backend.analytics.teacher import (
     get_student_status,

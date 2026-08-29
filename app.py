@@ -22,10 +22,10 @@ if hasattr(sys.stdout, "reconfigure"):
 
 # Ensure Prisma client is available (dynamic fallback for environments like Streamlit Cloud)
 try:
-    from prisma import Prisma
+    from prisma import Prisma  # noqa: F401
 except ImportError:
-    import tempfile
     import subprocess
+    import tempfile
 
     tmp_dir = tempfile.gettempdir()
     prisma_out_dir = os.path.join(tmp_dir, "prisma")

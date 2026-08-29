@@ -7,7 +7,6 @@ Provides Socratic pedagogical features:
 4. Quiz Enrichment for Socratic Mode.
 """
 
-import json
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
@@ -123,7 +122,9 @@ def generate_socrates_hints(
             temperature=0.3,
         )
         content = response.choices[0].message.content or "{}"
-        hints = json.loads(content)
+        from backend.quiz.generator import clean_and_parse_json
+
+        hints = clean_and_parse_json(content)
 
         # Validate required fields
         if (
@@ -140,6 +141,10 @@ def generate_socrates_hints(
         logger.warning(f"Socratic hint generation via LLM failed: {e}. Using fallback hints.")
 
     return _generate_fallback_hints(question, options, explanation, chapter, class_level)
+
+
+# Public alias for zero-latency UI rendering fallbacks
+generate_socrates_fallback_hints = _generate_fallback_hints
 
 
 def generate_socrates_misconception(

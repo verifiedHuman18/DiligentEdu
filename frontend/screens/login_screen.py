@@ -5,8 +5,6 @@ import textwrap
 import streamlit as st
 
 from backend.auth.firebase_auth import sign_in_with_email_and_password
-from frontend.state import set_student_class_level, set_user_role
-from prisma import Prisma
 
 
 def get_user_from_db(uid: str):

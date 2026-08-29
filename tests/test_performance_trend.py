@@ -4,7 +4,6 @@ import os
 import shutil
 import tempfile
 import unittest
-from datetime import datetime, timezone
 
 from backend.analytics.performance_trend import (
     calculate_linear_regression,
@@ -187,8 +186,12 @@ class TestPerformanceTrendAnalytics(unittest.TestCase):
         self.repo.record_attempt("student_alice", quiz_data, {"q_choice_1": "A"}, "q_a1")
         self.repo.record_attempt("student_alice", quiz_data, {"q_choice_1": "A"}, "q_a2")
 
-        alice_trend = get_student_performance_trend("student_alice", class_level=10, db_path=self.db_path)
-        bob_trend = get_student_performance_trend("student_bob", class_level=10, db_path=self.db_path)
+        alice_trend = get_student_performance_trend(
+            "student_alice", class_level=10, db_path=self.db_path
+        )
+        bob_trend = get_student_performance_trend(
+            "student_bob", class_level=10, db_path=self.db_path
+        )
 
         self.assertEqual(len(alice_trend["points"]), 2)
         self.assertEqual(len(bob_trend["points"]), 0)

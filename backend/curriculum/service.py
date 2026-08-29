@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_CURRICULUM_MAPPING = {
     "class9": {
-        "iesc101.pdf": {"chapter_number": 1, "chapter": "Exploration: Entering the World of Secondary Science"},
+        "iesc101.pdf": {
+            "chapter_number": 1,
+            "chapter": "Exploration: Entering the World of Secondary Science",
+        },
         "iesc102.pdf": {"chapter_number": 2, "chapter": "Cell: The Building Block of Life"},
         "iesc103.pdf": {"chapter_number": 3, "chapter": "Tissues in Action"},
         "iesc104.pdf": {"chapter_number": 4, "chapter": "Describing Motion Around Us"},
@@ -23,10 +26,19 @@ DEFAULT_CURRICULUM_MAPPING = {
         "iesc107.pdf": {"chapter_number": 7, "chapter": "Work, Energy, and Simple Machines"},
         "iesc108.pdf": {"chapter_number": 8, "chapter": "Journey Inside the Atom"},
         "iesc109.pdf": {"chapter_number": 9, "chapter": "Atomic Foundations of Matter"},
-        "iesc110.pdf": {"chapter_number": 10, "chapter": "Sound Waves: Characteristics and Applications"},
+        "iesc110.pdf": {
+            "chapter_number": 10,
+            "chapter": "Sound Waves: Characteristics and Applications",
+        },
         "iesc111.pdf": {"chapter_number": 11, "chapter": "Reproduction: How Life Continues"},
-        "iesc112.pdf": {"chapter_number": 12, "chapter": "Patterns in Life: Diversity and Classification"},
-        "iesc113.pdf": {"chapter_number": 13, "chapter": "Earth as a System: Energy, Matter, and Life"},
+        "iesc112.pdf": {
+            "chapter_number": 12,
+            "chapter": "Patterns in Life: Diversity and Classification",
+        },
+        "iesc113.pdf": {
+            "chapter_number": 13,
+            "chapter": "Earth as a System: Energy, Matter, and Life",
+        },
     },
     "class10": {
         "jesc101.pdf": {"chapter_number": 1, "chapter": "Chemical Reactions and Equations"},
@@ -44,7 +56,10 @@ DEFAULT_CURRICULUM_MAPPING = {
         "jesc113.pdf": {"chapter_number": 13, "chapter": "Our Environment"},
     },
     "class9_science": {
-        "iesc101.pdf": {"chapter_number": 1, "chapter": "Exploration: Entering the World of Secondary Science"},
+        "iesc101.pdf": {
+            "chapter_number": 1,
+            "chapter": "Exploration: Entering the World of Secondary Science",
+        },
         "iesc102.pdf": {"chapter_number": 2, "chapter": "Cell: The Building Block of Life"},
         "iesc103.pdf": {"chapter_number": 3, "chapter": "Tissues in Action"},
         "iesc104.pdf": {"chapter_number": 4, "chapter": "Describing Motion Around Us"},
@@ -53,20 +68,38 @@ DEFAULT_CURRICULUM_MAPPING = {
         "iesc107.pdf": {"chapter_number": 7, "chapter": "Work, Energy, and Simple Machines"},
         "iesc108.pdf": {"chapter_number": 8, "chapter": "Journey Inside the Atom"},
         "iesc109.pdf": {"chapter_number": 9, "chapter": "Atomic Foundations of Matter"},
-        "iesc110.pdf": {"chapter_number": 10, "chapter": "Sound Waves: Characteristics and Applications"},
+        "iesc110.pdf": {
+            "chapter_number": 10,
+            "chapter": "Sound Waves: Characteristics and Applications",
+        },
         "iesc111.pdf": {"chapter_number": 11, "chapter": "Reproduction: How Life Continues"},
-        "iesc112.pdf": {"chapter_number": 12, "chapter": "Patterns in Life: Diversity and Classification"},
-        "iesc113.pdf": {"chapter_number": 13, "chapter": "Earth as a System: Energy, Matter, and Life"},
+        "iesc112.pdf": {
+            "chapter_number": 12,
+            "chapter": "Patterns in Life: Diversity and Classification",
+        },
+        "iesc113.pdf": {
+            "chapter_number": 13,
+            "chapter": "Earth as a System: Energy, Matter, and Life",
+        },
     },
     "class9_mathematics": {
-        "iemh101.pdf": {"chapter_number": 1, "chapter": "Orienting Yourself: The Use of Coordinates"},
+        "iemh101.pdf": {
+            "chapter_number": 1,
+            "chapter": "Orienting Yourself: The Use of Coordinates",
+        },
         "iemh102.pdf": {"chapter_number": 2, "chapter": "Introduction to Linear Polynomials"},
         "iemh103.pdf": {"chapter_number": 3, "chapter": "The World of Numbers"},
         "iemh104.pdf": {"chapter_number": 4, "chapter": "Exploring Algebraic Identities"},
         "iemh105.pdf": {"chapter_number": 5, "chapter": "I'm Up and Down, and Round and Round"},
         "iemh106.pdf": {"chapter_number": 6, "chapter": "Measuring Space: Perimeter and Area"},
-        "iemh107.pdf": {"chapter_number": 7, "chapter": "The Mathematics of Maybe: Introduction to Probability"},
-        "iemh108.pdf": {"chapter_number": 8, "chapter": "Predicting What Comes Next: Exploring Sequences and Progressions"},
+        "iemh107.pdf": {
+            "chapter_number": 7,
+            "chapter": "The Mathematics of Maybe: Introduction to Probability",
+        },
+        "iemh108.pdf": {
+            "chapter_number": 8,
+            "chapter": "Predicting What Comes Next: Exploring Sequences and Progressions",
+        },
     },
     "class10_science": {
         "jesc101.pdf": {"chapter_number": 1, "chapter": "Chemical Reactions and Equations"},
@@ -86,7 +119,10 @@ DEFAULT_CURRICULUM_MAPPING = {
     "class10_mathematics": {
         "jemh101.pdf": {"chapter_number": 1, "chapter": "Real Numbers"},
         "jemh102.pdf": {"chapter_number": 2, "chapter": "Polynomials"},
-        "jemh103.pdf": {"chapter_number": 3, "chapter": "Pair of Linear Equations in Two Variables"},
+        "jemh103.pdf": {
+            "chapter_number": 3,
+            "chapter": "Pair of Linear Equations in Two Variables",
+        },
         "jemh104.pdf": {"chapter_number": 4, "chapter": "Quadratic Equations"},
         "jemh105.pdf": {"chapter_number": 5, "chapter": "Arithmetic Progressions"},
         "jemh106.pdf": {"chapter_number": 6, "chapter": "Triangles"},

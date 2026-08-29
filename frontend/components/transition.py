@@ -32,8 +32,8 @@ class TransitionController:
         st.session_state.is_transitioning = True
         st.session_state.transition_target = target_screen
         st.session_state.transition_start_time = time.time()
-        st.session_state.transition_message = (
-            message or MODULE_TRANSITION_MESSAGES.get(target_screen, "Loading Workspace...")
+        st.session_state.transition_message = message or MODULE_TRANSITION_MESSAGES.get(
+            target_screen, "Loading Workspace..."
         )
 
     @staticmethod
@@ -235,7 +235,9 @@ def render_error_boundary(
     if on_retry or retry_label:
         col_pad1, col_btn, col_pad2 = st.columns([1.5, 1, 1.5])
         with col_btn:
-            if st.button(retry_label, key=f"retry_btn_{key_suffix}", type="primary", use_container_width=True):
+            if st.button(
+                retry_label, key=f"retry_btn_{key_suffix}", type="primary", use_container_width=True
+            ):
                 if on_retry:
                     on_retry()
                 st.rerun()

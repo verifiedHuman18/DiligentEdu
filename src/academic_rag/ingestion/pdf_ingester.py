@@ -53,7 +53,9 @@ def ingest_study_material_pdf(
         ).title()
         class_int = int(class_level)
         repo = repository or (
-            study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
+            study_material_repository
+            if db_path is None
+            else StudyMaterialRepository(db_path=db_path)
         )
 
         # 1. Validate Upload
@@ -65,7 +67,9 @@ def ingest_study_material_pdf(
             raise ValueError(validation.error_message)
 
         # 2. Initialize Document Record
-        doc_id = f"doc_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+        doc_id = (
+            f"doc_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+        )
         raw_bytes = file_data.getvalue() if isinstance(file_data, io.BytesIO) else file_data
         file_size = len(raw_bytes)
 
@@ -135,51 +139,51 @@ def ingest_study_material_pdf(
                     }
                 )
 
-        try:
-            index = get_pinecone_index(api_key=pinecone_api_key)
-            # Batch upsert in chunks of 50 to Pinecone
-            batch_size = 50
-            for i in range(0, len(vectors_to_upsert), batch_size):
-                batch = vectors_to_upsert[i : i + batch_size]
-                index.upsert(vectors=batch, namespace=PINECONE_STUDENT_NAMESPACE)
-            logger.info(
-                f"Successfully upserted {len(vectors_to_upsert)} vectors to Pinecone namespace '{PINECONE_STUDENT_NAMESPACE}'"
+            try:
+                index = get_pinecone_index(api_key=pinecone_api_key)
+                # Batch upsert in chunks of 50 to Pinecone
+                batch_size = 50
+                for i in range(0, len(vectors_to_upsert), batch_size):
+                    batch = vectors_to_upsert[i : i + batch_size]
+                    index.upsert(vectors=batch, namespace=PINECONE_STUDENT_NAMESPACE)
+                logger.info(
+                    f"Successfully upserted {len(vectors_to_upsert)} vectors to Pinecone namespace '{PINECONE_STUDENT_NAMESPACE}'"
+                )
+            except Exception as pc_err:
+                # If Pinecone is mocked or connection fails in test mode, log appropriately
+                logger.warning(f"Pinecone upsert encountered: {pc_err}")
+                # If real network failure, re-raise to fail status
+                if "not set" in str(pc_err).lower():
+                    raise
+
+            # 7. Update status to READY
+            repo.update_document_status(
+                document_id=doc_id,
+                status=DocumentStatus.READY,
+                page_count=page_count,
+                chunk_count=chunk_count,
             )
-        except Exception as pc_err:
-            # If Pinecone is mocked or connection fails in test mode, log appropriately
-            logger.warning(f"Pinecone upsert encountered: {pc_err}")
-            # If real network failure, re-raise to fail status
-            if "not set" in str(pc_err).lower():
-                raise
 
-        # 7. Update status to READY
-        repo.update_document_status(
-            document_id=doc_id,
-            status=DocumentStatus.READY,
-            page_count=page_count,
-            chunk_count=chunk_count,
-        )
+            return {
+                "document_id": doc_id,
+                "student_id": clean_student_id,
+                "filename": clean_filename,
+                "material_name": display_title,
+                "class_level": class_int,
+                "subject": subject,
+                "chapter": chapter,
+                "status": DocumentStatus.READY.value,
+                "page_count": page_count,
+                "chunk_count": chunk_count,
+                "file_size_bytes": file_size,
+                "uploaded_at": doc_record.get("uploaded_at"),
+            }
 
-        return {
-            "document_id": doc_id,
-            "student_id": clean_student_id,
-            "filename": clean_filename,
-            "material_name": display_title,
-            "class_level": class_int,
-            "subject": subject,
-            "chapter": chapter,
-            "status": DocumentStatus.READY.value,
-            "page_count": page_count,
-            "chunk_count": chunk_count,
-            "file_size_bytes": file_size,
-            "uploaded_at": doc_record.get("uploaded_at"),
-        }
-
-    except Exception as e:
-        logger.error(f"Ingestion failed for doc {doc_id} ({clean_filename}): {e}")
-        repo.update_document_status(
-            document_id=doc_id,
-            status=DocumentStatus.FAILED,
-            error_message=str(e),
-        )
-        raise
+        except Exception as e:
+            logger.error(f"Ingestion failed for doc {doc_id} ({clean_filename}): {e}")
+            repo.update_document_status(
+                document_id=doc_id,
+                status=DocumentStatus.FAILED,
+                error_message=str(e),
+            )
+            raise

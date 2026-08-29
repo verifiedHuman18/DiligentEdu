@@ -358,12 +358,16 @@ class TestKnowledgeGraph(unittest.TestCase):
         self.assertGreaterEqual(len(life["nodes"]), 7)
 
         # Class 10 Math - Quadratic Equations should have 5 nodes
-        quad = get_chapter_concept_metadata("Quadratic Equations", class_level=10, subject="Mathematics")
+        quad = get_chapter_concept_metadata(
+            "Quadratic Equations", class_level=10, subject="Mathematics"
+        )
         self.assertIsNotNone(quad)
         self.assertGreaterEqual(len(quad["nodes"]), 4)
 
         # Class 9 Science - Cell: The Building Block of Life should have 7 nodes
-        cell = get_chapter_concept_metadata("Cell: The Building Block of Life", class_level=9, subject="Science")
+        cell = get_chapter_concept_metadata(
+            "Cell: The Building Block of Life", class_level=9, subject="Science"
+        )
         self.assertIsNotNone(cell)
         self.assertGreaterEqual(len(cell["nodes"]), 6)
 

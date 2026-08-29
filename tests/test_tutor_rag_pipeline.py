@@ -50,7 +50,6 @@ class TestTutorRAGPipeline(unittest.IsolatedAsyncioTestCase):
             except Exception:
                 pass
 
-
     def test_phase_7_8_prompt_three_states_and_rules(self):
         """Phase 7 & 8: Verify prompt contains explicit State A, State B, State C and conflict resolution."""
         self.assertIn("STATE A — NCERT-SUPPORTED", NCERT_TUTOR_SYSTEM_PROMPT)

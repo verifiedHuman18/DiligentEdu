@@ -106,18 +106,35 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
     )
 
     # Add Student Form (Phase 9 & 10: NO class dropdown - strictly inherited from admin)
-    with st.expander(f"➕ Add New Class {cls_int} Student", expanded=st.session_state.get("show_add_student", False)):
+    with st.expander(
+        f"➕ Add New Class {cls_int} Student",
+        expanded=st.session_state.get("show_add_student", False),
+    ):
         with st.form("create_student_form", border=False):
             st.markdown(f"**Register Student into Class {cls_int}**")
             f_col1, f_col2, f_col3 = st.columns([1.2, 1.4, 1.4])
             with f_col1:
-                new_name = st.text_input("Full Name *", placeholder="e.g. Aarav Sharma", key="new_st_name")
+                new_name = st.text_input(
+                    "Full Name *", placeholder="e.g. Aarav Sharma", key="new_st_name"
+                )
             with f_col2:
-                new_email = st.text_input("Roll No. / Email *", placeholder="e.g. IIT2025001 or aarav@school.edu", key="new_st_email")
+                new_email = st.text_input(
+                    "Roll No. / Email *",
+                    placeholder="e.g. IIT2025001 or aarav@school.edu",
+                    key="new_st_email",
+                )
             with f_col3:
-                new_password = st.text_input("Password (Optional)", placeholder="Default: Student@123", key="new_st_password", type="password", help="Leave blank to use default Student@123")
+                new_password = st.text_input(
+                    "Password (Optional)",
+                    placeholder="Default: Student@123",
+                    key="new_st_password",
+                    type="password",
+                    help="Leave blank to use default Student@123",
+                )
 
-            submit_create = st.form_submit_button(f"Create Class {cls_int} Student", type="primary", use_container_width=True)
+            submit_create = st.form_submit_button(
+                f"Create Class {cls_int} Student", type="primary", use_container_width=True
+            )
 
         if submit_create:
             if not admin_id:
@@ -126,14 +143,20 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
                 try:
                     res = admin_service.create_student(
                         admin_id=admin_id,
-                        student_data={"name": new_name, "email": new_email, "password": new_password},
+                        student_data={
+                            "name": new_name,
+                            "email": new_email,
+                            "password": new_password,
+                        },
                     )
-                    st.success(f"Successfully registered {res['name']} in Class {cls_int} ({res['email']})!")
+                    st.success(
+                        f"Successfully registered {res['name']} in Class {cls_int} ({res['email']})!"
+                    )
                     st.session_state.show_add_student = False
                     st.rerun()
                 except (PermissionDeniedError, StudentValidationError) as e:
                     st.error(str(e))
-                except Exception as e:
+                except Exception:
                     st.error("An unexpected error occurred while creating student.")
 
     # Scoped Student Listing (Phase 14: Server-side scoped)
@@ -142,13 +165,17 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
             students = admin_service.get_students_for_admin(admin_id)
         except Exception:
             from backend.analytics.admin import get_class_students
+
             students = get_class_students(cls_int)
     else:
         from backend.analytics.admin import get_class_students
+
         students = get_class_students(cls_int)
 
     if not students:
-        st.info(f"No students currently registered in Class {cls_int}. Use the form above to add a student.")
+        st.info(
+            f"No students currently registered in Class {cls_int}. Use the form above to add a student."
+        )
     else:
         # Section Subtitle
         st.markdown(
@@ -173,7 +200,7 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
                         f"""
                         <div style="display: flex; align-items: center; gap: 10px; padding: 2px 0;">
                             <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--surface-container-highest); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--md-amber); font-size: 0.85rem;">
-                                {st_name[0].upper() if st_name else 'S'}
+                                {st_name[0].upper() if st_name else "S"}
                             </div>
                             <div>
                                 <div style="font-weight: 600; color: var(--text-primary);">{st_name}</div>
@@ -201,14 +228,18 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
                     # 1. Promote Button (Class 9 only)
                     with col_act1:
                         if s_class == 9:
-                            if st.button("Promote to 10", key=f"promote_{s_id}_{idx}", type="primary"):
+                            if st.button(
+                                "Promote to 10", key=f"promote_{s_id}_{idx}", type="primary"
+                            ):
                                 try:
-                                    admin_service.promote_student(admin_id=admin_id, student_id=s_id)
+                                    admin_service.promote_student(
+                                        admin_id=admin_id, student_id=s_id
+                                    )
                                     st.success(f"Promoted {st_name} to Class 10!")
                                     st.rerun()
                                 except PermissionDeniedError as pe:
                                     st.error(str(pe))
-                                except Exception as e:
+                                except Exception:
                                     st.error("Failed to promote student.")
                         else:
                             st.markdown(
@@ -236,15 +267,19 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
                                     st.session_state[pending_delete_key] = False
                                     st.rerun()
                             with c_confirm:
-                                if st.button("Confirm", key=f"btn_confirm_del_{s_id}_{idx}", type="primary"):
+                                if st.button(
+                                    "Confirm", key=f"btn_confirm_del_{s_id}_{idx}", type="primary"
+                                ):
                                     try:
-                                        admin_service.delete_student(admin_id=admin_id, student_id=s_id)
+                                        admin_service.delete_student(
+                                            admin_id=admin_id, student_id=s_id
+                                        )
                                         st.session_state[pending_delete_key] = False
                                         st.success(f"Deleted {st_name}.")
                                         st.rerun()
                                     except PermissionDeniedError as pe:
                                         st.error(str(pe))
-                                    except Exception as e:
+                                    except Exception:
                                         st.error("Failed to delete student.")
 
                 st.markdown(
@@ -293,7 +328,7 @@ def render_admin_screen(selected_class: str = "Class 10") -> None:
                 <div style="background: var(--surface-container); border: 1px solid var(--border-outline-variant); border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-primary); font-family: 'Outfit', sans-serif;">
-                            {ch['chapter']}
+                            {ch["chapter"]}
                         </div>
                         <span style="background: {badge_bg}; color: {color_theme}; font-weight: 700; font-size: 0.75rem; padding: 4px 10px; border-radius: 12px; letter-spacing: 0.05em;">
                             {status_txt}

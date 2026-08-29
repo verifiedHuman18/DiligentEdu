@@ -132,6 +132,74 @@ def retrieve_chapter_context_for_quiz(
     return "\n\n---\n\n".join(formatted_chunks)
 
 
+def clean_and_parse_json(raw_json_str: str) -> Dict[str, Any]:
+    """Cleans and robustly parses JSON string from LLMs, handling markdown fences and trailing commas."""
+    import re
+
+    if not raw_json_str or not raw_json_str.strip():
+        return {}
+
+    text = raw_json_str.strip()
+    # 1. Remove markdown code fences
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*```$", "", text)
+    text = text.strip()
+
+    # 2. Try direct parse first
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # 3. Remove trailing commas before closing brackets or braces
+    cleaned = re.sub(r",\s*([\]}])", r"\1", text)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    # 4. Extract first matching outer JSON object {...}
+    match = re.search(r"(\{.*\})", cleaned, re.DOTALL)
+    if match:
+        extracted = match.group(1)
+        extracted = re.sub(r",\s*([\]}])", r"\1", extracted)
+        return json.loads(extracted)
+
+    return json.loads(text)
+
+
+def _generate_quiz_from_llm(
+    messages: List[Dict[str, str]],
+    active_model: str,
+    api_key: Optional[str] = None,
+) -> str:
+    """Executes chat completion with fallback and returns raw content string."""
+    try:
+        response = execute_chat_completion(
+            messages=messages,
+            model=active_model,
+            response_format={"type": "json_object"},
+            temperature=0.3,
+            override_api_key=api_key,
+        )
+    except Exception as e:
+        logger.warning(
+            f"Primary model '{active_model}' failed ({e}). Retrying with fallback model '{config.fallback_llm_model}'..."
+        )
+        try:
+            response = execute_chat_completion(
+                messages=messages,
+                model=config.fallback_llm_model,
+                response_format={"type": "json_object"},
+                temperature=0.3,
+                override_api_key=api_key,
+            )
+        except Exception as retry_err:
+            raise QuizGenerationError(f"Gemini quiz generation failed: {retry_err}") from retry_err
+
+    return response.choices[0].message.content or "{}"
+
+
 def generate_quiz(
     class_level: int = 10,
     chapter: Union[str, int] = "Electricity",
@@ -195,34 +263,15 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
         {"role": "user", "content": user_prompt},
     ]
 
-    try:
-        response = execute_chat_completion(
-            messages=messages,
-            model=active_model,
-            response_format={"type": "json_object"},
-            temperature=0.3,
-            override_api_key=api_key,
-        )
-    except Exception as e:
-        logger.warning(
-            f"Primary model '{active_model}' failed ({e}). Retrying with fallback model '{config.fallback_llm_model}'..."
-        )
-        try:
-            response = execute_chat_completion(
-                messages=messages,
-                model=config.fallback_llm_model,
-                response_format={"type": "json_object"},
-                temperature=0.3,
-                override_api_key=api_key,
-            )
-        except Exception as retry_err:
-            raise QuizGenerationError(f"Gemini quiz generation failed: {retry_err}") from retry_err
-
-    raw_json_str = response.choices[0].message.content or "{}"
+    raw_json_str = _generate_quiz_from_llm(
+        messages=messages,
+        active_model=active_model,
+        api_key=api_key,
+    )
 
     try:
-        quiz_dict = json.loads(raw_json_str)
-    except json.JSONDecodeError as err:
+        quiz_dict = clean_and_parse_json(raw_json_str)
+    except Exception as err:
         logger.error(f"Failed to parse quiz response as JSON: {err}. Raw output:\n{raw_json_str}")
         raise QuizGenerationError(f"Model did not return valid JSON: {err}")
 

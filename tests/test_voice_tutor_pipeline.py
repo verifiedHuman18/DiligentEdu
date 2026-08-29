@@ -12,11 +12,9 @@ Verifies:
 9. Graceful degradation & error handling (Phases 5, 14).
 """
 
-import asyncio
 import os
-import tempfile
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 from backend.ai.speech_math import (
     clean_markdown_for_speech,
@@ -28,15 +26,8 @@ from backend.ai.speech_normalizer import (
     normalize_voice_transcript,
 )
 from backend.rag.engine import stream_ncert_rag_response
-from frontend.screens.tutor_screen import (
-    _get_fresh_suggestions,
-)
 from frontend.state import (
-    get_student_class_level,
-    get_student_subject,
     init_session_state,
-    set_student_class_level,
-    set_student_subject,
 )
 
 
@@ -54,7 +45,10 @@ class TestSpeechNormalizer(unittest.TestCase):
             ("state flemings left hand rule", "State Fleming's left-hand rule"),
             ("state archimedes principle", "State Archimedes' principle"),
             ("what did mendeleevs periodic table show", "What did Mendeleev's periodic table show"),
-            ("explain rutherfords gold foil experiment", "Explain Rutherford's gold foil experiment"),
+            (
+                "explain rutherfords gold foil experiment",
+                "Explain Rutherford's gold foil experiment",
+            ),
             ("explain mendels monohybrid cross", "Explain Mendel's monohybrid cross"),
         ]
         for raw, expected in cases:
@@ -66,7 +60,10 @@ class TestSpeechNormalizer(unittest.TestCase):
         cases = [
             ("find the hcf of 12 and 18", "Find the HCF of 12 and 18"),
             ("calculate lcm of 24 and 36", "Calculate LCM of 24 and 36"),
-            ("prove bpt for similar triangles", "Prove Basic Proportionality Theorem (BPT) for similar triangles"),
+            (
+                "prove bpt for similar triangles",
+                "Prove Basic Proportionality Theorem (BPT) for similar triangles",
+            ),
             ("find nth term of an ap", "Find nth term of an Arithmetic Progression (AP)"),
             ("show that lhs equals rhs", "Show that LHS equals RHS"),
         ]
@@ -114,7 +111,9 @@ class TestMathToSpeechConversion(unittest.TestCase):
 
     def test_quadratic_formula_speech(self):
         """Quadratic formula and discriminant convert to natural spoken English."""
-        quad_text = r"The discriminant is D = b^2 - 4ac and roots are x = \frac{-b \pm \sqrt{D}}{2a}."
+        quad_text = (
+            r"The discriminant is D = b^2 - 4ac and roots are x = \frac{-b \pm \sqrt{D}}{2a}."
+        )
         spoken = convert_math_to_speech(quad_text)
         self.assertIn("b squared minus 4 a c", spoken)
         self.assertIn("plus or minus", spoken)
@@ -138,7 +137,9 @@ class TestMathToSpeechConversion(unittest.TestCase):
 
     def test_chemical_formulas_speech(self):
         """Chemical formulas convert to speakable symbols."""
-        chem_text = "Photosynthesis combines CO_2 and H_2O to form glucose and O_2 with CaCO_3 precipitate."
+        chem_text = (
+            "Photosynthesis combines CO_2 and H_2O to form glucose and O_2 with CaCO_3 precipitate."
+        )
         spoken = convert_math_to_speech(chem_text)
         self.assertIn("C O 2", spoken)
         self.assertIn("H 2 O", spoken)
@@ -160,7 +161,9 @@ class TestTTSPreparationAndCitationStripping(unittest.TestCase):
             "- Physics Guide, Page 15\n"
         )
         spoken = prepare_text_for_speech(raw_response)
-        self.assertIn("Ohm's law states that electric current is directly proportional to voltage", spoken)
+        self.assertIn(
+            "Ohm's law states that electric current is directly proportional to voltage", spoken
+        )
         self.assertNotIn("### NCERT Textbook Citations", spoken)
         self.assertNotIn("NCERT Class 10 Science", spoken)
         self.assertNotIn("Student Reference Material Citations", spoken)
@@ -168,7 +171,9 @@ class TestTTSPreparationAndCitationStripping(unittest.TestCase):
 
     def test_inline_source_markers_stripped(self):
         """Inline [SOURCE: ...] tags and (Page 123) markers are stripped."""
-        text = "Water decomposes [SOURCE: NCERT Class 10 Science | PAGE: 25] (Page 25) into H2 and O2."
+        text = (
+            "Water decomposes [SOURCE: NCERT Class 10 Science | PAGE: 25] (Page 25) into H2 and O2."
+        )
         cleaned = strip_citations_and_metadata(text)
         self.assertNotIn("[SOURCE:", cleaned)
         self.assertNotIn("(Page 25)", cleaned)
@@ -316,7 +321,6 @@ class TestVoicePrivacyAndSessionState(unittest.TestCase):
     def test_zero_raw_audio_persistence(self):
         """Raw audio recording files must never be created or stored in SQLite/disk."""
         # Ensure no audio directory or audio blob table exists
-        import os
         self.assertFalse(os.path.exists("uploads/audio"))
         self.assertFalse(os.path.exists("data/recordings"))
 
