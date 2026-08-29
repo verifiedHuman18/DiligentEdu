@@ -20,22 +20,36 @@ if PROJECT_ROOT not in sys.path:
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
+
 # Ensure Prisma client is available (dynamic fallback for environments like Streamlit Cloud)
-try:
-    from prisma import Prisma  # noqa: F401
-except ImportError:
-    import subprocess
-    import tempfile
+def _ensure_prisma_client():
+    try:
+        from prisma import Prisma  # noqa: F401
 
-    tmp_dir = tempfile.gettempdir()
-    prisma_out_dir = os.path.join(tmp_dir, "prisma")
-    custom_schema_path = os.path.join(tmp_dir, "schema.prisma")
-
-    if not os.path.exists(os.path.join(prisma_out_dir, "client.py")):
-        print(f"Prisma client not found in environment. Generating into {prisma_out_dir}...")
+        return
+    except Exception as exc:
+        import subprocess
 
         schema_file = os.path.join(PROJECT_ROOT, "prisma", "schema.prisma")
-        if os.path.exists(schema_file):
+        if not os.path.exists(schema_file):
+            print(f"Warning: Prisma schema file not found at {schema_file}")
+            return
+
+        print(f"Prisma client initialization required ({type(exc).__name__}). Generating client...")
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "prisma", "generate", "--schema", schema_file]
+            )
+        except Exception as gen_err:
+            print(
+                f"Direct prisma generate failed: {gen_err}. Falling back to temporary directory..."
+            )
+            import tempfile
+
+            tmp_dir = tempfile.gettempdir()
+            prisma_out_dir = os.path.join(tmp_dir, "prisma")
+            custom_schema_path = os.path.join(tmp_dir, "schema.prisma")
+
             with open(schema_file, "r", encoding="utf-8") as f:
                 schema = f.read()
 
@@ -54,8 +68,20 @@ except ImportError:
                 [sys.executable, "-m", "prisma", "generate", "--schema", custom_schema_path]
             )
 
-    if tmp_dir not in sys.path:
-        sys.path.insert(0, tmp_dir)
+            if tmp_dir not in sys.path:
+                sys.path.insert(0, tmp_dir)
+
+        # Clear cached prisma entries from sys.modules so the generated client is reloaded
+        for mod in list(sys.modules.keys()):
+            if mod == "prisma" or mod.startswith("prisma."):
+                del sys.modules[mod]
+
+        from prisma import Prisma  # noqa: F401
+
+        print("Prisma client successfully loaded.")
+
+
+_ensure_prisma_client()
 
 from frontend import (
     get_user_role,
