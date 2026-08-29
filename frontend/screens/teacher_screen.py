@@ -89,7 +89,7 @@ def render_teacher_screen(
 
     if not has_history:
         st.info(
-            f"No quiz data found for student `{target_student_name}` in {teacher_class} {subject}. "
+            f"No quiz data found for student `{target_student_name}`. "
             "You can assign a customized study action plan below to guide their onboarding."
         )
     else:
@@ -300,7 +300,7 @@ def render_teacher_screen(
         icon=":material/tune:",
         expanded=is_customized,
     ):
-        st.markdown(f"##### Edit Study Plan for `{target_student_name}` ({teacher_class})")
+        st.markdown(f"##### Edit Study Plan for `{target_student_name}`")
         st.caption(
             "Select specific NCERT chapters, set difficulty levels, and provide tailored guidance. "
             "These priorities will immediately take top precedence in the student's Home Screen."
@@ -409,9 +409,7 @@ def render_teacher_screen(
                     teacher_notes=global_teacher_note,
                     subject=subject,
                 )
-                st.success(
-                    f"Custom action plan successfully assigned to `{target_student_name}` for {teacher_class} {subject}!"
-                )
+                st.success(f"Custom action plan successfully assigned to `{target_student_name}`!")
                 st.rerun()
 
         with b_c2:
@@ -426,9 +424,7 @@ def render_teacher_screen(
                 reset_teacher_action_plan(
                     student_id=target_student_id, class_level=cls_int, subject=subject
                 )
-                st.info(
-                    f"Restored automated SWAT action plan for `{target_student_name}` ({subject})."
-                )
+                st.info(f"Restored automated SWAT action plan for `{target_student_name}`.")
                 st.rerun()
 
     st.write("")

@@ -66,7 +66,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
     subject = get_student_subject()
 
     st.write("")
-    st.markdown(f"### NCERT Practice Quiz — Class {class_level} · {subject}")
+    st.markdown("### NCERT Practice Quiz")
 
     # Unified Mode Switcher (Sleek side-by-side buttons)
     current_mode = st.session_state.get("quiz_mode", "socrates")
@@ -133,10 +133,9 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
             ch_display_map[label] = ch["chapter"]
             ch_labels.append(label)
 
-
         default_idx = 0
         selected_ch_label = st.selectbox(
-            f"Chapter ({subject})", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
+            "Chapter", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
         )
         selected_ch_title = ch_display_map.get(
             selected_ch_label,
@@ -758,7 +757,7 @@ def _render_standard_quiz_mode(
     total_q = len(questions)
     is_submitted = st.session_state.get("quiz_submitted", False)
 
-    st.markdown(f"#### {chapter_name} Quiz — Class {curr_quiz.get('class_level', class_level)}")
+    st.markdown(f"#### {chapter_name} Quiz")
     st.caption(
         f"Difficulty: {curr_quiz.get('difficulty', 'medium').capitalize()} | Questions: {total_q}"
     )

@@ -7,7 +7,6 @@ from frontend.components import (
     render_header,
     render_metric_card,
     render_navbar,
-    render_sidebar,
     render_theme_switcher,
 )
 from frontend.screens import (
@@ -49,7 +48,6 @@ __all__ = [
     "render_navbar",
     "render_back_to_home",
     "render_header",
-    "render_sidebar",
     "render_theme_switcher",
     "render_metric_card",
     "render_citation_box",

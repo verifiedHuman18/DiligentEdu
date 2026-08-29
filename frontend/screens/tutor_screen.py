@@ -236,6 +236,7 @@ def _get_fresh_suggestions(
     if student_id:
         try:
             from backend.storage.repository import study_material_repository
+
             docs = study_material_repository.get_student_documents(
                 student_id=student_id, class_level=class_level, subject=subject
             )
@@ -254,7 +255,6 @@ def _get_fresh_suggestions(
         return ref_pick + ncert_pick
 
     return random.sample(ncert_pool, min(4, len(ncert_pool)))
-
 
 
 async def render_tutor_screen(
@@ -292,15 +292,15 @@ async def render_tutor_screen(
         pass
 
     st.write("")
-    st.markdown(f"### Ask a Doubt — Class {class_level} · {subject}")
+    st.markdown("### Ask a Doubt")
     st.caption(
-        f"Ask conceptual {subject.lower()} questions via voice or text with verified citations grounded in **NCERT Class {class_level} {subject}** and your uploaded study materials."
+        "Ask conceptual questions via voice or text with verified citations grounded in the **NCERT Curriculum** and your uploaded study materials."
     )
 
     # Active Sources Bar (M3 Chip Group)
     sources_chips = [
         '<div class="m3-chips-group" style="margin-bottom: 12px;">',
-        f'<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.05rem;">menu_book</span> NCERT Class {class_level} {subject} (Authoritative)</span>',
+        '<span class="m3-chip m3-chip-primary"><span class="material-symbols-outlined" style="font-size: 1.05rem;">menu_book</span> NCERT Curriculum (Authoritative)</span>',
     ]
     if mat_count > 0:
         sources_chips.append(
@@ -368,7 +368,7 @@ async def render_tutor_screen(
 
     # Chat Input
     prompt_input = st.chat_input(
-        f"Ask any question from NCERT Class {class_level} {subject} or your notes..."
+        placeholder="Ask any question from the NCERT curriculum or your notes...",
     )
     prompt = prompt_input or st.session_state.pop("active_prompt", None)
     input_method = st.session_state.pop("last_input_method", "text")
@@ -376,9 +376,9 @@ async def render_tutor_screen(
     if prompt:
         is_voice = False
         raw_prompt = prompt.strip()
-        if "\u200B[voice]" in raw_prompt:
+        if "\u200b[voice]" in raw_prompt:
             is_voice = True
-            raw_prompt = raw_prompt.replace("\u200B[voice]", "").strip()
+            raw_prompt = raw_prompt.replace("\u200b[voice]", "").strip()
             clean_prompt = normalize_voice_transcript(raw_prompt)
             input_method = "voice"
         elif input_method == "voice":
@@ -393,11 +393,13 @@ async def render_tutor_screen(
                 st.session_state.messages = []
 
             # Append user message (preserves input_method for multi-turn conversational history)
-            st.session_state.messages.append({
-                "role": "user",
-                "content": clean_prompt,
-                "input_method": input_method,
-            })
+            st.session_state.messages.append(
+                {
+                    "role": "user",
+                    "content": clean_prompt,
+                    "input_method": input_method,
+                }
+            )
             with st.chat_message("user"):
                 st.markdown(clean_prompt)
 
@@ -427,7 +429,7 @@ async def render_tutor_screen(
                         await asyncio.sleep(streaming_speed)
 
                     message_placeholder.markdown(full_response)
-                    
+
                     # Render TTS Audio Player with auto-play ONLY if question was asked by voice
                     render_tts_player_component(
                         display_text=full_response,
@@ -435,8 +437,6 @@ async def render_tutor_screen(
                         button_label="Listen to Answer",
                         auto_play=is_voice,
                     )
-
-
 
                 except GeminiQuotaExhaustedError:
                     message_placeholder.empty()
@@ -475,4 +475,3 @@ async def render_tutor_screen(
 
             # Append assistant message
             st.session_state.messages.append({"role": "assistant", "content": full_response})
-

@@ -44,7 +44,6 @@ def render_chapter_screen(
 
     st.write("")
     st.markdown(f"### Chapter {ch_num}: {ch_title}")
-    st.caption(f"Class {class_level} NCERT {subject} Textbook Module")
 
     # SECTION 1: Action Buttons & Textbook Access
     st.markdown(
@@ -191,12 +190,7 @@ def render_chapter_screen(
             )
 
         st.markdown(
-            f"""
-            <div style="background: var(--surface-container); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; border-left: 5px solid {badge_color};">
-                <div style="font-weight: 700; font-size: 0.82rem; color: {badge_color}; margin-bottom: 4px; text-transform: uppercase;">{badge_label}</div>
-                <div style="font-size: 0.86rem; color: var(--on-surface);">{badge_desc}</div>
-            </div>
-            """,
+            f"**Status:** <span style='color: {badge_color}; font-weight: 700;'>{badge_label}</span> — {badge_desc}",
             unsafe_allow_html=True,
         )
 

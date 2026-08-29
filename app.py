@@ -110,7 +110,8 @@ except RuntimeError:
 
 # Streamlit Page Configuration (Sidebar collapsed by default)
 st.set_page_config(
-    page_title="NCERT Science Academic Assistant",
+    page_title="DiligentEdu - Equitable Learning for All",
+    page_icon="frontend/assets/logo.png",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

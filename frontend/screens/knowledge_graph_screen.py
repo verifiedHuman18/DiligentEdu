@@ -543,11 +543,11 @@ def render_knowledge_graph_screen(
     subject = get_student_subject()
 
     st.write("")
-    header_html = textwrap.dedent(f"""\
+    header_html = textwrap.dedent("""\
 <div class="section-header-bar">
     <div>
         <h3 style="margin:0; font-size: 1.45rem; font-weight: 700; color: var(--on-surface);">
-             Knowledge Map — Class {class_level} · {subject}
+             Knowledge Map
         </h3>
         <div class="section-subtitle-text">
             Explore deep concept-level dependency maps, assess mastery across subtopics, and target weak areas with one-click practice.
@@ -561,7 +561,7 @@ def render_knowledge_graph_screen(
     # Available chapters for this class and subject
     avail_chapters = get_available_knowledge_map_chapters(class_level=class_level, subject=subject)
     if not avail_chapters:
-        st.warning(f"No registered concept maps found for Class {class_level} {subject}.")
+        st.warning("No registered concept maps found.")
         return
 
     chapter_options = [ch["chapter"] for ch in avail_chapters]

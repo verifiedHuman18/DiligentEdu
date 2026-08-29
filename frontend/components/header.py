@@ -15,7 +15,7 @@ def render_header(selected_class: str = "Class 10", student_id: str = "student_0
 
     html = textwrap.dedent(f"""\
 <div class="hero-header-container">
-<div class="hero-title">NCERT Academic Science Assistant</div>
+<div class="hero-title">Equitable Learning For All</div>
 <div class="hero-subtitle">Student: <b>{student_name}</b> | Class: <b>{class_label}</b></div>
 </div>\
 """)

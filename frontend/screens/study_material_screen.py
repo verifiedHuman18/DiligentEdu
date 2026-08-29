@@ -43,11 +43,11 @@ def render_study_material_screen(
     subject = get_student_subject()
 
     st.write("")
-    header_html = textwrap.dedent(f"""\
+    header_html = textwrap.dedent("""\
 <div class="section-header-bar">
     <div>
         <h3 style="margin:0; font-size: 1.45rem; font-weight: 700; color: var(--on-surface);">
-             My Study Material — Class {class_level} · {subject}
+             My Study Material
         </h3>
         <div class="section-subtitle-text">
             Upload and manage reference books, notes, and study material. Automatically indexed with local embeddings for your Tutor and Practice Quizzes.
@@ -75,20 +75,12 @@ def render_study_material_screen(
             clean_default = uploaded_file.name.replace(".pdf", "").replace("_", " ").title()
             mat_name_default = clean_default
 
-        c_name, c_subj = st.columns([2, 1])
-        with c_name:
+        with st.container():
             material_title = st.text_input(
                 "Material Title / Name",
                 value=mat_name_default,
-                placeholder=f"e.g. {subject} Reference Book, Important Notes",
+                placeholder="e.g. Reference Book, Important Notes",
                 key="study_mat_title_input",
-            )
-        with c_subj:
-            st.text_input(
-                "Subject",
-                value=subject,
-                disabled=True,
-                key="study_mat_subject_display",
             )
 
         # Chapter mapping (Optional)
@@ -109,10 +101,6 @@ def render_study_material_screen(
             # Extract chapter title
             if ":" in selected_ch_opt:
                 selected_chapter = selected_ch_opt.split(":", 1)[1].strip()
-
-        st.caption(
-            f" Bound automatically to your active profile: **Class {class_level} ({subject})**."
-        )
 
         if st.button(
             "Upload & Index Material",
@@ -198,7 +186,6 @@ def render_study_material_screen(
             size_str = _format_file_size(doc.get("file_size_bytes", 0))
             uploaded_at = doc.get("uploaded_at", "")[:10]
             ch_tag = doc.get("chapter") or "All Chapters"
-            doc_subj = doc.get("subject") or subject
 
             # Status Badge Styling
             if status == "READY":
@@ -221,7 +208,7 @@ def render_study_material_screen(
         <code>{filename}</code> &nbsp;·&nbsp; {size_str} &nbsp;·&nbsp; Uploaded: {uploaded_at}
     </div>
     <div style="font-size: 0.82rem; color: var(--md-primary); font-weight: 600;">
-        Class {class_level} {doc_subj} &nbsp;·&nbsp; Scope: {ch_tag} &nbsp;·&nbsp; {pages} Pages ({chunks} Chunks)
+        Scope: {ch_tag} &nbsp;·&nbsp; {pages} Pages ({chunks} Chunks)
     </div>
 </div>
 """)
