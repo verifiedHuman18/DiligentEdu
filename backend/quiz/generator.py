@@ -309,19 +309,22 @@ Generate the complete {num_questions}-question '{difficulty}' quiz now as a vali
             else ([concept_tag] if concept_tag else [])
         )
 
-        validated_questions.append(
-            {
-                "question": q_text,
-                "options": options,
-                "correct_answer": ans,
-                "explanation": explanation,
-                "difficulty": difficulty,
-                "chapter": ch_title,
-                "source_pages": source_pages,
-                "concept_id": concept_tag,
-                "concepts": concepts_list,
-            }
-        )
+        q_entry = {
+            "question": q_text,
+            "options": options,
+            "correct_answer": ans,
+            "explanation": explanation,
+            "difficulty": difficulty,
+            "chapter": ch_title,
+            "source_pages": source_pages,
+            "concept_id": concept_tag,
+            "concepts": concepts_list,
+        }
+        s_hints = q.get("socrates_hints")
+        if isinstance(s_hints, dict) and s_hints.get("thought_starter"):
+            q_entry["socrates_hints"] = s_hints
+
+        validated_questions.append(q_entry)
 
     quiz_dict["questions"] = validated_questions
     quiz_dict["total_questions"] = len(validated_questions)

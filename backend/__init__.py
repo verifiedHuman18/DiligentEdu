@@ -17,7 +17,6 @@ from backend.analytics.knowledge_graph import (
     get_available_knowledge_map_chapters,
     get_chapter_knowledge_graph,
 )
-
 from backend.analytics.performance_trend import (
     calculate_linear_regression,
     classify_trend_from_scores,
@@ -60,6 +59,7 @@ from backend.quiz.generator import (
 from backend.rag.engine import stream_ncert_rag_response
 from backend.rag.retriever import retrieve_ncert_context
 from backend.storage.repository import (
+    QuizRepository,
     count_student_study_materials,
     delete_student_study_material,
     get_student_class_history,
@@ -133,7 +133,9 @@ def get_chapters_with_status(
     db_path: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Flexible wrapper supporting both get_chapters_with_status(student_id, class_level=9) and get_chapters_with_status(class_level=9, student_id=...)."""
-    if isinstance(student_id_or_class, int) or (isinstance(student_id_or_class, str) and student_id_or_class.isdigit()):
+    if isinstance(student_id_or_class, int) or (
+        isinstance(student_id_or_class, str) and student_id_or_class.isdigit()
+    ):
         c_level = int(student_id_or_class)
         s_id = student_id
     else:
@@ -148,11 +150,32 @@ def get_chapters_with_status(
     )
 
 
+def get_student_quiz_history(
+    student_id: str,
+    class_level: Optional[int] = None,
+    subject: Optional[str] = None,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieves student quiz history with optional class and subject filtering."""
+    repo = QuizRepository(db_path=db_path) if db_path else quiz_repository
+    return repo.get_student_history(student_id=student_id, class_level=class_level, subject=subject)
+
+
+def clear_student_data(student_id: str, db_path: Optional[str] = None) -> bool:
+    """Clears all quiz history and student data for a student."""
+    repo = QuizRepository(db_path=db_path) if db_path else quiz_repository
+    repo.delete_student_cascade(student_id=student_id)
+    return True
+
+
 # Aliases for unified contracts
 get_student_action_plan = generate_action_plan
 get_teacher_swat = get_student_swat
 upload_student_study_material = upload_study_material
 delete_student_study_material_record = delete_study_material
+generate_student_quiz = create_student_quiz
+get_student_overview = get_teacher_student_overview
+get_student_chapter_stats = get_teacher_chapter_statistics
 
 
 __all__ = [
@@ -196,10 +219,9 @@ __all__ = [
     "calculate_student_concept_telemetry",
     "submit_quiz",
     "build_study_twin_profile",
-
     "find_study_twin",
     "calculate_twin_similarity",
     "get_student_performance_trend",
+    "calculate_linear_regression",
+    "classify_trend_from_scores",
 ]
-
-

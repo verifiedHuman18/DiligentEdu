@@ -406,19 +406,24 @@ def enrich_quiz_with_socrates(
 
     for q in questions:
         q_copy = dict(q)
-        # If hints not already present, generate them
-        if "socrates_hints" not in q_copy:
+        hints = q_copy.get("socrates_hints")
+        # If valid 3-tier hints are not already present from the 1-shot generation prompt,
+        # compute them instantly using deterministic Socratic template heuristics.
+        if not (
+            isinstance(hints, dict)
+            and hints.get("thought_starter")
+            and hints.get("guiding_principle")
+            and hints.get("socratic_deduction")
+        ):
             q_text = q_copy.get("question", "")
             opts = q_copy.get("options", [])
             exp = q_copy.get("explanation", "")
-            hints = generate_socrates_hints(
+            hints = _generate_fallback_hints(
                 question=q_text,
                 options=opts,
+                explanation=exp,
                 chapter=chapter,
                 class_level=class_level,
-                explanation=exp,
-                api_key=api_key,
-                model=model,
             )
             q_copy["socrates_hints"] = hints
         enriched_questions.append(q_copy)

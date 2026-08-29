@@ -51,6 +51,10 @@ GUIDELINES:
 5. 'correct_answer' MUST be a single letter string: 'A', 'B', 'C', or 'D'.
 6. 'source_pages' MUST be a list of integer page numbers corresponding to the [PAGE: X] tags in the excerpts where the concept is taught.
 7. 'explanation' MUST be a detailed, pedagogical explanation justifying why the correct answer is right and why other options are incorrect.
+8. 'socrates_hints' MUST provide a 3-tier progressive hint object for the question:
+   - "thought_starter": (Tier 1) An intuitive inquiry or thought-provoking question about the core phenomenon.
+   - "guiding_principle": (Tier 2) The foundational scientific law, NCERT definition, or formula relationship.
+   - "socratic_deduction": (Tier 3) A logical deduction clue that helps eliminate distractors without directly revealing the answer.
 
 OUTPUT FORMAT (JSON OBJECT):
 You MUST respond with a valid JSON object matching this exact JSON schema:
@@ -73,7 +77,12 @@ You MUST respond with a valid JSON object matching this exact JSON schema:
       "explanation": "Step-by-step reasoning explaining the correct answer referencing NCERT textbook concepts.",
       "difficulty": "{difficulty}",
       "chapter": "{ch_title}",
-      "source_pages": [6]
+      "source_pages": [6],
+      "socrates_hints": {{
+        "thought_starter": "Intuitive question about the core concept...",
+        "guiding_principle": "Fundamental NCERT rule or formula...",
+        "socratic_deduction": "Clue to eliminate distractors..."
+      }}
     }}
   ]
 }}
