@@ -1,6 +1,9 @@
 """Analytics package."""
 
-from backend.analytics.action_plan import generate_action_plan
+from backend.analytics.action_plan import (
+    generate_action_plan,
+    invalidate_action_plan_cache,
+)
 from backend.analytics.knowledge_graph import (
     calculate_student_concept_telemetry,
     get_available_knowledge_map_chapters,
@@ -18,6 +21,7 @@ from backend.analytics.swat import (
     get_available_chapters,
     get_student_swat,
     get_unattempted_chapters,
+    invalidate_swat_cache,
 )
 from backend.analytics.teacher import (
     get_student_status,
@@ -34,6 +38,8 @@ __all__ = [
     "get_attempted_chapters",
     "get_unattempted_chapters",
     "generate_action_plan",
+    "invalidate_action_plan_cache",
+    "invalidate_swat_cache",
     "format_swat_report",
     "calculate_student_swat",
     "get_teacher_student_overview",

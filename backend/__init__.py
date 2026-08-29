@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 from backend.analytics.action_plan import (
     generate_action_plan,
     get_teacher_action_plan,
+    invalidate_action_plan_cache,
     reset_teacher_action_plan,
     save_teacher_action_plan,
 )
@@ -33,6 +34,7 @@ from backend.analytics.swat import (
     get_available_chapters,
     get_student_swat,
     get_unattempted_chapters,
+    invalidate_swat_cache,
 )
 from backend.analytics.teacher import (
     get_student_status,
@@ -198,12 +200,14 @@ __all__ = [
     "submit_and_grade_quiz",
     "get_next_quiz_config",
     "get_student_swat",
+    "invalidate_swat_cache",
     "get_student_action_plan",
     "get_chapters_with_status",
     "get_available_chapters",
     "get_attempted_chapters",
     "get_unattempted_chapters",
     "generate_action_plan",
+    "invalidate_action_plan_cache",
     "format_swat_report",
     "get_teacher_student_overview",
     "get_teacher_swat",

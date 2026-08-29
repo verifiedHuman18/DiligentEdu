@@ -207,6 +207,17 @@ class QuizRepository:
             except Exception as sq_err:
                 logger.debug(f"SQLite attempt persistence fallback: {sq_err}")
 
+            try:
+                from backend.analytics.action_plan import invalidate_action_plan_cache
+                from backend.analytics.swat import invalidate_swat_cache
+
+                invalidate_swat_cache(clean_student_id, class_level=class_level, subject=subject)
+                invalidate_action_plan_cache(
+                    clean_student_id, class_level=class_level, subject=subject
+                )
+            except Exception:
+                pass
+
             return {
                 "quiz_id": q_id,
                 "student_id": clean_student_id,
@@ -265,6 +276,15 @@ class QuizRepository:
             if not self.db_path:
                 logger.error(f"Failed to record quiz attempt: {e}")
                 raise StorageError(f"Failed to record quiz attempt in database: {e}")
+
+        try:
+            from backend.analytics.action_plan import invalidate_action_plan_cache
+            from backend.analytics.swat import invalidate_swat_cache
+
+            invalidate_swat_cache(clean_student_id, class_level=class_level, subject=subject)
+            invalidate_action_plan_cache(clean_student_id, class_level=class_level, subject=subject)
+        except Exception:
+            pass
 
         return {
             "quiz_id": q_id,
@@ -478,14 +498,41 @@ class QuizRepository:
             return []
 
     def clear_student_data(self, student_id: str) -> None:
-        self._ensure_connected()
         clean_id = str(student_id).strip()
+        if self.db_path:
+            try:
+                import sqlite3
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute(
+                    "DELETE FROM question_responses WHERE quiz_id IN (SELECT quiz_id FROM quiz_attempts WHERE student_id = ?)",
+                    (clean_id,),
+                )
+                cursor.execute("DELETE FROM quiz_attempts WHERE student_id = ?", (clean_id,))
+                cursor.execute("DELETE FROM teacher_action_plans WHERE student_id = ?", (clean_id,))
+                conn.commit()
+                conn.close()
+            except Exception as sq_err:
+                logger.debug(f"SQLite clear_student_data note: {sq_err}")
+
+        self._ensure_connected()
         try:
             self.db.quizattempt.delete_many(where={"student_id": clean_id})
             self.db.teacheractionplan.delete_many(where={"student_id": clean_id})
         except Exception as e:
-            logger.error(f"Failed to clear data for {student_id}: {e}")
-            raise StorageError(f"Failed to delete student records: {e}")
+            if not self.db_path:
+                logger.error(f"Failed to clear data for {student_id}: {e}")
+                raise StorageError(f"Failed to delete student records: {e}")
+
+        try:
+            from backend.analytics.action_plan import invalidate_action_plan_cache
+            from backend.analytics.swat import invalidate_swat_cache
+
+            invalidate_action_plan_cache(clean_id)
+            invalidate_swat_cache(clean_id)
+        except Exception:
+            pass
 
     def delete_student_cascade(self, student_id: str) -> Dict[str, Any]:
         """
@@ -497,7 +544,6 @@ class QuizRepository:
         - StudyTwinMatch records
         - User record
         """
-        self._ensure_connected()
         clean_id = str(student_id).strip()
 
         # 1. SQLite fallback cleanup if db_path is configured
@@ -512,10 +558,18 @@ class QuizRepository:
                     (clean_id,),
                 )
                 cursor.execute("DELETE FROM quiz_attempts WHERE student_id = ?", (clean_id,))
+                cursor.execute("DELETE FROM teacher_action_plans WHERE student_id = ?", (clean_id,))
+                cursor.execute("DELETE FROM uploaded_documents WHERE student_id = ?", (clean_id,))
+                cursor.execute(
+                    "DELETE FROM study_twin_matches WHERE student_id = ? OR twin_student_id = ?",
+                    (clean_id, clean_id),
+                )
                 conn.commit()
                 conn.close()
             except Exception as e:
                 logger.debug(f"SQLite cascade cleanup note: {e}")
+
+        self._ensure_connected()
 
         # 2. Prisma relational cleanup
         try:
@@ -556,10 +610,21 @@ class QuizRepository:
             except Exception as e:
                 logger.debug(f"User table deletion note: {e}")
 
+            try:
+                from backend.analytics.action_plan import invalidate_action_plan_cache
+                from backend.analytics.swat import invalidate_swat_cache
+
+                invalidate_action_plan_cache(clean_id)
+                invalidate_swat_cache(clean_id)
+            except Exception:
+                pass
+
             return {"student_id": clean_id, "deleted": True}
         except Exception as e:
-            logger.error(f"Failed to cascade delete student {clean_id}: {e}")
-            raise StorageError(f"Failed to cascade delete student: {e}")
+            if not self.db_path:
+                logger.error(f"Failed to cascade delete student {clean_id}: {e}")
+                raise StorageError(f"Failed to cascade delete student: {e}")
+            return {"student_id": clean_id, "deleted": True}
 
     def get_all_student_ids(self) -> List[str]:
         self._ensure_connected()
@@ -577,13 +642,52 @@ class QuizRepository:
         teacher_notes: Optional[str] = None,
         subject: str = "Science",
     ) -> Dict[str, Any]:
-        self._ensure_connected()
         clean_id = str(student_id).strip()
         class_int = int(class_level)
         subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
         plan_json = json.dumps(plan_data)
         notes = (str(teacher_notes).strip()) if teacher_notes is not None else None
         ts = datetime.now(timezone.utc).isoformat()
+
+        if self.db_path:
+            try:
+                import sqlite3
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO teacher_action_plans (student_id, class_level, subject, plan_data, teacher_notes, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(student_id, class_level, subject) DO UPDATE SET
+                        plan_data = excluded.plan_data,
+                        teacher_notes = excluded.teacher_notes,
+                        updated_at = excluded.updated_at
+                    """,
+                    (clean_id, class_int, subj_clean, plan_json, notes, ts),
+                )
+                conn.commit()
+                conn.close()
+            except Exception as sq_err:
+                logger.debug(f"SQLite save_teacher_action_plan error: {sq_err}")
+
+            try:
+                from backend.analytics.action_plan import invalidate_action_plan_cache
+
+                invalidate_action_plan_cache(clean_id, class_level=class_int, subject=subj_clean)
+            except Exception:
+                pass
+
+            return {
+                "student_id": clean_id,
+                "class_level": class_int,
+                "subject": subj_clean,
+                "plan_data": plan_data,
+                "teacher_notes": notes,
+                "updated_at": ts,
+            }
+
+        self._ensure_connected()
 
         try:
             existing = self.db.teacheractionplan.find_first(
@@ -611,6 +715,13 @@ class QuizRepository:
             )
             raise StorageError(f"Failed to save teacher action plan: {e}")
 
+        try:
+            from backend.analytics.action_plan import invalidate_action_plan_cache
+
+            invalidate_action_plan_cache(clean_id, class_level=class_int, subject=subj_clean)
+        except Exception:
+            pass
+
         return {
             "student_id": clean_id,
             "class_level": class_int,
@@ -623,10 +734,40 @@ class QuizRepository:
     def get_teacher_custom_plan(
         self, student_id: str, class_level: int, subject: str = "Science"
     ) -> Optional[Dict[str, Any]]:
-        self._ensure_connected()
         clean_id = str(student_id).strip()
         class_int = int(class_level)
         subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+
+        if self.db_path:
+            try:
+                import sqlite3
+
+                conn = sqlite3.connect(self.db_path)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT * FROM teacher_action_plans WHERE student_id = ? AND class_level = ? AND subject = ?",
+                    (clean_id, class_int, subj_clean),
+                )
+                row = cursor.fetchone()
+                conn.close()
+                if not row:
+                    return None
+                r_dict = dict(row)
+                return {
+                    "student_id": clean_id,
+                    "class_level": class_int,
+                    "subject": subj_clean,
+                    "plan_data": json.loads(r_dict.get("plan_data") or "{}"),
+                    "teacher_notes": r_dict.get("teacher_notes"),
+                    "updated_at": r_dict.get("updated_at"),
+                }
+            except Exception as sq_err:
+                logger.debug(f"SQLite get_teacher_custom_plan error: {sq_err}")
+                return None
+
+        self._ensure_connected()
+
         try:
             plan = self.db.teacheractionplan.find_first(
                 where={"student_id": clean_id, "class_level": class_int, "subject": subj_clean}
@@ -650,16 +791,54 @@ class QuizRepository:
     def delete_teacher_action_plan(
         self, student_id: str, class_level: int, subject: str = "Science"
     ) -> bool:
-        self._ensure_connected()
         clean_id = str(student_id).strip()
         class_int = int(class_level)
         subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+
+        if self.db_path:
+            try:
+                import sqlite3
+
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                cursor.execute(
+                    "DELETE FROM teacher_action_plans WHERE student_id = ? AND class_level = ? AND subject = ?",
+                    (clean_id, class_int, subj_clean),
+                )
+                deleted = cursor.rowcount > 0
+                conn.commit()
+                conn.close()
+
+                try:
+                    from backend.analytics.action_plan import invalidate_action_plan_cache
+
+                    invalidate_action_plan_cache(
+                        clean_id, class_level=class_int, subject=subj_clean
+                    )
+                except Exception:
+                    pass
+
+                return deleted
+            except Exception as sq_err:
+                logger.debug(f"SQLite delete_teacher_action_plan error: {sq_err}")
+                return False
+
+        self._ensure_connected()
+
         try:
             plan = self.db.teacheractionplan.find_first(
                 where={"student_id": clean_id, "class_level": class_int, "subject": subj_clean}
             )
             if plan:
                 self.db.teacheractionplan.delete(where={"id": plan.id})
+                try:
+                    from backend.analytics.action_plan import invalidate_action_plan_cache
+
+                    invalidate_action_plan_cache(
+                        clean_id, class_level=class_int, subject=subj_clean
+                    )
+                except Exception:
+                    pass
                 return True
             return False
         except Exception as e:
@@ -743,6 +922,15 @@ class StudyMaterialRepository:
                 conn.close()
             except Exception:
                 pass
+            try:
+                from backend.analytics.action_plan import invalidate_action_plan_cache
+                from backend.analytics.swat import invalidate_swat_cache
+
+                invalidate_action_plan_cache(clean_student_id)
+                invalidate_swat_cache(clean_student_id)
+            except Exception:
+                pass
+
             return {
                 "document_id": clean_doc_id,
                 "student_id": clean_student_id,
@@ -799,6 +987,15 @@ class StudyMaterialRepository:
             logger.error(f"Failed to save document record {clean_doc_id}: {e}")
             raise StorageError(f"Failed to save document record in database: {e}")
 
+        try:
+            from backend.analytics.action_plan import invalidate_action_plan_cache
+            from backend.analytics.swat import invalidate_swat_cache
+
+            invalidate_action_plan_cache(clean_student_id)
+            invalidate_swat_cache(clean_student_id)
+        except Exception:
+            pass
+
         return {
             "document_id": clean_doc_id,
             "student_id": clean_student_id,
@@ -836,6 +1033,14 @@ class StudyMaterialRepository:
 
         try:
             self.db.uploadeddocument.update(where={"document_id": clean_doc_id}, data=data)
+            try:
+                from backend.analytics.action_plan import invalidate_action_plan_cache
+                from backend.analytics.swat import invalidate_swat_cache
+
+                invalidate_action_plan_cache()
+                invalidate_swat_cache()
+            except Exception:
+                pass
             return True
         except Exception as e:
             logger.error(f"Failed to update status for document {clean_doc_id}: {e}")
@@ -945,6 +1150,16 @@ class StudyMaterialRepository:
                 )
                 conn.commit()
                 conn.close()
+
+                try:
+                    from backend.analytics.action_plan import invalidate_action_plan_cache
+                    from backend.analytics.swat import invalidate_swat_cache
+
+                    invalidate_action_plan_cache(student_id)
+                    invalidate_swat_cache(student_id)
+                except Exception:
+                    pass
+
                 return True
             except Exception:
                 return False
@@ -958,6 +1173,16 @@ class StudyMaterialRepository:
             if student_id is not None and doc.student_id != str(student_id).strip():
                 return False
             self.db.uploadeddocument.delete(where={"document_id": clean_doc_id})
+
+            try:
+                from backend.analytics.action_plan import invalidate_action_plan_cache
+                from backend.analytics.swat import invalidate_swat_cache
+
+                invalidate_action_plan_cache(student_id)
+                invalidate_swat_cache(student_id)
+            except Exception:
+                pass
+
             return True
         except Exception as e:
             if not self.db_path:
@@ -1004,9 +1229,10 @@ def delete_student_study_material(
     student_id: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> bool:
-    return study_material_repository.delete_document_record(
-        document_id=document_id, student_id=student_id
+    repo = (
+        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
     )
+    return repo.delete_document_record(document_id=document_id, student_id=student_id)
 
 
 def count_student_study_materials(
@@ -1015,9 +1241,10 @@ def count_student_study_materials(
     subject: Optional[str] = None,
     db_path: Optional[str] = None,
 ) -> int:
-    return study_material_repository.count_student_documents(
-        student_id=student_id, class_level=class_level, subject=subject
+    repo = (
+        study_material_repository if db_path is None else StudyMaterialRepository(db_path=db_path)
     )
+    return repo.count_student_documents(student_id=student_id, class_level=class_level)
 
 
 def save_study_twin_match(
@@ -1137,10 +1364,27 @@ def get_all_candidate_student_ids(
     clean_exclude = str(exclude_student_id).strip() if exclude_student_id else None
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
 
+    if db_path:
+        try:
+            import sqlite3
+
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT DISTINCT student_id FROM quiz_attempts WHERE class_level = ? AND (subject = ? OR subject = '' OR subject IS NULL)",
+                (int(class_level), subj_clean),
+            )
+            for r in cursor.fetchall():
+                if r[0] and r[0] != clean_exclude:
+                    candidates.add(r[0])
+            conn.close()
+            return sorted(list(candidates))
+        except Exception as e:
+            logger.debug(f"SQLite candidates error: {e}")
+            return []
+
     try:
         db = get_prisma_client()
-        if not db.is_connected():
-            db.connect()
 
         attempts = db.quizattempt.find_many(
             where={"class_level": int(class_level), "subject": {"in": [subj_clean, ""]}},

@@ -303,6 +303,40 @@ class CurriculumService:
 # Singleton instance
 curriculum_service = CurriculumService()
 
+import functools
+
+
+@functools.lru_cache(maxsize=32)
+def _get_ncert_curriculum_cached(cls_int: int, subj_canonical: str) -> Tuple[Dict[str, Any], ...]:
+    subj_slug = "math" if "math" in subj_canonical.lower() else "science"
+    chapters = curriculum_service.get_chapters_for_grade(cls_int, subject=subj_canonical)
+    results = []
+    folder_name = f"class{cls_int}_{'maths' if subj_slug == 'math' else 'sci'}"
+    for ch in chapters:
+        slug = (
+            ch.chapter_title.lower()
+            .replace(" ", "_")
+            .replace("–", "-")
+            .replace(":", "")
+            .replace("'", "")
+        )
+        chapter_id = f"class{cls_int}_{subj_slug}_{slug}"
+        pdf_path = f"data/{folder_name}/{ch.filename}"
+        static_url = f"app/static/{folder_name}/{ch.filename}"
+        results.append(
+            {
+                "class_level": cls_int,
+                "subject": subj_canonical,
+                "chapter_id": chapter_id,
+                "chapter_number": ch.chapter_number,
+                "chapter": ch.chapter_title,
+                "filename": ch.filename,
+                "pdf_path": pdf_path,
+                "static_url": static_url,
+            }
+        )
+    return tuple(results)
+
 
 def get_ncert_curriculum(class_level: int, subject: str = "Science") -> List[Dict[str, Any]]:
     """
@@ -329,35 +363,9 @@ def get_ncert_curriculum(class_level: int, subject: str = "Science") -> List[Dic
     subj_clean = str(subject).strip().lower()
     is_math = "math" in subj_clean
     subj_canonical = "Mathematics" if is_math else "Science"
-    subj_slug = "math" if is_math else "science"
 
-    chapters = curriculum_service.get_chapters_for_grade(cls_int, subject=subj_canonical)
-    results = []
-    folder_name = f"class{cls_int}_{'maths' if is_math else 'sci'}"
-    for ch in chapters:
-        slug = (
-            ch.chapter_title.lower()
-            .replace(" ", "_")
-            .replace("–", "-")
-            .replace(":", "")
-            .replace("'", "")
-        )
-        chapter_id = f"class{cls_int}_{subj_slug}_{slug}"
-        pdf_path = f"data/{folder_name}/{ch.filename}"
-        static_url = f"app/static/{folder_name}/{ch.filename}"
-        results.append(
-            {
-                "class_level": cls_int,
-                "subject": subj_canonical,
-                "chapter_id": chapter_id,
-                "chapter_number": ch.chapter_number,
-                "chapter": ch.chapter_title,
-                "filename": ch.filename,
-                "pdf_path": pdf_path,
-                "static_url": static_url,
-            }
-        )
-    return results
+    cached_tuple = _get_ncert_curriculum_cached(cls_int, subj_canonical)
+    return [dict(item) for item in cached_tuple]
 
 
 def ensure_static_assets() -> None:
@@ -378,6 +386,71 @@ def ensure_static_assets() -> None:
                                 shutil.copy2(os.path.join(src_dir, fname), dst_path)
                             except Exception:
                                 pass
+
+
+@functools.lru_cache(maxsize=64)
+def _get_chapter_pdf_cached(
+    cls_int: int, chapter_identifier: Union[int, str], subj_canonical: str
+) -> Tuple[Tuple[str, Any], ...]:
+    is_math = "math" in subj_canonical.lower()
+    subj_slug = "math" if is_math else "science"
+
+    ch_num, ch_title = curriculum_service.resolve_chapter(
+        cls_int, chapter_identifier, subject=subj_canonical
+    )
+
+    # Lookup authoritative filename
+    class_key = f"class{cls_int}_mathematics" if is_math else f"class{cls_int}_science"
+    class_map = curriculum_service.get_mapping().get(class_key, {})
+    if not class_map and not is_math:
+        class_map = curriculum_service.get_mapping().get(f"class{cls_int}", {})
+
+    filename = None
+    for fname, info in class_map.items():
+        if info.get("chapter_number") == ch_num or info.get("chapter") == ch_title:
+            filename = fname
+            break
+
+    if is_math:
+        prefix = "iemh1" if cls_int == 9 else "jemh1"
+        fallback_fn = f"{prefix}{ch_num:02d}.pdf"
+    else:
+        prefix = "iesc1" if cls_int == 9 else "jesc1"
+        fallback_fn = f"{prefix}{ch_num:02d}.pdf"
+
+    filename = filename or fallback_fn
+
+    folder_name = f"class{cls_int}_{'maths' if is_math else 'sci'}"
+    pdf_path = os.path.join("data", folder_name, filename)
+    file_exists = os.path.isfile(pdf_path)
+
+    # Secondary fallback check
+    if not file_exists:
+        alt_folder = f"class{cls_int}"
+        alt_path = os.path.join("data", alt_folder, filename)
+        if os.path.isfile(alt_path):
+            file_exists = True
+
+    static_url = f"app/static/{folder_name}/{filename}"
+    slug = ch_title.lower().replace(" ", "_").replace("–", "-").replace(":", "").replace("'", "")
+    chapter_id = f"class{cls_int}_{subj_slug}_{slug}"
+    external_url = f"https://ncert.nic.in/textbook.php?{prefix}=1-14"
+    official_pdf_url = f"https://ncert.nic.in/textbook/pdf/{filename}"
+
+    result_dict = {
+        "class_level": cls_int,
+        "subject": subj_canonical,
+        "chapter_id": chapter_id,
+        "chapter_number": ch_num,
+        "chapter_name": ch_title,
+        "filename": filename,
+        "pdf_path": pdf_path.replace("\\", "/"),
+        "static_url": static_url,
+        "external_url": external_url,
+        "official_pdf_url": official_pdf_url,
+        "exists": file_exists,
+    }
+    return tuple(result_dict.items())
 
 
 def get_chapter_pdf(
@@ -408,54 +481,9 @@ def get_chapter_pdf(
     subj_clean = str(subject).strip().lower()
     is_math = "math" in subj_clean
     subj_canonical = "Mathematics" if is_math else "Science"
-    subj_slug = "math" if is_math else "science"
 
-    ch_num, ch_title = curriculum_service.resolve_chapter(
-        cls_int, chapter_identifier, subject=subj_canonical
-    )
-
-    # Lookup authoritative filename
-    class_key = f"class{cls_int}_mathematics" if is_math else f"class{cls_int}_science"
-    class_map = curriculum_service.get_mapping().get(class_key, {})
-    if not class_map and not is_math:
-        class_map = curriculum_service.get_mapping().get(f"class{cls_int}", {})
-
-    filename = None
-    for fname, info in class_map.items():
-        if info.get("chapter_number") == ch_num or info.get("chapter") == ch_title:
-            filename = fname
-            break
-
-    if is_math:
-        prefix = "iemh1" if cls_int == 9 else "jemh1"
-    else:
-        prefix = "iesc1" if cls_int == 9 else "jesc1"
-
-    if not filename:
-        filename = f"{prefix}{ch_num:02d}.pdf"
-
-    folder_name = f"class{cls_int}_{'maths' if is_math else 'sci'}"
-    pdf_path = os.path.join("data", folder_name, filename)
-    clean_pdf_path = pdf_path.replace("\\", "/")
-    slug = ch_title.lower().replace(" ", "_").replace("–", "-").replace(":", "").replace("'", "")
-    chapter_id = f"class{cls_int}_{subj_slug}_{slug}"
-    static_url = f"app/static/{folder_name}/{filename}"
-    external_url = f"https://ncert.nic.in/textbook.php?{prefix}=1-14"
-    official_pdf_url = f"https://ncert.nic.in/textbook/pdf/{filename}"
-
-    return {
-        "class_level": cls_int,
-        "subject": subj_canonical,
-        "chapter_id": chapter_id,
-        "chapter_number": ch_num,
-        "chapter_name": ch_title,
-        "filename": filename,
-        "pdf_path": clean_pdf_path,
-        "static_url": static_url,
-        "external_url": external_url,
-        "official_pdf_url": official_pdf_url,
-        "exists": os.path.isfile(pdf_path),
-    }
+    cached_items = _get_chapter_pdf_cached(cls_int, chapter_identifier, subj_canonical)
+    return dict(cached_items)
 
 
 # Automatically ensure static PDF directory is ready for Streamlit static serving

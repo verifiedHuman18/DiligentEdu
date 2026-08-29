@@ -1,13 +1,46 @@
 """Student SWAT (Strengths, Weaknesses, Accuracy, Topics) Analysis Engine (Zero LLM calls)."""
 
+import copy
 import logging
-from typing import Any, Dict, List, Optional
+import threading
+import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend.config import AVERAGE_THRESHOLD, STRONG_THRESHOLD
 from backend.curriculum.service import curriculum_service
 from backend.storage.repository import quiz_repository
 
 logger = logging.getLogger(__name__)
+
+_SWAT_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_SWAT_CACHE_LOCK = threading.Lock()
+_SWAT_CACHE_TTL = 300.0  # 5 minutes TTL
+
+
+def invalidate_swat_cache(
+    student_id: Optional[str] = None,
+    class_level: Optional[int] = None,
+    subject: Optional[str] = None,
+) -> None:
+    """Invalidates in-memory SWAT cache for specific student or globally."""
+    with _SWAT_CACHE_LOCK:
+        if not student_id:
+            _SWAT_CACHE.clear()
+            return
+        clean_id = str(student_id).strip()
+        keys_to_del = []
+        for k in _SWAT_CACHE.keys():
+            parts = k.split(":")
+            if len(parts) >= 3:
+                k_sid, k_cls, k_sub = parts[0], parts[1], parts[2]
+                if k_sid == clean_id:
+                    if class_level is not None and k_cls != str(class_level) and k_cls != "auto":
+                        continue
+                    if subject is not None and k_sub.lower() != str(subject).lower():
+                        continue
+                    keys_to_del.append(k)
+        for k in keys_to_del:
+            _SWAT_CACHE.pop(k, None)
 
 
 def get_attempted_chapters(
@@ -94,10 +127,22 @@ def get_student_swat(
       - 🔴 weak (< average_threshold, default < 50%)
       - ⚪ unattempted (score=None, attempts=0; 0% != Not Attempted)
     """
+    clean_id = str(student_id).strip()
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+    cache_key = f"{clean_id}:{class_level or 'auto'}:{subj_clean}:{db_path or 'default'}:{strong_threshold}:{average_threshold}"
+
+    now = time.time()
+    with _SWAT_CACHE_LOCK:
+        if cache_key in _SWAT_CACHE:
+            ts, val = _SWAT_CACHE[cache_key]
+            if now - ts < _SWAT_CACHE_TTL:
+                return copy.deepcopy(val)
+            else:
+                _SWAT_CACHE.pop(cache_key, None)
+
     repo = quiz_repository if db_path is None else type(quiz_repository)(db_path=db_path)
     history = repo.get_student_history(
-        student_id, class_level=class_level, subject=subj_clean, include_questions=False
+        clean_id, class_level=class_level, subject=subj_clean, include_questions=False
     )
 
     target_class = (
@@ -168,8 +213,8 @@ def get_student_swat(
         except Exception:
             pass
 
-        return {
-            "student_id": student_id,
+        res_empty = {
+            "student_id": clean_id,
             "class_level": target_class,
             "has_data": False,
             "uploaded_materials_count": docs_count,
@@ -190,6 +235,9 @@ def get_student_swat(
                 "summary": "No quiz attempts recorded yet.",
             },
         }
+        with _SWAT_CACHE_LOCK:
+            _SWAT_CACHE[cache_key] = (now, copy.deepcopy(res_empty))
+        return res_empty
 
     chapter_map: Dict[str, Dict[str, Any]] = {}
     total_questions = 0
@@ -367,8 +415,8 @@ def get_student_swat(
     except Exception:
         pass
 
-    return {
-        "student_id": student_id,
+    res_full = {
+        "student_id": clean_id,
         "class_level": target_class,
         "has_data": True,
         "uploaded_materials_count": uploaded_count,
@@ -389,6 +437,9 @@ def get_student_swat(
             "summary": trend_summary,
         },
     }
+    with _SWAT_CACHE_LOCK:
+        _SWAT_CACHE[cache_key] = (now, copy.deepcopy(res_full))
+    return res_full
 
 
 def get_available_chapters(

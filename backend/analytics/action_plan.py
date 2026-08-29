@@ -1,12 +1,46 @@
 """Action-Plan Recommendation Engine (Zero LLM calls, Deterministic Rules + Teacher Customization)."""
 
+import collections
+import copy
 import logging
-from typing import Any, Dict, List, Optional
+import threading
+import time
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend.analytics.swat import get_student_swat
 from backend.storage.repository import QuizRepository, quiz_repository
 
 logger = logging.getLogger(__name__)
+
+_ACTION_PLAN_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_ACTION_PLAN_CACHE_LOCK = threading.Lock()
+_ACTION_PLAN_CACHE_TTL = 300.0  # 5 minutes TTL
+
+
+def invalidate_action_plan_cache(
+    student_id: Optional[str] = None,
+    class_level: Optional[int] = None,
+    subject: Optional[str] = None,
+) -> None:
+    """Invalidates in-memory Action Plan cache for specific student or globally."""
+    with _ACTION_PLAN_CACHE_LOCK:
+        if not student_id:
+            _ACTION_PLAN_CACHE.clear()
+            return
+        clean_id = str(student_id).strip()
+        keys_to_del = []
+        for k in _ACTION_PLAN_CACHE.keys():
+            parts = k.split(":")
+            if len(parts) >= 3:
+                k_sid, k_cls, k_sub = parts[0], parts[1], parts[2]
+                if k_sid == clean_id:
+                    if class_level is not None and k_cls != str(class_level) and k_cls != "auto":
+                        continue
+                    if subject is not None and k_sub.lower() != str(subject).lower():
+                        continue
+                    keys_to_del.append(k)
+        for k in keys_to_del:
+            _ACTION_PLAN_CACHE.pop(k, None)
 
 
 def generate_action_plan(
@@ -22,12 +56,28 @@ def generate_action_plan(
     based on the student's unified SWAT performance, unattempted chapters,
     or active Teacher Customizations for a specific subject (Phases 13, 14, 18).
     """
+    clean_id = str(student_id).strip()
     subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+
+    # Only use cache when swat is not explicitly passed (or when default call)
+    cache_key = (
+        f"{clean_id}:{class_level or 'auto'}:{subj_clean}:{db_path or 'default'}:{check_custom}"
+    )
+    now = time.time()
+    if swat is None:
+        with _ACTION_PLAN_CACHE_LOCK:
+            if cache_key in _ACTION_PLAN_CACHE:
+                ts, val = _ACTION_PLAN_CACHE[cache_key]
+                if now - ts < _ACTION_PLAN_CACHE_TTL:
+                    return copy.deepcopy(val)
+                else:
+                    _ACTION_PLAN_CACHE.pop(cache_key, None)
+
     active_swat = (
         swat
         if swat is not None
         else get_student_swat(
-            student_id, class_level=class_level, subject=subj_clean, db_path=db_path
+            clean_id, class_level=class_level, subject=subj_clean, db_path=db_path
         )
     )
     target_class = active_swat.get("class_level") or (
@@ -37,30 +87,36 @@ def generate_action_plan(
 
     # 1. Check for Active Teacher Custom Action Plan
     custom_record = (
-        repo.get_teacher_custom_plan(student_id, target_class, subject=subj_clean)
+        repo.get_teacher_custom_plan(clean_id, target_class, subject=subj_clean)
         if check_custom
         else None
     )
 
     if custom_record and custom_record.get("plan_data"):
         plan = _build_custom_teacher_action_plan(
-            student_id=student_id,
+            student_id=clean_id,
             target_class=target_class,
             swat=active_swat,
             custom_record=custom_record,
             db_path=db_path,
         )
         plan["subject"] = subj_clean
+        if swat is None:
+            with _ACTION_PLAN_CACHE_LOCK:
+                _ACTION_PLAN_CACHE[cache_key] = (now, copy.deepcopy(plan))
         return plan
 
     # 2. Build Automated SWAT Action Plan
     plan = _build_automated_swat_action_plan(
-        student_id=student_id,
+        student_id=clean_id,
         target_class=target_class,
         swat=active_swat,
         db_path=db_path,
     )
     plan["subject"] = subj_clean
+    if swat is None:
+        with _ACTION_PLAN_CACHE_LOCK:
+            _ACTION_PLAN_CACHE[cache_key] = (now, copy.deepcopy(plan))
     return plan
 
 
@@ -69,44 +125,51 @@ def _build_automated_swat_action_plan(
     target_class: int,
     swat: Dict[str, Any],
     db_path: Optional[str] = None,
+    uploaded_docs: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Generates standard rule-based action plan purely from SWAT analytics."""
     actions: List[Dict[str, Any]] = []
 
     # Check student's uploaded materials for recommended resources (Phase 17)
-    uploaded_docs: List[Dict[str, Any]] = []
-    try:
-        from backend.storage.repository import (
-            StudyMaterialRepository,
-            study_material_repository,
-        )
+    if uploaded_docs is None:
+        uploaded_docs = []
+        try:
+            from backend.storage.repository import (
+                StudyMaterialRepository,
+                study_material_repository,
+            )
 
-        m_repo = (
-            study_material_repository
-            if db_path is None
-            else StudyMaterialRepository(db_path=db_path)
-        )
-        uploaded_docs = m_repo.get_student_documents(
-            student_id=student_id, class_level=target_class
-        )
-        uploaded_docs = [d for d in uploaded_docs if d.get("status") == "READY"]
-    except Exception:
-        pass
+            m_repo = (
+                study_material_repository
+                if db_path is None
+                else StudyMaterialRepository(db_path=db_path)
+            )
+            uploaded_docs = m_repo.get_student_documents(
+                student_id=student_id, class_level=target_class
+            )
+            uploaded_docs = [d for d in uploaded_docs if d.get("status") == "READY"]
+        except Exception:
+            pass
+
+    # Build O(1) fast chapter index for uploaded materials
+    ch_docs_map: Dict[str, List[Dict[str, Any]]] = collections.defaultdict(list)
+    all_chapters_docs: List[Dict[str, Any]] = []
+
+    for doc in uploaded_docs:
+        d_ch = doc.get("chapter")
+        doc_entry = {
+            "document_id": doc.get("document_id"),
+            "material_name": doc.get("material_name"),
+            "filename": doc.get("filename"),
+            "page_count": doc.get("page_count", 0),
+        }
+        if not d_ch or d_ch.strip() == "All Chapters":
+            all_chapters_docs.append(doc_entry)
+        else:
+            ch_docs_map[d_ch.strip().lower()].append(doc_entry)
 
     def _find_matching_materials(ch_name: str) -> List[Dict[str, Any]]:
-        matches = []
-        for doc in uploaded_docs:
-            d_ch = doc.get("chapter")
-            if not d_ch or d_ch == "All Chapters" or d_ch.lower() == ch_name.lower():
-                matches.append(
-                    {
-                        "document_id": doc.get("document_id"),
-                        "material_name": doc.get("material_name"),
-                        "filename": doc.get("filename"),
-                        "page_count": doc.get("page_count", 0),
-                    }
-                )
-        return matches
+        return ch_docs_map.get(ch_name.strip().lower(), []) + all_chapters_docs
 
     # Priority 1 — Weak chapters (HIGH PRIORITY)
     for item in swat.get("weak", []):
@@ -334,8 +397,30 @@ def _build_custom_teacher_action_plan(
         )
         seen_chapters.add(ch_title)
 
+    # Fetch materials once for both custom actions and fallback actions
+    uploaded_docs: List[Dict[str, Any]] = []
+    try:
+        from backend.storage.repository import (
+            StudyMaterialRepository,
+            study_material_repository,
+        )
+
+        m_repo = (
+            study_material_repository
+            if db_path is None
+            else StudyMaterialRepository(db_path=db_path)
+        )
+        uploaded_docs = m_repo.get_student_documents(
+            student_id=student_id, class_level=target_class
+        )
+        uploaded_docs = [d for d in uploaded_docs if d.get("status") == "READY"]
+    except Exception:
+        pass
+
     # Append standard SWAT actions for non-customized chapters to ensure complete coverage
-    auto_plan = _build_automated_swat_action_plan(student_id, target_class, swat, db_path=db_path)
+    auto_plan = _build_automated_swat_action_plan(
+        student_id, target_class, swat, db_path=db_path, uploaded_docs=uploaded_docs
+    )
     remaining_actions = []
     current_rank = len(enriched_custom_actions) + 1
 
@@ -401,18 +486,18 @@ def save_teacher_action_plan(
     if class_int not in (9, 10):
         raise ValueError(f"Invalid class_level: {class_level}. Must be 9 or 10.")
 
+    clean_id = str(student_id).strip()
     repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
     plan_data = {"actions": actions}
     repo.save_teacher_action_plan(
-        student_id=str(student_id).strip(),
+        student_id=clean_id,
         class_level=class_int,
         plan_data=plan_data,
         teacher_notes=teacher_notes,
         subject=subject,
     )
-    return generate_action_plan(
-        str(student_id).strip(), class_level=class_int, subject=subject, db_path=db_path
-    )
+    invalidate_action_plan_cache(clean_id, class_level=class_int, subject=subject)
+    return generate_action_plan(clean_id, class_level=class_int, subject=subject, db_path=db_path)
 
 
 def reset_teacher_action_plan(
@@ -427,10 +512,13 @@ def reset_teacher_action_plan(
     if not student_id or not str(student_id).strip():
         raise ValueError("student_id cannot be empty.")
     class_int = int(class_level)
+    clean_id = str(student_id).strip()
     repo = quiz_repository if db_path is None else QuizRepository(db_path=db_path)
-    return repo.delete_teacher_action_plan(
-        student_id=str(student_id).strip(), class_level=class_int, subject=subject
+    res = repo.delete_teacher_action_plan(
+        student_id=clean_id, class_level=class_int, subject=subject
     )
+    invalidate_action_plan_cache(clean_id, class_level=class_int, subject=subject)
+    return res
 
 
 def get_teacher_action_plan(
