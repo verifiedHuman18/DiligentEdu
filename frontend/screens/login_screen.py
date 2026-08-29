@@ -22,7 +22,7 @@ def render_login_screen() -> None:
     hero_html = textwrap.dedent("""\
 <div class="login-hero">
 <div class="login-brand">Diligent<span class="login-brand-accent">Edu</span></div>
-<div class="login-tagline">NCERT Science Assistant & Diagnostic Portal</div>
+<div class="login-tagline">Equitable Learning For All</div>
 <div class="login-subtagline">Sign in with your school-provided credentials</div>
 </div>\
 """)
