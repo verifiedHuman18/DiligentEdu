@@ -61,9 +61,9 @@ def run_quiz_test():
             "D",
         ], f"Q{i} invalid correct_answer: {q['correct_answer']}"
         assert "explanation" in q and q["explanation"], f"Q{i} missing explanation"
-        assert "source_pages" in q and isinstance(q["source_pages"], list), (
-            f"Q{i} missing source_pages"
-        )
+        assert "source_pages" in q and isinstance(
+            q["source_pages"], list
+        ), f"Q{i} missing source_pages"
 
     print("\n✅ Test 1 Passed Successfully!")
 

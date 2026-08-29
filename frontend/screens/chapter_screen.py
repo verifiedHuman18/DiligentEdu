@@ -142,6 +142,10 @@ def render_chapter_screen(
             use_container_width=True,
             help="Take a practice quiz on this chapter",
         ):
+            st.session_state.selected_quiz_chapter = ch_title
+            st.session_state.current_quiz = None
+            st.session_state.quiz_submitted = False
+            st.session_state.quiz_user_answers = {}
             navigate_to("quiz")
             st.rerun()
 

@@ -76,9 +76,9 @@ async def test_direct_rag():
 
     # Verification assertions
     assert len(full_response) > 100, "Response should be substantive"
-    assert "V = IR" in full_response or "V = I" in full_response or "Ohm" in full_response, (
-        "Expected Ohm's law formula"
-    )
+    assert (
+        "V = IR" in full_response or "V = I" in full_response or "Ohm" in full_response
+    ), "Expected Ohm's law formula"
     assert "NCERT" in full_response, "Expected NCERT citation block"
     assert "Electricity" in full_response or "Chapter" in full_response, "Expected chapter citation"
 

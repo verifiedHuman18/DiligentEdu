@@ -179,6 +179,10 @@ Welcome! Explore your curriculum, upload personal reference books, take practice
                         help=f"Practice {act['chapter']} now ({diff_str} difficulty)",
                     ):
                         st.session_state.quiz_difficulty = act["difficulty"]
+                        st.session_state.selected_quiz_chapter = act["chapter"]
+                        st.session_state.current_quiz = None
+                        st.session_state.quiz_submitted = False
+                        st.session_state.quiz_user_answers = {}
                         navigate_to("quiz")
                         st.rerun()
 

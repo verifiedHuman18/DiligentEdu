@@ -210,6 +210,7 @@ def _generate_quiz_from_llm(
     messages: List[Dict[str, str]],
     active_model: str,
     api_key: Optional[str] = None,
+    temperature: float = 0.7,
 ) -> str:
     """Executes chat completion with fallback and returns raw content string."""
     try:
@@ -217,7 +218,7 @@ def _generate_quiz_from_llm(
             messages=messages,
             model=active_model,
             response_format={"type": "json_object"},
-            temperature=0.3,
+            temperature=temperature,
             override_api_key=api_key,
         )
     except Exception as e:
@@ -229,7 +230,7 @@ def _generate_quiz_from_llm(
                 messages=messages,
                 model=config.fallback_llm_model,
                 response_format={"type": "json_object"},
-                temperature=0.3,
+                temperature=temperature,
                 override_api_key=api_key,
             )
         except Exception as retry_err:

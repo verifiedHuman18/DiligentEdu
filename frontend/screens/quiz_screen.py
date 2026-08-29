@@ -30,8 +30,7 @@ def _invalidate_quiz_chapter_cache() -> None:
             del st.session_state[k]
 
 
-@st.cache_data(ttl=1800, show_spinner=False)
-def _get_or_create_cached_quiz(
+def _generate_fresh_quiz(
     student_id: str,
     chapter: str,
     class_level: int,
@@ -41,7 +40,7 @@ def _get_or_create_cached_quiz(
     api_key: str,
     model: str,
 ) -> Dict[str, Any]:
-    """Generates and caches chapter quizzes for fast instant loading."""
+    """Generates a fresh, un-cached chapter quiz for the selected chapter on every request."""
     gen = create_student_quiz(
         student_id=student_id,
         chapter=chapter,
@@ -156,7 +155,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
 
         st.write("")
 
-        # Controls Grid: Chapter, Difficulty, Question Count (Cached in session)
+        # Controls Grid: Chapter, Difficulty, Question Count
         c1, c2, c3 = st.columns([3.0, 1.2, 1.2])
 
         chs_cache_key = f"quiz_chs_{student_id}_{class_level}_{subject}"
@@ -169,7 +168,10 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
         with c1:
             ch_display_map = {}
             ch_labels = []
-            for ch in available_chs:
+            default_idx = 0
+            preset_ch = st.session_state.pop("selected_quiz_chapter", None)
+
+            for idx, ch in enumerate(available_chs):
                 status_tag = (
                     f"[{ch['status'].upper()}]"
                     if ch["status"] not in ("unattempted", "not_attempted")
@@ -180,9 +182,17 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
                 ch_display_map[label] = ch["chapter"]
                 ch_labels.append(label)
 
-            default_idx = 0
+                if preset_ch and (
+                    str(preset_ch).strip().lower() in ch["chapter"].strip().lower()
+                    or str(preset_ch).strip() == str(ch.get("chapter_number"))
+                ):
+                    default_idx = idx
+
             selected_ch_label = st.selectbox(
-                "Chapter", ch_labels, index=default_idx, key=f"screen_quiz_ch_{subject}"
+                "Chapter",
+                ch_labels,
+                index=default_idx,
+                key=f"screen_quiz_ch_{subject}_{default_idx}",
             )
             selected_ch_title = ch_display_map.get(
                 selected_ch_label,
@@ -208,7 +218,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
             use_container_width=True,
         ):
             with st.spinner(
-                f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level} {subject})..."
+                f"Generating fresh {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level} {subject})..."
             ):
                 try:
                     import copy
@@ -219,7 +229,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
                         GeminiQuotaExhaustedError,
                     )
 
-                    generated_raw = _get_or_create_cached_quiz(
+                    generated_raw = _generate_fresh_quiz(
                         student_id=student_id,
                         chapter=selected_ch_title,
                         class_level=class_level,
@@ -418,6 +428,28 @@ def _render_socrates_completed_screen(
                             f'<div class="socrates-chat-msg-bot"><strong>Socrates:</strong> {msg["content"]}</div>',
                             unsafe_allow_html=True,
                         )
+
+    st.write("")
+    st.divider()
+    c_act1, c_act2, c_act3 = st.columns([1, 1.8, 1])
+    with c_act2:
+        if st.button(
+            "Take Another Quiz / New Chapter",
+            type="primary",
+            icon=":material/replay:",
+            use_container_width=True,
+            key="soc_take_another_quiz_btn",
+        ):
+            st.session_state.current_quiz = None
+            st.session_state.quiz_submitted = False
+            st.session_state.quiz_user_answers = {}
+            st.session_state.last_submission_result = None
+            st.session_state.socrates_completed = False
+            st.session_state.socrates_active_q = 1
+            st.session_state.socrates_attempts = {}
+            st.session_state.socrates_chat_history = {}
+            st.session_state.socrates_hints_revealed = {}
+            st.rerun()
 
 
 async def _render_socrates_quiz_mode(
@@ -948,3 +980,19 @@ def _render_standard_quiz_mode(
 
             st.session_state.quiz_submitted = True
             st.rerun()
+    else:
+        st.write("")
+        c_std1, c_std2, c_std3 = st.columns([1, 1.8, 1])
+        with c_std2:
+            if st.button(
+                "Take Another Quiz / New Chapter",
+                type="primary",
+                icon=":material/replay:",
+                use_container_width=True,
+                key="std_take_another_quiz_btn",
+            ):
+                st.session_state.current_quiz = None
+                st.session_state.quiz_submitted = False
+                st.session_state.quiz_user_answers = {}
+                st.session_state.last_submission_result = None
+                st.rerun()
