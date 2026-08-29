@@ -295,17 +295,31 @@ def retrieve_hybrid_academic_context(
         api_key=api_key,
     )
 
-    # 2. Retrieve Student Material context (supplementary)
+    # 2. Retrieve Student Material context (supplementary only if student has uploaded documents)
     student_ctx = ""
     if student_id:
-        student_ctx = retrieve_student_material_context(
-            query=query,
-            student_id=student_id,
-            class_filter=class_filter,
-            subject_filter=subject_filter,
-            top_k=student_top_k,
-            api_key=api_key,
-        )
+        has_docs = False
+        try:
+            from backend.storage.repository import study_material_repository
+
+            has_docs = (
+                study_material_repository.count_student_documents(
+                    student_id=student_id, class_level=class_filter, subject=subject_filter
+                )
+                > 0
+            )
+        except Exception:
+            has_docs = True  # fallback to searching if db check fails
+
+        if has_docs:
+            student_ctx = retrieve_student_material_context(
+                query=query,
+                student_id=student_id,
+                class_filter=class_filter,
+                subject_filter=subject_filter,
+                top_k=student_top_k,
+                api_key=api_key,
+            )
 
     # 3. Format Combined Context with explicit source demarcation
     has_student = bool(student_ctx and student_ctx.strip())

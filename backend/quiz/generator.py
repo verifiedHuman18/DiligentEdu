@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from functools import lru_cache
 from typing import Any, Dict, List, Optional, Union
 
 import pymupdf
@@ -15,7 +16,7 @@ from backend.exceptions import (
 )
 from backend.rag.prompts import QUIZ_GENERATOR_SYSTEM_PROMPT_TEMPLATE
 from backend.rag.retriever import (
-    get_embeddings,
+    embed_query_fast,
     get_pinecone_index,
     retrieve_student_material_context,
 )
@@ -23,29 +24,23 @@ from backend.rag.retriever import (
 logger = logging.getLogger(__name__)
 
 
-def retrieve_chapter_context_for_quiz(
+@lru_cache(maxsize=128)
+def _cached_retrieve_ncert_chapter_context(
     class_level: int,
     chapter_number: int,
     chapter_title: str,
-    subject: str = "Science",
-    student_id: Optional[str] = None,
+    subj_clean: str = "Science",
     top_k: int = 8,
-    pinecone_api_key: Optional[str] = None,
-    api_key: Optional[str] = None,
+    effective_pinecone_key: Optional[str] = None,
 ) -> str:
-    """Retrieves representative NCERT textbook chunks and supplementary student reference material across the chapter and subject."""
-    embeddings = get_embeddings()
-    effective_pinecone_key = pinecone_api_key or (
-        api_key if api_key and not api_key.startswith("AIza") else None
-    )
+    """In-memory cached retrieval of static NCERT textbook chapter chunks."""
     index = get_pinecone_index(api_key=effective_pinecone_key)
-    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
 
     query_text = (
         f"NCERT Class {class_level} {subj_clean} Chapter {chapter_number} {chapter_title} "
         f"concepts, definitions, formulas, laws, theorems, experiments, and exercises"
     )
-    query_vector = embeddings.embed_query(query_text)
+    query_vector = embed_query_fast(query_text)
 
     filter_dict = {
         "class": {"$eq": int(class_level)},
@@ -110,26 +105,69 @@ def retrieve_chapter_context_for_quiz(
         except Exception as _pdf_err:
             logger.warning(f"Could not extract local PDF fallback for quiz: {_pdf_err}")
 
-    # Retrieve Supplementary Student Uploaded Material if present (Phase 13)
-    if student_id:
-        try:
-            student_ref = retrieve_student_material_context(
-                query=f"{chapter_title} concepts examples formulas",
-                student_id=student_id,
-                class_filter=class_level,
-                chapter_filter=chapter_title,
-                subject_filter=subj_clean,
-                top_k=3,
-                api_key=effective_pinecone_key,
-            )
-            if student_ref and student_ref.strip():
-                formatted_chunks.append(
-                    f"[SUPPLEMENTARY STUDENT REFERENCE MATERIAL]\n{student_ref}"
-                )
-        except Exception as e:
-            logger.warning(f"Could not retrieve student reference for quiz: {e}")
-
     return "\n\n---\n\n".join(formatted_chunks)
+
+
+def retrieve_chapter_context_for_quiz(
+    class_level: int,
+    chapter_number: int,
+    chapter_title: str,
+    subject: str = "Science",
+    student_id: Optional[str] = None,
+    top_k: int = 8,
+    pinecone_api_key: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> str:
+    """Retrieves representative NCERT textbook chunks and supplementary student reference material across the chapter and subject."""
+    effective_pinecone_key = pinecone_api_key or (
+        api_key if api_key and not api_key.startswith("AIza") else None
+    )
+    subj_clean = "Mathematics" if "math" in str(subject).lower() else "Science"
+
+    # 1. Fetch static NCERT chapter excerpts from cache (instant)
+    ncert_content = _cached_retrieve_ncert_chapter_context(
+        class_level=int(class_level),
+        chapter_number=int(chapter_number),
+        chapter_title=str(chapter_title),
+        subj_clean=subj_clean,
+        top_k=top_k,
+        effective_pinecone_key=effective_pinecone_key,
+    )
+
+    chunks = [ncert_content] if ncert_content else []
+
+    # 2. Retrieve Supplementary Student Uploaded Material ONLY if student has uploaded documents
+    if student_id:
+        has_docs = False
+        try:
+            from backend.storage.repository import study_material_repository
+
+            has_docs = (
+                study_material_repository.count_student_documents(
+                    student_id=student_id, class_level=class_level, subject=subj_clean
+                )
+                > 0
+            )
+        except Exception:
+            has_docs = True
+
+        if has_docs:
+            try:
+                student_ref = retrieve_student_material_context(
+                    query=f"{chapter_title} concepts examples formulas",
+                    student_id=student_id,
+                    class_filter=class_level,
+                    chapter_filter=chapter_title,
+                    subject_filter=subj_clean,
+                    top_k=3,
+                    api_key=effective_pinecone_key,
+                )
+                if student_ref and student_ref.strip():
+                    chunks.append(f"[SUPPLEMENTARY STUDENT REFERENCE MATERIAL]\n{student_ref}")
+            except Exception as e:
+                logger.warning(f"Could not retrieve student reference for quiz: {e}")
+
+    return "\n\n---\n\n".join(chunks)
 
 
 def clean_and_parse_json(raw_json_str: str) -> Dict[str, Any]:

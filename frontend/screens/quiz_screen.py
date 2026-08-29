@@ -30,6 +30,31 @@ def _invalidate_quiz_chapter_cache() -> None:
             del st.session_state[k]
 
 
+@st.cache_data(ttl=1800, show_spinner=False)
+def _get_or_create_cached_quiz(
+    student_id: str,
+    chapter: str,
+    class_level: int,
+    subject: str,
+    num_questions: int,
+    difficulty: str,
+    api_key: str,
+    model: str,
+) -> Dict[str, Any]:
+    """Generates and caches chapter quizzes for fast instant loading."""
+    gen = create_student_quiz(
+        student_id=student_id,
+        chapter=chapter,
+        class_level=class_level,
+        subject=subject,
+        num_questions=num_questions,
+        difficulty=difficulty,
+        api_key=api_key,
+        model=model,
+    )
+    return enrich_quiz_with_socrates(gen, api_key=api_key, model=model)
+
+
 def _extract_options(raw_options: Any) -> tuple[List[str], Dict[str, str]]:
     """Normalizes question options into display labels and option letters map."""
     opt_labels = []
@@ -186,13 +211,15 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
                 f"Generating {quiz_count}-question {quiz_diff} quiz for {selected_ch_title} (Class {class_level} {subject})..."
             ):
                 try:
+                    import copy
+
                     from backend.exceptions import (
                         GeminiAuthError,
                         GeminiConfigurationError,
                         GeminiQuotaExhaustedError,
                     )
 
-                    generated = create_student_quiz(
+                    generated_raw = _get_or_create_cached_quiz(
                         student_id=student_id,
                         chapter=selected_ch_title,
                         class_level=class_level,
@@ -202,11 +229,7 @@ async def render_quiz_screen(student_id: str, user_api_key: str, selected_model:
                         api_key=user_api_key,
                         model=selected_model,
                     )
-                    # Enrich with Socratic hints
-                    generated = enrich_quiz_with_socrates(
-                        generated, api_key=user_api_key, model=selected_model
-                    )
-                    st.session_state.current_quiz = generated
+                    st.session_state.current_quiz = copy.deepcopy(generated_raw)
                     st.session_state.quiz_submitted = False
                     st.session_state.quiz_user_answers = {}
                     st.session_state.last_submission_result = None
